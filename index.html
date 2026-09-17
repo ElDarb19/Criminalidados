@@ -374,26 +374,56 @@
 
   <!-- ==================== PANTALLA SETUP ==================== -->
   <div id="setup-screen" class="screen">
-    <!-- PANEL DE SALA ONLINE (FIREBASE) -->
-    <div id="network-panel" class="setup-card" style="text-align:center; border-color: var(--accent-cyan);">
-        <h2 style="color: var(--accent-cyan); font-size: 1.3rem;">SALA: <span id="room-id-display"></span></h2>
-        <p id="network-status" style="font-size: 0.85rem; margin-bottom:12px; font-weight:bold;"></p>
-        <button class="btn-action" style="border-color: var(--accent-cyan); color: var(--accent-cyan);" onclick="copyInviteLink()">📋 Copiar Enlace de Invitación</button>
-    </div>
-
     <!-- BOTÓN MANUAL DE CAPO -->
     <button class="btn-guide-trigger" onclick="openManualGuide()">📖 MANUAL DEL CAPO</button>
 
     <h1>CRIMEN URBANO<br><span style="font-size:1rem; color:var(--text-light); font-family:'Inter'; letter-spacing:3px;">PARTY ARCADE</span></h1>
     
+    <!-- SELECTOR DE MODO DE JUEGO (LOCAL vs ONLINE) -->
     <div class="setup-card">
+      <h2>Modo de Juego</h2>
+      <div class="options-grid" style="margin-bottom: 0;">
+        <div class="card-option selected" id="m-local" onclick="setGameMode('local')">
+          <h3>📱 Local<br><small style="font-weight:400; opacity:0.7;">Un Mismo Dispositivo</small></h3>
+        </div>
+        <div class="card-option" id="m-online" onclick="setGameMode('online')">
+          <h3>🌐 Online<br><small style="font-weight:400; opacity:0.7;">Dos Dispositivos</small></h3>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANEL DE RED (Solo visible si eliges Online) -->
+    <div id="network-panel" class="setup-card hidden" style="border-color: var(--accent-cyan);">
+      <h2>Conexión Multijugador</h2>
+      <div style="display:flex; gap:10px; margin-bottom:10px;">
+        <button class="btn-action" style="flex:1; border-color:var(--accent-cyan); color:#fff;" onclick="createOnlineRoom()">👑 Crear Sala</button>
+        <button class="btn-action" style="flex:1; border-color:var(--accent-gold); color:#fff;" onclick="showJoinRoomInput()">🔑 Unirse a Sala</button>
+      </div>
+
+      <!-- Formulario para ingresar código manualmente -->
+      <div id="join-room-box" class="hidden" style="margin-top:10px;">
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="room-code-input" placeholder="CÓDIGO (Ej: AB12)" maxlength="6" style="text-transform:uppercase; text-align:center; font-weight:bold; letter-spacing:2px;">
+          <button class="btn-confirm" style="margin:0; width:auto; padding:0 20px;" onclick="joinOnlineRoom()">ENTRAR</button>
+        </div>
+      </div>
+
+      <!-- Info de Sala Activa -->
+      <div id="online-info-box" class="hidden" style="margin-top:12px; text-align:center;">
+        <p style="font-size: 1rem; font-weight:bold; color:var(--accent-cyan); margin-bottom:5px;">SALA: <span id="room-id-display">-</span></p>
+        <p id="network-status" style="font-size: 0.85rem; margin-bottom:12px; font-weight:bold;"></p>
+        <button class="btn-action" style="border-color: var(--accent-cyan); color: var(--accent-cyan);" onclick="copyInviteLink()">📋 Copiar Enlace de Invitación</button>
+      </div>
+    </div>
+
+    <div class="setup-card" id="setup-card-players">
       <h2>Jefes de la Mafia</h2>
       <div class="input-group"><input type="text" id="p1-name-input" placeholder="Capo 1 (Alpha)"></div>
       <div class="input-group"><input type="text" id="p2-name-input" placeholder="Capo 2 (Bravo)"></div>
     </div>
 
     <!-- SELECTOR DE COLOR PREDEFINIDO CON PREVISUALIZACIÓN GRANDE -->
-    <div class="setup-card">
+    <div class="setup-card" id="setup-card-colors">
       <h2>Color del Dado y Traje</h2>
       <div style="display: flex; gap: 15px; width: 100%;">
         <div style="flex: 1; text-align: center;">
@@ -428,7 +458,7 @@
       </div>
     </div>
 
-    <div class="setup-card">
+    <div class="setup-card" id="setup-card-game">
       <div class="party-toggle">
         <span style="font-weight: 600; font-size: 0.95rem;">GUERRA TOTAL (Modo Party)</span>
         <label class="switch">
@@ -472,7 +502,7 @@
       </div>
     </div>
 
-    <div class="setup-card">
+    <div class="setup-card" id="setup-card-dice">
       <h2>Lanzamiento de Dados</h2>
       <div class="options-grid" style="margin-bottom: 0;">
         <div class="card-option selected" id="d-virt" onclick="setDice('virtual')"><h3>Virtuales</h3></div>
@@ -480,8 +510,7 @@
       </div>
     </div>
 
-    <!-- Modificado para funcionar con el sistema de Host de Firebase -->
-    <button class="btn-confirm" onclick="hostStartCoreGame()">¡COMENZAR!</button>
+    <button class="btn-confirm" id="btn-start-game" onclick="onStartButtonClick()">¡COMENZAR!</button>
   </div>
 
   <!-- ==================== PANTALLA JUEGO COMPARTIDA ==================== -->
@@ -528,7 +557,6 @@
 
       <div class="log-box" id="rpg-log-box"></div>
 
-      <!-- Modificados onclick para despachar acciones por Firebase -->
       <div class="action-panel">
         <button class="btn-action" id="rpg-btn-q" onclick="dispatchAction('rpgAction', 'quick')">RÁFAGA TOMMY GUN<br><small style="font-weight:400; opacity:0.7;">1d6 Daño Directo</small></button>
         <button class="btn-action" id="rpg-btn-s" onclick="dispatchAction('rpgAction', 'strong')">FRANCOTIRADOR<br><small style="font-weight:400; opacity:0.7;">d20 >= 11 ? 1d12 Daño</small></button>
@@ -572,7 +600,6 @@
 
       <div class="log-box" id="exp-log-box"></div>
 
-      <!-- Modificados onclick para despachar acciones por Firebase -->
       <div class="action-panel">
         <button class="btn-action" id="exp-btn-q" onclick="dispatchAction('expAction', 'explore')">SAQUEAR CAJAS<br><small style="font-weight:400; opacity:0.7;">1d6 (Trampa 1-2)</small></button>
         <button class="btn-action" id="exp-btn-s" onclick="dispatchAction('expAction', 'deep')">FORZAR BÓVEDA<br><small style="font-weight:400; opacity:0.7;">d20 >= 11 ? 1d12</small></button>
@@ -622,7 +649,6 @@
         <label class="egoist-toggle" id="egoist-label">
           <input type="checkbox" id="maf-egoist-check"> LAVAR DINERO (Costo: 1💵)
         </label>
-        <!-- Modificados onclick para despachar acciones por Firebase y mandar el estado del checkbox -->
         <div class="action-panel" style="margin-top: 0;">
           <button class="btn-action btn-green" id="maf-btn-safe" onclick="dispatchAction('mafRollHarvest', 6, document.getElementById('maf-egoist-check').checked)">RECAUDACIÓN SEGURA<br><small style="font-weight:400; opacity:0.7;">1d6 (1 a 6 = +1💵)</small></button>
           <button class="btn-action btn-gold" id="maf-btn-exotic" onclick="dispatchAction('mafRollHarvest', 12, document.getElementById('maf-egoist-check').checked)">GOLPE ARRIESGADO<br><small style="font-weight:400; opacity:0.7;">1d12 (1 a 6 = +3💵)</small></button>
@@ -663,7 +689,6 @@
 
       <div class="log-box" id="pok-log-box"></div>
 
-      <!-- Modificados onclick para despachar acciones por Firebase -->
       <div class="action-panel" style="grid-template-columns: 1fr 1fr;">
         <button class="btn-action btn-green" id="pok-btn-q" onclick="dispatchAction('pokAction', 'apuesta')">APUESTA BÁSICA<br><small style="font-weight:400; opacity:0.7;">Paga 1. 1d6 >=4 = +2</small></button>
         <button class="btn-action btn-gold" id="pok-btn-s" onclick="dispatchAction('pokAction', 'golpe')">GOLPE A LA MESA<br><small style="font-weight:400; opacity:0.7;">Paga 3. d20>=11 = +1d12</small></button>
@@ -853,57 +878,146 @@
     const db = firebase.database();
 
     // ==========================================
-    // LÓGICA DE SALAS Y MULTIJUGADOR ONLINE
+    // LÓGICA MODO DE JUEGO (LOCAL / ONLINE) Y RED
     // ==========================================
-    const urlParams = new URLSearchParams(window.location.search);
-    let roomId = urlParams.get('room');
-    let isHost = false;
-
-    if (!roomId) {
-      roomId = Math.random().toString(36).substring(2, 6).toUpperCase();
-      isHost = true;
-      window.history.replaceState(null, '', '?room=' + roomId);
-    }
-    const roomPath = 'rooms/' + roomId;
+    let gameMode = 'local'; // 'local' o 'online'
+    let roomId = null;
+    let isHost = true;
+    let roomPath = null;
 
     let rollQueue = [];
     let rollResolver = null;
 
-    // Escuchar dados remotos para sincronización exacta
-    db.ref(roomPath + '/rolls').on('child_added', (snap) => {
-      if (isHost) return; // El Host genera los dados, no necesita escucharlos
-      const val = snap.val();
-      if (rollResolver) {
-          rollResolver(val);
-          rollResolver = null;
-      } else {
-          rollQueue.push(val);
-      }
-    });
+    // Cambiar entre Local u Online en el menú
+    function setGameMode(mode) {
+      gameMode = mode;
+      document.getElementById('m-local').classList.toggle('selected', mode === 'local');
+      document.getElementById('m-online').classList.toggle('selected', mode === 'online');
+      document.getElementById('network-panel').classList.toggle('hidden', mode !== 'online');
 
-    // Escuchar acciones remotas ejecutadas
-    db.ref(roomPath + '/actions').on('child_added', (snap) => {
-      const data = snap.val();
-      if (window[data.func]) {
-          window[data.func].apply(null, data.args);
+      // Si volvemos a local, desbloquear formularios
+      if (mode === 'local') {
+        unlockSetupInputs();
       }
-    });
-
-    // Escuchar inicio de juego (Solo Cliente)
-    if (!isHost) {
-      db.ref(roomPath + '/start').on('value', (snap) => {
-          const data = snap.val();
-          if (data) {
-              window.networkStartGame(data);
-          }
-      });
-      // Marcar presencia para avisar al Host
-      db.ref(roomPath + '/p2_joined').set(true);
-      db.ref(roomPath + '/p2_joined').onDisconnect().remove();
     }
 
-    // Comprobación de turno de red (deshabilita la UI si no eres tú)
+    // Crear una sala online nueva
+    function createOnlineRoom() {
+      gameMode = 'online';
+      isHost = true;
+      roomId = Math.random().toString(36).substring(2, 6).toUpperCase();
+      roomPath = 'rooms/' + roomId;
+      window.history.replaceState(null, '', '?room=' + roomId);
+      
+      document.getElementById('room-id-display').innerText = roomId;
+      document.getElementById('join-room-box').classList.add('hidden');
+      document.getElementById('online-info-box').classList.remove('hidden');
+      
+      unlockSetupInputs();
+      initOnlineListeners();
+    }
+
+    // Mostrar campo para ingresar código
+    function showJoinRoomInput() {
+      document.getElementById('join-room-box').classList.remove('hidden');
+      document.getElementById('online-info-box').classList.add('hidden');
+    }
+
+    // Unirse a sala existente con el código digitado
+    function joinOnlineRoom() {
+      const code = document.getElementById('room-code-input').value.trim().toUpperCase();
+      if (!code || code.length < 3) {
+        alert("Por favor ingresa un código de sala válido.");
+        return;
+      }
+      gameMode = 'online';
+      isHost = false;
+      roomId = code;
+      roomPath = 'rooms/' + roomId;
+      window.history.replaceState(null, '', '?room=' + roomId);
+      
+      document.getElementById('room-id-display').innerText = roomId;
+      document.getElementById('join-room-box').classList.add('hidden');
+      document.getElementById('online-info-box').classList.remove('hidden');
+      
+      lockSetupInputsForClient();
+      initOnlineListeners();
+    }
+
+    function initOnlineListeners() {
+      if (!roomPath) return;
+
+      db.ref(roomPath + '/rolls').off();
+      db.ref(roomPath + '/actions').off();
+      db.ref(roomPath + '/start').off();
+      db.ref(roomPath + '/p2_joined').off();
+
+      // Escuchar dados remotos
+      db.ref(roomPath + '/rolls').on('child_added', (snap) => {
+        if (isHost) return;
+        const val = snap.val();
+        if (rollResolver) {
+            rollResolver(val);
+            rollResolver = null;
+        } else {
+            rollQueue.push(val);
+        }
+      });
+
+      // Escuchar acciones remotas
+      db.ref(roomPath + '/actions').on('child_added', (snap) => {
+        const data = snap.val();
+        if (window[data.func]) {
+            window[data.func].apply(null, data.args);
+        }
+      });
+
+      if (!isHost) {
+        db.ref(roomPath + '/start').on('value', (snap) => {
+            const data = snap.val();
+            if (data) {
+                window.networkStartGame(data);
+            }
+        });
+        db.ref(roomPath + '/p2_joined').set(true);
+        db.ref(roomPath + '/p2_joined').onDisconnect().remove();
+        
+        const setupStatus = document.getElementById('network-status');
+        setupStatus.innerText = "Conectado como Rival (P2). Esperando a que el Capo 1 (Host) inicie...";
+        setupStatus.style.color = "var(--accent-orange)";
+      } else {
+        db.ref(roomPath + '/p2_joined').on('value', snap => {
+            const statusEl = document.getElementById('network-status');
+            if (statusEl) {
+                if (snap.val()) {
+                    statusEl.innerText = "¡Rival conectado! Listo para comenzar.";
+                    statusEl.style.color = "var(--accent-green)";
+                } else {
+                    statusEl.innerText = "Esperando a que el rival se conecte...";
+                    statusEl.style.color = "var(--accent-gold)";
+                }
+            }
+        });
+      }
+    }
+
+    function lockSetupInputsForClient() {
+      document.querySelectorAll('#setup-card-players input, #setup-card-colors select, #setup-card-game input, #setup-card-game .card-option, #btn-start-game').forEach(el => {
+        el.style.pointerEvents = 'none';
+        el.style.opacity = '0.5';
+      });
+    }
+
+    function unlockSetupInputs() {
+      document.querySelectorAll('#setup-card-players input, #setup-card-colors select, #setup-card-game input, #setup-card-game .card-option, #btn-start-game').forEach(el => {
+        el.style.pointerEvents = 'auto';
+        el.style.opacity = '1';
+      });
+    }
+
+    // Comprobación de turno de red
     function isMyTurnNetwork() {
+      if (gameMode === 'local') return true; 
       if (party.currentGame === 'rpg') return isHost ? (rpg.turn === 1) : (rpg.turn === 2);
       if (party.currentGame === 'exp') return isHost ? (exp.turn === 1) : (exp.turn === 2);
       if (party.currentGame === 'maf') return isHost ? (maf.turn === 1) : (maf.turn === 2);
@@ -911,9 +1025,12 @@
       return isHost;
     }
 
-    // Función principal para enviar eventos sincronizados
+    // Despacho de acciones (Local u Online)
     function dispatchAction(funcName, ...args) {
-      // Validar turno para ignorar clicks accidentales si no te toca
+      if (gameMode === 'local') {
+        if (window[funcName]) window[funcName].apply(null, args);
+        return;
+      }
       if (funcName !== 'networkCancelAction' && funcName !== 'hostStartCoreGame' && funcName !== 'networkModalChoice') {
           if (!isMyTurnNetwork()) return; 
       }
@@ -922,8 +1039,11 @@
       db.ref(roomPath + '/actions').push({ func: funcName, args: args, ts: firebase.database.ServerValue.TIMESTAMP });
     }
 
-    // Retorna una promesa con el número que resulte en ambos dispositivos
+    // Obtener resultado de dado
     function getNetworkRoll(sides) {
+      if (gameMode === 'local') {
+        return Promise.resolve(Math.floor(Math.random() * sides) + 1);
+      }
       return new Promise((resolve) => {
           if (isHost) {
               const r = Math.floor(Math.random() * sides) + 1;
@@ -940,32 +1060,14 @@
     }
 
     window.onload = () => {
-      document.getElementById('room-id-display').innerText = roomId;
-      if (!isHost) {
-          // Bloquear opciones de configuración si eres Cliente
-          document.querySelectorAll('#setup-screen input, #setup-screen select, #setup-screen .card-option, #setup-screen button.btn-confirm').forEach(el => {
-              el.style.pointerEvents = 'none';
-              el.style.opacity = '0.5';
-          });
-          const setupStatus = document.getElementById('network-status');
-          if (setupStatus) {
-              setupStatus.innerText = "Eres el Rival (P2). Esperando a que el Capo 1 (Host) configure y comience la partida...";
-              setupStatus.style.color = "var(--accent-orange)";
-          }
-      } else {
-          // Escuchar si el P2 se unió a la sala
-          db.ref(roomPath + '/p2_joined').on('value', snap => {
-              const statusEl = document.getElementById('network-status');
-              if (statusEl) {
-                  if (snap.val()) {
-                      statusEl.innerText = "¡Rival conectado! Listo para comenzar.";
-                      statusEl.style.color = "var(--accent-green)";
-                  } else {
-                      statusEl.innerText = "Esperando a que el rival se conecte...";
-                      statusEl.style.color = "var(--accent-gold)";
-                  }
-              }
-          });
+      const urlParams = new URLSearchParams(window.location.search);
+      let urlRoom = urlParams.get('room');
+
+      // Si entra directamente con enlace ?room=XXXX
+      if (urlRoom) {
+        setGameMode('online');
+        document.getElementById('room-code-input').value = urlRoom.toUpperCase();
+        joinOnlineRoom();
       }
     };
 
@@ -1003,7 +1105,6 @@
     let audioCtx = null;
     const mp3Buffers = {};
     
-    // Diccionario de rutas MP3 y su duración original exacta (en segundos)
     const mp3Sources = {
       'tommy': { url: 'assets/audios/tommygun.mp3', duration: 0.44 },
       'sniper_reload': { url: 'assets/audios/sniperreload.mp3', duration: 0.22 },
@@ -1013,7 +1114,6 @@
       'heartbeat': { url: 'assets/audios/heartbeat.mp3', duration: 1.10 }
     };
 
-    // Precargar los archivos MP3 en memoria inmediatamente
     const mp3FetchPromises = {};
     for (const key in mp3Sources) {
       mp3FetchPromises[key] = fetch(mp3Sources[key].url)
@@ -1462,7 +1562,15 @@
       }
     }
 
-    // Host inicia el juego, carga la configuración y empuja todo a Firebase
+    function onStartButtonClick() {
+      if (gameMode === 'online') {
+        if (!isHost) return;
+        hostStartCoreGame();
+      } else {
+        startCoreGame();
+      }
+    }
+
     window.hostStartCoreGame = function() {
       if (!isHost) return;
       startCoreGame();
@@ -1490,9 +1598,12 @@
         party.playlist = [party.singleGameChoice];
         party.totalMatches = 1;
       }
+
+      if (gameMode === 'local') {
+        window.networkStartGame(party);
+      }
     }
 
-    // Se ejecuta en ambos dispositivos cuando Firebase avisa de /start
     window.networkStartGame = function(syncedParty) {
       party = syncedParty;
       document.querySelectorAll('.p1-display-name').forEach(el => el.innerText = party.p1Name);
@@ -1568,7 +1679,7 @@
         title.innerText = winnerName.toUpperCase();
         msg.innerText = `FIN DEL JUEGO - ${scoreText}`;
         btn.innerText = "VOLVER A LOS NEGOCIOS";
-        btn.onclick = () => { if (isHost) dispatchAction('networkReturnToMenu') };
+        btn.onclick = () => dispatchAction('networkReturnToMenu');
       } else if (isPartyOver) {
         let grandWinner = "¡EMPATE TOTAL!";
         if (party.p1Wins > party.p2Wins) grandWinner = party.p1Name;
@@ -1577,12 +1688,12 @@
         title.innerText = grandWinner.toUpperCase();
         msg.innerText = `🏆 JEFE ABSOLUTO (${party.p1Wins} - ${party.p2Wins})`;
         btn.innerText = "VOLVER A LOS NEGOCIOS";
-        btn.onclick = () => { if (isHost) dispatchAction('networkReturnToMenu') };
+        btn.onclick = () => dispatchAction('networkReturnToMenu');
       } else {
         title.innerText = winnerName.toUpperCase();
         msg.innerText = `Gana este contrato de ${gameTitles[party.currentGame]} (${scoreText})`;
         btn.innerText = "SIGUIENTE CONTRATO";
-        btn.onclick = () => { if (isHost) dispatchAction('networkNextGame') };
+        btn.onclick = () => dispatchAction('networkNextGame');
       }
       overlay.classList.remove('hidden');
     }
@@ -1720,7 +1831,6 @@
           setTimeout(() => {
             clearInterval(interval);
             
-            // SINCRONIZACIÓN DE RED: Esperar a que Firebase nos de el dado final
             getNetworkRoll(sides).then(finalRoll => {
                 numEl.style.backgroundImage = `url('${diceFolder}/${finalRoll}.png')`;
                 wrapper.style.transform = 'rotate(0deg) scale(1)';
@@ -1762,16 +1872,6 @@
         };
         charImg.className = actionAnim;
 
-        if (soundName) {
-          playSound(soundName);
-        } else if (actionImg === 'rpg_tommy') {
-          playSound('tommy');
-        } else if (actionImg === 'rpg_sniper') {
-          playSound('sniper_reload');
-        } else if (actionImg === 'exp_vault') {
-          playSound('fuse');
-        }
-
         modal.classList.remove('hidden');
         input.value = ''; setTimeout(() => input.focus(), 50);
 
@@ -1783,7 +1883,6 @@
             input.disabled = true;
             btn.innerText = "ESPERANDO RIVAL...";
             btn.onclick = null;
-            // Esperando la confirmación y el número por parte del Host
             getNetworkRoll(sides).then(val => {
                 cleanUp();
                 resolve(val);
@@ -1794,7 +1893,7 @@
             const validateAndResolve = () => {
               const val = parseInt(input.value, 10);
               if (val >= 1 && val <= sides) { 
-                  db.ref(roomPath + '/rolls').push(val); // Sincroniza al rival
+                  if (gameMode === 'online') db.ref(roomPath + '/rolls').push(val);
                   cleanUp(); 
                   resolve(val); 
               } else { alert(`Número entre 1 y ${sides}`); }
@@ -1998,7 +2097,6 @@
 
         if (def.hp <= 0 || att.hp <= 0) return;
 
-        // PROCESAR SOPLÓN
         for (let playerKey of ['p1', 'p2']) {
           const targetPlayer = rpg[playerKey];
           const targetName = playerKey === 'p1' ? party.p1Name : party.p2Name;
@@ -2266,7 +2364,7 @@
         document.getElementById('final-winner-msg').innerText = `Botín robado: P1(${exp.p1.secured}) | P2(${exp.p2.secured})`;
         const btn = document.getElementById('btn-next-match');
         btn.innerText = "SIGUIENTE ATRACO";
-        btn.onclick = () => { if (isHost) dispatchAction('networkNextDive'); };
+        btn.onclick = () => dispatchAction('networkNextDive');
         overlay.classList.remove('hidden');
       }
     }
