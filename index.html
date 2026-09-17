@@ -358,6 +358,12 @@
 
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
+    /* PAUSA DE IMPACTO (HITSTOP / FREEZE FRAME) */
+    .hitstop-active, .hitstop-active * {
+      animation-play-state: paused !important;
+      transition: none !important;
+    }
+
   </style>
 </head>
 <body class="theme-rpg">
@@ -834,7 +840,7 @@
     let maf = { p1: { prestige: 0, coins: 0, parcels: [], sabotages: {1:0, 2:0, 3:0, 4:0, 5:0, 6:0} }, p2: { prestige: 0, coins: 0, parcels: [], sabotages: {1:0, 2:0, 3:0, 4:0, 5:0, 6:0} }, turn: 1, round: 1, phase: 'roll', winScore: 15 };
     let pok = { p1: { tokens: 12, tahurCD: 0, tahurUsos: 0 }, p2: { tokens: 12, tahurCD: 0, tahurUsos: 0 }, turn: 1, round: 1, maxRounds: 8 };
 
- // ==========================================
+    // ==========================================
     // MOTOR DE SONIDO (WEB AUDIO API + MP3)
     // ==========================================
     let audioCtx = null;
@@ -847,10 +853,10 @@
       'sniper_shot': { url: 'assets/audios/snipershoot.mp3', duration: 0.50 },
       'fuse': { url: 'assets/audios/tnttss.mp3', duration: 0.65 },
       'dynamite': { url: 'assets/audios/tntboom.mp3', duration: 0.70 },
-      'heartbeat': { url: 'assets/audios/heartbeat.mp3', duration: 1.10 } // Listo por si deseas llamarlo
+      'heartbeat': { url: 'assets/audios/heartbeat.mp3', duration: 1.10 }
     };
 
-    // Precargar los archivos MP3 en memoria inmediatamente (sin esperar interacción)
+    // Precargar los archivos MP3 en memoria inmediatamente
     const mp3FetchPromises = {};
     for (const key in mp3Sources) {
       mp3FetchPromises[key] = fetch(mp3Sources[key].url)
@@ -862,11 +868,10 @@
       if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         
-        // Decodificar los MP3 cargados una vez que el AudioContext exista (al primer clic del jugador)
         for (const key in mp3FetchPromises) {
           mp3FetchPromises[key].then(arrayBuffer => {
             if (arrayBuffer) {
-              const bufferCopy = arrayBuffer.slice(0); // Copia segura
+              const bufferCopy = arrayBuffer.slice(0);
               audioCtx.decodeAudioData(bufferCopy, decodedData => {
                 mp3Buffers[key] = decodedData;
               });
@@ -885,7 +890,6 @@
         const ctx = getAudioContext();
         const now = ctx.currentTime;
 
-        // 1. SISTEMA MP3: Si tenemos un MP3 cargado para este tipo, lo usamos y ajustamos su duración
         if (mp3Buffers[type]) {
           const source = ctx.createBufferSource();
           source.buffer = mp3Buffers[type];
@@ -896,24 +900,16 @@
           
           const targetDuration = mp3Sources[type].duration;
           
-          // Ajustar la duración: aplicamos un recorte con fade-out suave para que el MP3
-          // dure exactamente lo mismo que el audio original y no rompa los tiempos visuales.
           gainNode.gain.setValueAtTime(1, now);
           gainNode.gain.setValueAtTime(1, Math.max(now, now + targetDuration - 0.05));
           gainNode.gain.linearRampToValueAtTime(0, now + targetDuration);
-          
-          // (Alternativa: Si prefieres que el audio se acelere/desacelere para entrar en el tiempo, 
-          // descomenta la siguiente línea y borra las de gainNode)
-          // source.playbackRate.value = source.buffer.duration / targetDuration;
 
           source.start(now);
           source.stop(now + targetDuration);
-          return; // Finalizamos aquí, para que no suene el audio generado originalmente
+          return;
         }
 
-        // 2. SISTEMA ORIGINAL (Web Audio API): Respaldo de los MP3 o sonidos sin MP3
         if (type === 'tommy') {
-          // RÁFAGA CONTINUA DE METRALLETA TOMMY GUN GRAVE (6 DISPAROS)
           for (let i = 0; i < 6; i++) {
             setTimeout(() => {
               try {
@@ -929,7 +925,6 @@
             }, i * 65);
           }
         } else if (type === 'sniper_reload') {
-          // CERROJO METÁLICO DE RECARGA DE FRANCOTIRADOR
           const osc1 = ctx.createOscillator();
           const gain1 = ctx.createGain();
           osc1.type = 'sine';
@@ -955,7 +950,6 @@
             } catch(e){}
           }, 150);
         } else if (type === 'sniper_shot') {
-          // DISPARO SECO, LOUD Y CONTUNDENTE DE FRANCOTIRADOR
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
           osc.type = 'sawtooth';
@@ -976,7 +970,6 @@
           sub.connect(subGain); subGain.connect(ctx.destination);
           sub.start(now); sub.stop(now + 0.5);
         } else if (type === 'fuse') {
-          // MECHA CHISPEANDO DE BOMBA ("TSSSS")
           const bufferSize = ctx.sampleRate * 0.65;
           const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
           const data = buffer.getChannelData(0);
@@ -997,7 +990,6 @@
           gain.connect(ctx.destination);
           noise.start(now);
         } else if (type === 'dynamite') {
-          // EXPLOSIÓN DE DINAMITA EN EL ATRACO
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
           osc.type = 'square';
@@ -1099,6 +1091,77 @@
           osc.start(now); osc.stop(now + 0.6);
         }
       } catch(e) {}
+    }
+
+    // ==========================================
+    // SISTEMA DE GAME FEEL (HITSTOP & HEARTBEAT)
+    // ==========================================
+    let heartbeatSource = null;
+    let heartbeatGain = null;
+
+    async function triggerHitstop(duration = 140) {
+      const screen = document.getElementById('game-screen');
+      if (screen) screen.classList.add('hitstop-active');
+      await new Promise(resolve => setTimeout(resolve, duration));
+      if (screen) screen.classList.remove('hitstop-active');
+    }
+
+    function startHeartbeat() {
+      const ctx = getAudioContext();
+      if (heartbeatSource) return;
+      if (mp3Buffers['heartbeat']) {
+        heartbeatSource = ctx.createBufferSource();
+        heartbeatSource.buffer = mp3Buffers['heartbeat'];
+        heartbeatSource.loop = true;
+        heartbeatGain = ctx.createGain();
+        heartbeatGain.gain.setValueAtTime(0.65, ctx.currentTime);
+        heartbeatSource.connect(heartbeatGain);
+        heartbeatGain.connect(ctx.destination);
+        heartbeatSource.start();
+      }
+    }
+
+    function stopHeartbeat() {
+      if (heartbeatSource) {
+        try {
+          heartbeatSource.stop();
+          heartbeatSource.disconnect();
+        } catch(e) {}
+        heartbeatSource = null;
+        heartbeatGain = null;
+      }
+    }
+
+    function updateHeartbeat() {
+      if (party.isWaiting || !party.currentGame) {
+        stopHeartbeat();
+        return;
+      }
+
+      let isCritical = false;
+
+      if (party.currentGame === 'rpg') {
+        const activeP = rpg.turn === 1 ? rpg.p1 : rpg.p2;
+        if (activeP.max > 0 && (activeP.hp / activeP.max) <= 0.10 && activeP.hp > 0) {
+          isCritical = true;
+        }
+      } else if (party.currentGame === 'exp') {
+        const activeP = exp.turn === 1 ? exp.p1 : exp.p2;
+        if (!activeP.surfaced && activeP.max > 0 && (activeP.hp / activeP.max) <= 0.10 && activeP.hp > 0) {
+          isCritical = true;
+        }
+      } else if (party.currentGame === 'pok') {
+        const activeP = pok.turn === 1 ? pok.p1 : pok.p2;
+        if (activeP.tokens <= 1 && activeP.tokens > 0) {
+          isCritical = true;
+        }
+      }
+
+      if (isCritical) {
+        startHeartbeat();
+      } else {
+        stopHeartbeat();
+      }
     }
 
     // VIBRACIÓN HÁPTICA MÓVIL
@@ -1313,6 +1376,7 @@
     }
 
     function handleMiniGameEnd(winnerCode, scoreText) { 
+      stopHeartbeat();
       party.isWaiting = true;
       party.matchesPlayed++;
       playSound('win');
@@ -1359,6 +1423,7 @@
     }
 
     function returnToMenu() {
+      stopHeartbeat();
       document.getElementById('win-overlay').classList.add('hidden');
       document.getElementById('game-screen').classList.add('hidden');
       document.getElementById('setup-screen').classList.remove('hidden');
@@ -1478,7 +1543,7 @@
 
         // Retardo de 700ms para mostrar la animación antes de que empiece a girar el dado
         setTimeout(() => {
-          if (cancelBtn) cancelBtn.classList.add('hidden'); // Ocultar cancelar cuando sale el dado
+          if (cancelBtn) cancelBtn.classList.add('hidden');
           wrapper.classList.remove('hidden');
 
           interval = setInterval(() => {
@@ -1772,8 +1837,9 @@
       if (dmg > def.hp) { cLog(`🛡️ Disparo fallido (Daño ${dmg} > ${def.hp} Salud Restante).`); } 
       else {
         def.hp -= dmg; cLog(`💥 ${attName} acierta e inflige ${dmg} de daño a ${defName}.`);
-        if (type === 'strong' || dmg >= 8) {
+        if (type === 'strong' || dmg >= 8 || def.hp === 0) {
           playSound('crit');
+          await triggerHitstop(140);
           triggerScreenShake();
           triggerVibrate([80, 50, 120]);
         } else {
@@ -1832,6 +1898,8 @@
       document.getElementById('rpg-btn-s').disabled = dis;
       document.getElementById('rpg-btn-h').disabled = dis || rpg.round === 1 || att.blocked;
       document.getElementById('rpg-btn-p').disabled = dis || def.poison > 0;
+
+      updateHeartbeat();
     }
 
     // ==========================================
@@ -1895,6 +1963,7 @@
           } else {
             p.hp -= 6; cLog(`流 ¡Fallo! Se activa la alarma pesada. ${pName} recibe 6 de daño crítico.`);
             playSound('crit');
+            await triggerHitstop(140);
             triggerScreenShake();
             triggerVibrate([80, 50, 120]);
             spawnFloatingText(boxId, `-6 COB`, 'dmg');
@@ -1914,6 +1983,7 @@
           const dmg = await roll(4, `${pName}: Lanzar Granada`, null, 'exp_grenade', 'anim-recoil');
           r.hp -= dmg; cLog(`💣 ¡SABOTAJE! ${pName} lanza una granada causando ${dmg} daños a la huida rival.`);
           playSound('crit');
+          await triggerHitstop(140);
           triggerScreenShake();
           triggerVibrate([80, 50, 120]);
 
@@ -1941,6 +2011,7 @@
           p.hp = 0; p.temp = 0; p.surfaced = true;
           cLog(`管制 ¡LA POLICÍA TE ATRAPÓ! Pierdes todo el botín no asegurado.`);
           playSound('crit');
+          await triggerHitstop(140);
           triggerScreenShake();
           triggerVibrate([80, 50, 120]);
           spawnParticles(boxId, 'dmg-heavy');
@@ -2061,6 +2132,8 @@
         repBadge.innerText = act.repairCooldown > 0 ? `Espere ${act.repairCooldown} Rd` : `1/5 Rd`;
         repBtn.disabled = dis || act.hp >= act.max || act.repairCooldown > 0;
       }
+
+      updateHeartbeat();
     }
 
     // ==========================================
@@ -2243,6 +2316,7 @@
           rvl.sabotages[val] = turns;
           cLog(`🚨 ¡SOPLO! ${actName} envía una redada policial al Distrito [${val}] rival por ${turns} rondas.`);
           playSound('crit');
+          await triggerHitstop(140);
           triggerScreenShake();
           triggerVibrate([80, 50, 120]);
           spawnFloatingText(rvlBox, `REDADA [${val}]`, 'status');
@@ -2354,6 +2428,8 @@
       document.getElementById('maf-btn-brew').disabled = isWait || act.coins < 5;
       document.getElementById('maf-btn-sab').disabled = isWait || act.coins < 3 || rvlActiveSabotages >= 3;
       document.getElementById('maf-btn-pass').disabled = isWait;
+
+      updateHeartbeat();
     }
 
     function renderDistricts(containerId, playerState) {
@@ -2432,6 +2508,7 @@
                 p.tokens += win;
                 cLog(`🎉 ¡JACKPOT! ${pName} arrasa la mesa y extrae ${win} fichas.`);
                 playSound('coin');
+                await triggerHitstop(140);
                 triggerScreenShake();
                 triggerVibrate([80, 50, 120]);
                 spawnFloatingText(pBox, `+${win} 🎰`, 'loot');
@@ -2531,6 +2608,8 @@
         tahurBadge.innerText = act.tahurCD > 0 ? `Espera ${act.tahurCD} Rd` : `Activo`;
         tahurBtn.disabled = dis || act.tahurCD > 0 || rvl.tokens <= 0;
       }
+
+      updateHeartbeat();
     }
 
   </script>
