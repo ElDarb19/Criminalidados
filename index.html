@@ -3,6 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+
   <style>
     :root {
       --bg-rpg: #0d0b0b;  
@@ -363,13 +368,19 @@
       animation-play-state: paused !important;
       transition: none !important;
     }
-
   </style>
 </head>
 <body class="theme-rpg">
 
   <!-- ==================== PANTALLA SETUP ==================== -->
   <div id="setup-screen" class="screen">
+    <!-- PANEL DE SALA ONLINE (FIREBASE) -->
+    <div id="network-panel" class="setup-card" style="text-align:center; border-color: var(--accent-cyan);">
+        <h2 style="color: var(--accent-cyan); font-size: 1.3rem;">SALA: <span id="room-id-display"></span></h2>
+        <p id="network-status" style="font-size: 0.85rem; margin-bottom:12px; font-weight:bold;"></p>
+        <button class="btn-action" style="border-color: var(--accent-cyan); color: var(--accent-cyan);" onclick="copyInviteLink()">📋 Copiar Enlace de Invitación</button>
+    </div>
+
     <!-- BOTÓN MANUAL DE CAPO -->
     <button class="btn-guide-trigger" onclick="openManualGuide()">📖 MANUAL DEL CAPO</button>
 
@@ -469,7 +480,8 @@
       </div>
     </div>
 
-    <button class="btn-confirm" onclick="startCoreGame()">¡COMENZAR!</button>
+    <!-- Modificado para funcionar con el sistema de Host de Firebase -->
+    <button class="btn-confirm" onclick="hostStartCoreGame()">¡COMENZAR!</button>
   </div>
 
   <!-- ==================== PANTALLA JUEGO COMPARTIDA ==================== -->
@@ -516,14 +528,15 @@
 
       <div class="log-box" id="rpg-log-box"></div>
 
+      <!-- Modificados onclick para despachar acciones por Firebase -->
       <div class="action-panel">
-        <button class="btn-action" id="rpg-btn-q" onclick="rpgAction('quick')">RÁFAGA TOMMY GUN<br><small style="font-weight:400; opacity:0.7;">1d6 Daño Directo</small></button>
-        <button class="btn-action" id="rpg-btn-s" onclick="rpgAction('strong')">FRANCOTIRADOR<br><small style="font-weight:400; opacity:0.7;">d20 >= 11 ? 1d12 Daño</small></button>
-        <button class="btn-action" id="rpg-btn-h" onclick="rpgAction('heal')">
+        <button class="btn-action" id="rpg-btn-q" onclick="dispatchAction('rpgAction', 'quick')">RÁFAGA TOMMY GUN<br><small style="font-weight:400; opacity:0.7;">1d6 Daño Directo</small></button>
+        <button class="btn-action" id="rpg-btn-s" onclick="dispatchAction('rpgAction', 'strong')">FRANCOTIRADOR<br><small style="font-weight:400; opacity:0.7;">d20 >= 11 ? 1d12 Daño</small></button>
+        <button class="btn-action" id="rpg-btn-h" onclick="dispatchAction('rpgAction', 'heal')">
           <span id="rpg-badge-h" class="badge-uses">0/3</span>
           MÉDICO MATASANOS<br><small style="font-weight:400; opacity:0.7;">1d8 Salud</small>
         </button>
-        <button class="btn-action" id="rpg-btn-p" onclick="rpgAction('poison')">INFILTRAR SOPLÓN<br><small style="font-weight:400; opacity:0.7;">1d4 Rondas</small></button>
+        <button class="btn-action" id="rpg-btn-p" onclick="dispatchAction('rpgAction', 'poison')">INFILTRAR SOPLÓN<br><small style="font-weight:400; opacity:0.7;">1d4 Rondas</small></button>
       </div>
     </div>
 
@@ -559,18 +572,19 @@
 
       <div class="log-box" id="exp-log-box"></div>
 
+      <!-- Modificados onclick para despachar acciones por Firebase -->
       <div class="action-panel">
-        <button class="btn-action" id="exp-btn-q" onclick="expAction('explore')">SAQUEAR CAJAS<br><small style="font-weight:400; opacity:0.7;">1d6 (Trampa 1-2)</small></button>
-        <button class="btn-action" id="exp-btn-s" onclick="expAction('deep')">FORZAR BÓVEDA<br><small style="font-weight:400; opacity:0.7;">d20 >= 11 ? 1d12</small></button>
-        <button class="btn-action" id="exp-btn-h" onclick="expAction('repair')">
+        <button class="btn-action" id="exp-btn-q" onclick="dispatchAction('expAction', 'explore')">SAQUEAR CAJAS<br><small style="font-weight:400; opacity:0.7;">1d6 (Trampa 1-2)</small></button>
+        <button class="btn-action" id="exp-btn-s" onclick="dispatchAction('expAction', 'deep')">FORZAR BÓVEDA<br><small style="font-weight:400; opacity:0.7;">d20 >= 11 ? 1d12</small></button>
+        <button class="btn-action" id="exp-btn-h" onclick="dispatchAction('expAction', 'repair')">
           <span id="exp-badge-h" class="badge-uses">1/Inv</span>
           REFORZAR COBERTURA<br><small style="font-weight:400; opacity:0.7;">1d4 Cobertura</small>
         </button>
-        <button class="btn-action btn-red" id="exp-btn-sab" onclick="expAction('sabotage')">
+        <button class="btn-action btn-red" id="exp-btn-sab" onclick="dispatchAction('expAction', 'sabotage')">
           <span id="exp-badge-sab" class="badge-uses">0/3</span>
           SABOTEAR RIVAL<br><small style="font-weight:400; opacity:0.7;">1d4 Daño rival</small>
         </button>
-        <button class="btn-action btn-gold" id="exp-btn-p" onclick="expAction('surface')" style="grid-column: 1 / -1; padding: 15px;">COCHE DE ESCAPE<br><small style="font-weight:400; opacity:0.7;">Asegurar Dinero y Huir</small></button>
+        <button class="btn-action btn-gold" id="exp-btn-p" onclick="dispatchAction('expAction', 'surface')" style="grid-column: 1 / -1; padding: 15px;">COCHE DE ESCAPE<br><small style="font-weight:400; opacity:0.7;">Asegurar Dinero y Huir</small></button>
       </div>
     </div>
 
@@ -608,17 +622,18 @@
         <label class="egoist-toggle" id="egoist-label">
           <input type="checkbox" id="maf-egoist-check"> LAVAR DINERO (Costo: 1💵)
         </label>
+        <!-- Modificados onclick para despachar acciones por Firebase y mandar el estado del checkbox -->
         <div class="action-panel" style="margin-top: 0;">
-          <button class="btn-action btn-green" id="maf-btn-safe" onclick="mafRollHarvest(6)">RECAUDACIÓN SEGURA<br><small style="font-weight:400; opacity:0.7;">1d6 (1 a 6 = +1💵)</small></button>
-          <button class="btn-action btn-gold" id="maf-btn-exotic" onclick="mafRollHarvest(12)">GOLPE ARRIESGADO<br><small style="font-weight:400; opacity:0.7;">1d12 (1 a 6 = +3💵)</small></button>
+          <button class="btn-action btn-green" id="maf-btn-safe" onclick="dispatchAction('mafRollHarvest', 6, document.getElementById('maf-egoist-check').checked)">RECAUDACIÓN SEGURA<br><small style="font-weight:400; opacity:0.7;">1d6 (1 a 6 = +1💵)</small></button>
+          <button class="btn-action btn-gold" id="maf-btn-exotic" onclick="dispatchAction('mafRollHarvest', 12, document.getElementById('maf-egoist-check').checked)">GOLPE ARRIESGADO<br><small style="font-weight:400; opacity:0.7;">1d12 (1 a 6 = +3💵)</small></button>
         </div>
       </div>
 
       <div id="maf-phase-action" class="action-panel hidden">
-        <button class="btn-action btn-green" id="maf-btn-buy" onclick="openBuyModal()">CONTROLAR DISTRITO<br><small id="maf-cost-buy" style="font-weight:400; opacity:0.7;">Costo: X Efectivo</small></button>
-        <button class="btn-action btn-gold" id="maf-btn-brew" onclick="mafActionBrew()">SOBORNAR POLÍTICO<br><small style="font-weight:400; opacity:0.7;">5💵 (d20 = Influencia)</small></button>
-        <button class="btn-action" id="maf-btn-sab" onclick="openSabotageModal()">REDADA POLICIAL<br><small style="font-weight:400; opacity:0.7;">3💵 (Max 3 Distritos)</small></button>
-        <button class="btn-action" id="maf-btn-pass" onclick="mafActionPass()">PASAR TURNO<br><small style="font-weight:400; opacity:0.7;">Ahorrar Efectivo</small></button>
+        <button class="btn-action btn-green" id="maf-btn-buy" onclick="dispatchAction('openBuyModal')">CONTROLAR DISTRITO<br><small id="maf-cost-buy" style="font-weight:400; opacity:0.7;">Costo: X Efectivo</small></button>
+        <button class="btn-action btn-gold" id="maf-btn-brew" onclick="dispatchAction('mafActionBrew')">SOBORNAR POLÍTICO<br><small style="font-weight:400; opacity:0.7;">5💵 (d20 = Influencia)</small></button>
+        <button class="btn-action" id="maf-btn-sab" onclick="dispatchAction('openSabotageModal')">REDADA POLICIAL<br><small style="font-weight:400; opacity:0.7;">3💵 (Max 3 Distritos)</small></button>
+        <button class="btn-action" id="maf-btn-pass" onclick="dispatchAction('mafActionPass')">PASAR TURNO<br><small style="font-weight:400; opacity:0.7;">Ahorrar Efectivo</small></button>
       </div>
     </div>
 
@@ -648,10 +663,11 @@
 
       <div class="log-box" id="pok-log-box"></div>
 
+      <!-- Modificados onclick para despachar acciones por Firebase -->
       <div class="action-panel" style="grid-template-columns: 1fr 1fr;">
-        <button class="btn-action btn-green" id="pok-btn-q" onclick="pokAction('apuesta')">APUESTA BÁSICA<br><small style="font-weight:400; opacity:0.7;">Paga 1. 1d6 >=4 = +2</small></button>
-        <button class="btn-action btn-gold" id="pok-btn-s" onclick="pokAction('golpe')">GOLPE A LA MESA<br><small style="font-weight:400; opacity:0.7;">Paga 3. d20>=11 = +1d12</small></button>
-        <button class="btn-action btn-red" id="pok-btn-sab" onclick="pokAction('tahur')" style="grid-column: 1 / -1;">
+        <button class="btn-action btn-green" id="pok-btn-q" onclick="dispatchAction('pokAction', 'apuesta')">APUESTA BÁSICA<br><small style="font-weight:400; opacity:0.7;">Paga 1. 1d6 >=4 = +2</small></button>
+        <button class="btn-action btn-gold" id="pok-btn-s" onclick="dispatchAction('pokAction', 'golpe')">GOLPE A LA MESA<br><small style="font-weight:400; opacity:0.7;">Paga 3. d20>=11 = +1d12</small></button>
+        <button class="btn-action btn-red" id="pok-btn-sab" onclick="dispatchAction('pokAction', 'tahur')" style="grid-column: 1 / -1;">
           <span id="pok-badge-sab" class="badge-uses">Activo</span>
           TRAMPA DE TAHÚR<br><small style="font-weight:400; opacity:0.7;">Roba 1d4 fichas rivales</small>
         </button>
@@ -669,7 +685,7 @@
       <p id="manual-desc" style="color:var(--theme-accent); margin-bottom:15px; font-size:0.9rem;"></p>
       <input type="number" id="input-manual-value" placeholder="Resultado numérico">
       <button class="btn-confirm" id="btn-confirm-manual">CONFIRMAR DADO</button>
-      <button class="btn-cancel" onclick="cancelAction()">CANCELAR</button>
+      <button class="btn-cancel" onclick="dispatchAction('networkCancelAction')">CANCELAR</button>
     </div>
   </div>
 
@@ -688,7 +704,7 @@
         <div id="modal-dice-num" class="dice-layer dice-number"></div>
       </div>
 
-      <button class="btn-cancel" onclick="cancelAction()">CANCELAR</button>
+      <button class="btn-cancel" onclick="dispatchAction('networkCancelAction')">CANCELAR</button>
     </div>
   </div>
 
@@ -697,7 +713,7 @@
       <h2 id="choice-title" style="color:var(--theme-accent);">Elige una opción</h2>
       <p id="choice-desc" style="font-size:0.9rem; margin-bottom:10px;"></p>
       <div id="choice-container" class="choice-grid"></div>
-      <button class="btn-cancel" onclick="closeChoiceModal()">CANCELAR ACCIÓN</button>
+      <button class="btn-cancel" onclick="dispatchAction('networkCancelAction')">CANCELAR ACCIÓN</button>
     </div>
   </div>
 
@@ -821,6 +837,147 @@
   </div>
 
   <script>
+    // ==========================================
+    // CONFIGURACIÓN E INICIALIZACIÓN DE FIREBASE
+    // ==========================================
+    const firebaseConfig = {
+      apiKey: "AIzaSyCEY_P4mC8xArf88rRBYyI-JZ_M74o6FuE",
+      authDomain: "criminalidados-243e6.firebaseapp.com",
+      databaseURL: "https://criminalidados-243e6-default-rtdb.firebaseio.com",
+      projectId: "criminalidados-243e6",
+      storageBucket: "criminalidados-243e6.firebasestorage.app",
+      messagingSenderId: "375013954181",
+      appId: "1:375013954181:web:1d1a5d6ce1990454c04fec"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // ==========================================
+    // LÓGICA DE SALAS Y MULTIJUGADOR ONLINE
+    // ==========================================
+    const urlParams = new URLSearchParams(window.location.search);
+    let roomId = urlParams.get('room');
+    let isHost = false;
+
+    if (!roomId) {
+      roomId = Math.random().toString(36).substring(2, 6).toUpperCase();
+      isHost = true;
+      window.history.replaceState(null, '', '?room=' + roomId);
+    }
+    const roomPath = 'rooms/' + roomId;
+
+    let rollQueue = [];
+    let rollResolver = null;
+
+    // Escuchar dados remotos para sincronización exacta
+    db.ref(roomPath + '/rolls').on('child_added', (snap) => {
+      if (isHost) return; // El Host genera los dados, no necesita escucharlos
+      const val = snap.val();
+      if (rollResolver) {
+          rollResolver(val);
+          rollResolver = null;
+      } else {
+          rollQueue.push(val);
+      }
+    });
+
+    // Escuchar acciones remotas ejecutadas
+    db.ref(roomPath + '/actions').on('child_added', (snap) => {
+      const data = snap.val();
+      if (window[data.func]) {
+          window[data.func].apply(null, data.args);
+      }
+    });
+
+    // Escuchar inicio de juego (Solo Cliente)
+    if (!isHost) {
+      db.ref(roomPath + '/start').on('value', (snap) => {
+          const data = snap.val();
+          if (data) {
+              window.networkStartGame(data);
+          }
+      });
+      // Marcar presencia para avisar al Host
+      db.ref(roomPath + '/p2_joined').set(true);
+      db.ref(roomPath + '/p2_joined').onDisconnect().remove();
+    }
+
+    // Comprobación de turno de red (deshabilita la UI si no eres tú)
+    function isMyTurnNetwork() {
+      if (party.currentGame === 'rpg') return isHost ? (rpg.turn === 1) : (rpg.turn === 2);
+      if (party.currentGame === 'exp') return isHost ? (exp.turn === 1) : (exp.turn === 2);
+      if (party.currentGame === 'maf') return isHost ? (maf.turn === 1) : (maf.turn === 2);
+      if (party.currentGame === 'pok') return isHost ? (pok.turn === 1) : (pok.turn === 2);
+      return isHost;
+    }
+
+    // Función principal para enviar eventos sincronizados
+    function dispatchAction(funcName, ...args) {
+      // Validar turno para ignorar clicks accidentales si no te toca
+      if (funcName !== 'networkCancelAction' && funcName !== 'hostStartCoreGame' && funcName !== 'networkModalChoice') {
+          if (!isMyTurnNetwork()) return; 
+      }
+      if (funcName === 'hostStartCoreGame' && !isHost) return;
+
+      db.ref(roomPath + '/actions').push({ func: funcName, args: args, ts: firebase.database.ServerValue.TIMESTAMP });
+    }
+
+    // Retorna una promesa con el número que resulte en ambos dispositivos
+    function getNetworkRoll(sides) {
+      return new Promise((resolve) => {
+          if (isHost) {
+              const r = Math.floor(Math.random() * sides) + 1;
+              db.ref(roomPath + '/rolls').push(r);
+              resolve(r);
+          } else {
+              if (rollQueue.length > 0) {
+                  resolve(rollQueue.shift());
+              } else {
+                  rollResolver = resolve;
+              }
+          }
+      });
+    }
+
+    window.onload = () => {
+      document.getElementById('room-id-display').innerText = roomId;
+      if (!isHost) {
+          // Bloquear opciones de configuración si eres Cliente
+          document.querySelectorAll('#setup-screen input, #setup-screen select, #setup-screen .card-option, #setup-screen button.btn-confirm').forEach(el => {
+              el.style.pointerEvents = 'none';
+              el.style.opacity = '0.5';
+          });
+          const setupStatus = document.getElementById('network-status');
+          if (setupStatus) {
+              setupStatus.innerText = "Eres el Rival (P2). Esperando a que el Capo 1 (Host) configure y comience la partida...";
+              setupStatus.style.color = "var(--accent-orange)";
+          }
+      } else {
+          // Escuchar si el P2 se unió a la sala
+          db.ref(roomPath + '/p2_joined').on('value', snap => {
+              const statusEl = document.getElementById('network-status');
+              if (statusEl) {
+                  if (snap.val()) {
+                      statusEl.innerText = "¡Rival conectado! Listo para comenzar.";
+                      statusEl.style.color = "var(--accent-green)";
+                  } else {
+                      statusEl.innerText = "Esperando a que el rival se conecte...";
+                      statusEl.style.color = "var(--accent-gold)";
+                  }
+              }
+          });
+      }
+    };
+
+    window.copyInviteLink = function() {
+      navigator.clipboard.writeText(window.location.href).then(() => {
+          alert("¡Enlace copiado! Envíalo a tu rival.");
+      });
+    };
+
+    // ==========================================
+    // VARIABLES GLOBALES (MECÁNICAS INTACTAS)
+    // ==========================================
     let party = {
       p1Name: '', p2Name: '', p1Color: 'Color_R', p2Color: 'Color_B', diceMode: 'virtual',
       isParty: false, singleGameChoice: 'rpg',
@@ -1164,7 +1321,6 @@
       }
     }
 
-    // VIBRACIÓN HÁPTICA MÓVIL
     function triggerVibrate(pattern) {
       if ("vibrate" in navigator) {
         try {
@@ -1173,7 +1329,6 @@
       }
     }
 
-    // SACUDIDA PANTALLA GLOBAL
     function triggerScreenShake() {
       const screen = document.getElementById('game-screen');
       if (!screen) return;
@@ -1183,7 +1338,6 @@
       setTimeout(() => screen.classList.remove('screen-shake'), 300);
     }
 
-    // NÚMEROS FLOTANTES DINÁMICOS
     function spawnFloatingText(containerId, text, type = 'dmg') {
       const container = document.getElementById(containerId);
       if (!container) return;
@@ -1244,7 +1398,6 @@
       return turn === 1 ? party.p1Color : party.p2Color;
     }
 
-    // PREVISUALIZACIÓN DE PERSONAJES EN EL MENÚ PRINCIPAL
     function updateMenuPreviews() {
       const p1Color = document.getElementById('p1-color-input').value || 'Color_R';
       const p2Color = document.getElementById('p2-color-input').value || 'Color_B';
@@ -1262,7 +1415,6 @@
       }
     }
 
-    // GUÍA Y MANUAL DEL CAPO
     function openManualGuide() {
       document.getElementById('modal-manual-guide').classList.remove('hidden');
     }
@@ -1279,7 +1431,6 @@
       document.getElementById('tab-content-2').classList.toggle('hidden', tabIndex !== 2);
     }
 
-    // CONFIGURAR AVATARES DE VICTORIA / DERROTA CON DOBLE FALLBACK
     function setWinOverlayAvatars(winnerCode) {
       const p1Img = document.getElementById('win-img-p1');
       const p2Img = document.getElementById('win-img-p2');
@@ -1305,11 +1456,18 @@
       } else if (winnerCode === 'p2') {
         setAvatarImg(p1Img, party.p1Color, 'lose');
         setAvatarImg(p2Img, party.p2Color, 'win');
-      } else { // EMPATE ('tie')
+      } else { 
         setAvatarImg(p1Img, party.p1Color, 'idle');
         setAvatarImg(p2Img, party.p2Color, 'idle');
       }
     }
+
+    // Host inicia el juego, carga la configuración y empuja todo a Firebase
+    window.hostStartCoreGame = function() {
+      if (!isHost) return;
+      startCoreGame();
+      db.ref(roomPath + '/start').set(party);
+    };
 
     function startCoreGame() {
       party.p1Name = document.getElementById('p1-name-input').value.trim() || "Capo Alpha";
@@ -1321,9 +1479,6 @@
       party.isParty = document.getElementById('party-mode-check').checked;
       party.totalMatches = parseInt(document.getElementById('total-matches').value, 10) || 3;
 
-      document.querySelectorAll('.p1-display-name').forEach(el => el.innerText = party.p1Name);
-      document.querySelectorAll('.p2-display-name').forEach(el => el.innerText = party.p2Name);
-
       if (party.isParty) {
         let selected = [];
         if(document.getElementById('party-cb-rpg').checked) selected.push('rpg');
@@ -1331,13 +1486,23 @@
         if(document.getElementById('party-cb-maf').checked) selected.push('maf');
         if(document.getElementById('party-cb-pok').checked) selected.push('pok');
         buildPlaylist(selected, party.totalMatches);
-        
+      } else {
+        party.playlist = [party.singleGameChoice];
+        party.totalMatches = 1;
+      }
+    }
+
+    // Se ejecuta en ambos dispositivos cuando Firebase avisa de /start
+    window.networkStartGame = function(syncedParty) {
+      party = syncedParty;
+      document.querySelectorAll('.p1-display-name').forEach(el => el.innerText = party.p1Name);
+      document.querySelectorAll('.p2-display-name').forEach(el => el.innerText = party.p2Name);
+
+      if (party.isParty) {
         document.getElementById('party-score-bar').classList.remove('hidden');
         document.getElementById('global-p1-name').innerText = party.p1Name;
         document.getElementById('global-p2-name').innerText = party.p2Name;
       } else {
-        party.playlist = [party.singleGameChoice];
-        party.totalMatches = 1;
         document.getElementById('party-score-bar').classList.add('hidden');
       }
 
@@ -1403,7 +1568,7 @@
         title.innerText = winnerName.toUpperCase();
         msg.innerText = `FIN DEL JUEGO - ${scoreText}`;
         btn.innerText = "VOLVER A LOS NEGOCIOS";
-        btn.onclick = returnToMenu;
+        btn.onclick = () => { if (isHost) dispatchAction('networkReturnToMenu') };
       } else if (isPartyOver) {
         let grandWinner = "¡EMPATE TOTAL!";
         if (party.p1Wins > party.p2Wins) grandWinner = party.p1Name;
@@ -1412,17 +1577,17 @@
         title.innerText = grandWinner.toUpperCase();
         msg.innerText = `🏆 JEFE ABSOLUTO (${party.p1Wins} - ${party.p2Wins})`;
         btn.innerText = "VOLVER A LOS NEGOCIOS";
-        btn.onclick = returnToMenu;
+        btn.onclick = () => { if (isHost) dispatchAction('networkReturnToMenu') };
       } else {
         title.innerText = winnerName.toUpperCase();
         msg.innerText = `Gana este contrato de ${gameTitles[party.currentGame]} (${scoreText})`;
         btn.innerText = "SIGUIENTE CONTRATO";
-        btn.onclick = () => { overlay.classList.add('hidden'); startNextMiniGame(); };
+        btn.onclick = () => { if (isHost) dispatchAction('networkNextGame') };
       }
       overlay.classList.remove('hidden');
     }
 
-    function returnToMenu() {
+    window.networkReturnToMenu = function() {
       stopHeartbeat();
       document.getElementById('win-overlay').classList.add('hidden');
       document.getElementById('game-screen').classList.add('hidden');
@@ -1430,9 +1595,11 @@
       document.body.className = `theme-${party.singleGameChoice}`; 
     }
 
-    // ==========================================
-    // HELPER PARA MOSTRAR ILUSTRACIONES SIN DADO
-    // ==========================================
+    window.networkNextGame = function() {
+      document.getElementById('win-overlay').classList.add('hidden');
+      startNextMiniGame();
+    }
+
     function showActionModal(playerNum, titleText, actionImg, actionAnim, duration = 1200) {
       return new Promise((resolve) => {
         const modal = document.getElementById('modal-virtual');
@@ -1464,9 +1631,6 @@
       });
     }
 
-    // ==========================================
-    // SISTEMA COMPARTIDO (TIRADAS Y CINEMÁTICA EN MODAL)
-    // ==========================================
     async function roll(sides, desc, overrideColor = null, actionImg = 'idle', actionAnim = 'anim-bounce', soundName = null) {
       party.abortController = new AbortController();
       const signal = party.abortController.signal;
@@ -1494,7 +1658,6 @@
         const playerColorCode = overrideColor || getActivePlayerColorCode();
         const diceFolder = `assets/D${sides}`;
 
-        // 1. Mostrar personaje y reproducir animación
         charImg.src = `assets/characters/${playerColorCode}/${actionImg}.png`;
         charImg.onerror = () => {
           charImg.src = `assets/characters/${actionImg}.png`;
@@ -1505,7 +1668,6 @@
         void charImg.offsetWidth; 
         charImg.classList.add(actionAnim);
 
-        // REPRODUCCIÓN DE SONIDO ESPECÍFICO DE HABILIDAD EN ANIMACIÓN DE CAPO
         if (soundName) {
           playSound(soundName);
         } else if (actionImg === 'rpg_tommy') {
@@ -1519,7 +1681,6 @@
         wrapper.classList.add('hidden');
         wrapper.style.transform = 'rotate(0deg) scale(1)';
 
-        // 2. Cargar capas de dados
         if (sides === 4 || sides === 6) {
           shadowEl.style.backgroundImage = 'none';
         } else {
@@ -1541,7 +1702,6 @@
           reject('aborted'); 
         });
 
-        // Retardo de 700ms para mostrar la animación antes de que empiece a girar el dado
         setTimeout(() => {
           if (cancelBtn) cancelBtn.classList.add('hidden');
           wrapper.classList.remove('hidden');
@@ -1559,23 +1719,25 @@
 
           setTimeout(() => {
             clearInterval(interval);
-            const finalRoll = Math.floor(Math.random() * sides) + 1;
-            numEl.style.backgroundImage = `url('${diceFolder}/${finalRoll}.png')`;
-            wrapper.style.transform = 'rotate(0deg) scale(1)';
+            
+            // SINCRONIZACIÓN DE RED: Esperar a que Firebase nos de el dado final
+            getNetworkRoll(sides).then(finalRoll => {
+                numEl.style.backgroundImage = `url('${diceFolder}/${finalRoll}.png')`;
+                wrapper.style.transform = 'rotate(0deg) scale(1)';
 
-            // FLASH DE DADO E IMPACTO
-            playSound('diceLanding');
-            triggerVibrate(50);
-            if (modalContent) {
-              modalContent.style.transition = 'background-color 0.05s ease';
-              modalContent.style.backgroundColor = 'rgba(255, 255, 255, 0.25)';
-              setTimeout(() => { modalContent.style.backgroundColor = ''; }, 90);
-            }
+                playSound('diceLanding');
+                triggerVibrate(50);
+                if (modalContent) {
+                  modalContent.style.transition = 'background-color 0.05s ease';
+                  modalContent.style.backgroundColor = 'rgba(255, 255, 255, 0.25)';
+                  setTimeout(() => { modalContent.style.backgroundColor = ''; }, 90);
+                }
 
-            setTimeout(() => {
-              cleanUp();
-              resolve(finalRoll);
-            }, 1000);
+                setTimeout(() => {
+                  cleanUp();
+                  resolve(finalRoll);
+                }, 1000);
+            });
           }, 800);
 
         }, 700);
@@ -1614,14 +1776,37 @@
         input.value = ''; setTimeout(() => input.focus(), 50);
 
         const cleanUp = () => { modal.classList.add('hidden'); btn.onclick = null; input.onkeydown = null; };
-        const validateAndResolve = () => {
-          const val = parseInt(input.value, 10);
-          if (val >= 1 && val <= sides) { cleanUp(); resolve(val); } else { alert(`Número entre 1 y ${sides}`); }
-        };
-        btn.onclick = validateAndResolve;
-        input.onkeydown = (e) => { if(e.key === 'Enter') validateAndResolve(); };
+        
         signal.addEventListener('abort', () => { cleanUp(); reject('aborted'); });
+
+        if (!isMyTurnNetwork()) {
+            input.disabled = true;
+            btn.innerText = "ESPERANDO RIVAL...";
+            btn.onclick = null;
+            // Esperando la confirmación y el número por parte del Host
+            getNetworkRoll(sides).then(val => {
+                cleanUp();
+                resolve(val);
+            });
+        } else {
+            input.disabled = false;
+            btn.innerText = "CONFIRMAR DADO";
+            const validateAndResolve = () => {
+              const val = parseInt(input.value, 10);
+              if (val >= 1 && val <= sides) { 
+                  db.ref(roomPath + '/rolls').push(val); // Sincroniza al rival
+                  cleanUp(); 
+                  resolve(val); 
+              } else { alert(`Número entre 1 y ${sides}`); }
+            };
+            btn.onclick = validateAndResolve;
+            input.onkeydown = (e) => { if(e.key === 'Enter') validateAndResolve(); };
+        }
       });
+    }
+
+    window.networkCancelAction = function() {
+      cancelAction();
     }
 
     function cancelAction() {
@@ -1636,7 +1821,9 @@
       else updateUI_POK();
     }
 
+    let currentModalCallback = null;
     function openChoiceModal(title, desc, options, callback) {
+      currentModalCallback = callback;
       document.getElementById('choice-title').innerText = title;
       document.getElementById('choice-desc').innerText = desc;
       const container = document.getElementById('choice-container');
@@ -1647,16 +1834,27 @@
         btn.className = 'btn-action';
         btn.style.width = '100%';
         btn.innerHTML = opt.label;
-        btn.disabled = opt.disabled;
+        btn.disabled = opt.disabled || !isMyTurnNetwork();
         
         if(opt.isOwned) btn.classList.add('owned');
         else if(opt.disabled) btn.style.opacity = '0.3';
 
-        btn.onclick = () => { closeChoiceModal(); callback(opt.value); };
+        btn.onclick = () => { 
+            if (!isMyTurnNetwork()) return;
+            dispatchAction('networkModalChoice', opt.value);
+        };
         container.appendChild(btn);
       });
       document.getElementById('modal-choice').classList.remove('hidden');
     }
+
+    window.networkModalChoice = function(val) {
+      closeChoiceModal();
+      if (currentModalCallback) {
+          currentModalCallback(val);
+          currentModalCallback = null;
+      }
+    };
 
     function closeChoiceModal() {
       document.getElementById('modal-choice').classList.add('hidden');
@@ -1756,7 +1954,7 @@
       }
     }
 
-    async function rpgAction(type) {
+    window.rpgAction = async function(type) {
       if (party.isWaiting) return;
       party.isWaiting = true; updateUI_RPG();
 
@@ -1800,7 +1998,7 @@
 
         if (def.hp <= 0 || att.hp <= 0) return;
 
-        // PROCESAR SOPLÓN (VENENO) EN CADA TURNO DEL COMBATE PARA AMBOS JUGADORES
+        // PROCESAR SOPLÓN
         for (let playerKey of ['p1', 'p2']) {
           const targetPlayer = rpg[playerKey];
           const targetName = playerKey === 'p1' ? party.p1Name : party.p2Name;
@@ -1828,7 +2026,7 @@
       } catch(e) {
         party.isWaiting = false; updateUI_RPG();
       }
-    }
+    };
 
     async function applyDmgRPG(dmg, att, def, attName, defName, type) {
       const defBar = rpg.turn === 1 ? 'rpg-p2-bar-container' : 'rpg-p1-bar-container';
@@ -1866,11 +2064,9 @@
       m1Box.classList.toggle('active-turn', rpg.turn === 1);
       m2Box.classList.toggle('active-turn', rpg.turn === 2);
 
-      // FILTRO VISUAL DE VENENO/SOPLÓN EN CAJA DE CAPO
       m1Box.classList.toggle('status-poisoned', rpg.p1.poison > 0);
       m2Box.classList.toggle('status-poisoned', rpg.p2.poison > 0);
 
-      // PELIGRO CRÍTICO (< 25% SALUD)
       m1Box.classList.toggle('low-hp-warning', rpg.p1.max > 0 && (rpg.p1.hp / rpg.p1.max < 0.25));
       m2Box.classList.toggle('low-hp-warning', rpg.p2.max > 0 && (rpg.p2.hp / rpg.p2.max < 0.25));
 
@@ -1893,7 +2089,7 @@
       document.getElementById('rpg-badge-h').innerText = `${att.heals}/3`;
 
       const def = rpg.turn === 1 ? rpg.p2 : rpg.p1;
-      const dis = party.isWaiting;
+      const dis = party.isWaiting || !isMyTurnNetwork();
       document.getElementById('rpg-btn-q').disabled = dis;
       document.getElementById('rpg-btn-s').disabled = dis;
       document.getElementById('rpg-btn-h').disabled = dis || rpg.round === 1 || att.blocked;
@@ -1924,7 +2120,7 @@
       updateUI_EXP();
     }
 
-    async function expAction(type) {
+    window.expAction = async function(type) {
       if (party.isWaiting) return;
       party.isWaiting = true; updateUI_EXP();
 
@@ -1998,7 +2194,6 @@
             spawnParticles(rBox, 'dmg-heavy');
           }
         } else if (type === 'surface') {
-          // ESCENA DEL COCHE DE ESCAPE EN MODAL TRAS PRESIONAR EL BOTÓN
           await showActionModal(pNum, "¡COCHE DE ESCAPE!", "exp_getaway", "anim-slide", 1200);
           p.surfaced = true; p.secured += p.temp;
           cLog(`🚗💨 ${pName} arranca el Coche de Escape y asegura ${p.temp} de botín.`);
@@ -2021,7 +2216,7 @@
       } catch(e) {
         party.isWaiting = false; updateUI_EXP();
       }
-    }
+    };
 
     function nextTurnEXP() {
       const currentCode = exp.turn;
@@ -2071,9 +2266,15 @@
         document.getElementById('final-winner-msg').innerText = `Botín robado: P1(${exp.p1.secured}) | P2(${exp.p2.secured})`;
         const btn = document.getElementById('btn-next-match');
         btn.innerText = "SIGUIENTE ATRACO";
-        btn.onclick = () => { overlay.classList.add('hidden'); exp.dive++; startDiveEXP(); };
+        btn.onclick = () => { if (isHost) dispatchAction('networkNextDive'); };
         overlay.classList.remove('hidden');
       }
+    }
+
+    window.networkNextDive = function() {
+      document.getElementById('win-overlay').classList.add('hidden');
+      exp.dive++;
+      startDiveEXP();
     }
 
     function updateUI_EXP() {
@@ -2091,7 +2292,6 @@
       m1Box.classList.toggle('surfaced', exp.p1.surfaced);
       m2Box.classList.toggle('surfaced', exp.p2.surfaced);
 
-      // PELIGRO CRÍTICO (< 25% COBERTURA)
       m1Box.classList.toggle('low-hp-warning', !exp.p1.surfaced && exp.p1.hp < 5);
       m2Box.classList.toggle('low-hp-warning', !exp.p2.surfaced && exp.p2.hp < 5);
 
@@ -2113,7 +2313,7 @@
 
       const act = exp.turn === 1 ? exp.p1 : exp.p2;
       const rvl = exp.turn === 1 ? exp.p2 : exp.p1;
-      const dis = party.isWaiting || act.surfaced;
+      const dis = party.isWaiting || act.surfaced || !isMyTurnNetwork();
 
       document.getElementById('exp-btn-q').disabled = dis;
       document.getElementById('exp-btn-s').disabled = dis;
@@ -2176,14 +2376,13 @@
       }
     }
 
-    async function mafRollHarvest(sides) {
+    window.mafRollHarvest = async function(sides, egoistCheck) {
       if (party.isWaiting) return;
       party.isWaiting = true; updateUI_MAF();
 
       try {
         const act = maf.turn === 1 ? maf.p1 : maf.p2;
         const actName = maf.turn === 1 ? party.p1Name : party.p2Name;
-        const egoistCheck = document.getElementById('maf-egoist-check').checked;
 
         const actionImg = sides === 6 ? 'maf_safe' : 'maf_risk';
         const actionAnim = sides === 6 ? 'anim-bounce' : 'anim-slam';
@@ -2242,9 +2441,9 @@
       } catch(e) {
         party.isWaiting = false; updateUI_MAF();
       }
-    }
+    };
 
-    function openBuyModal() {
+    window.openBuyModal = function() {
       const pNum = maf.turn;
       const act = maf.turn === 1 ? maf.p1 : maf.p2;
       const actName = maf.turn === 1 ? party.p1Name : party.p2Name;
@@ -2273,9 +2472,9 @@
         spawnParticles(actBox, 'growth');
         nextTurnMAF();
       });
-    }
+    };
 
-    function openSabotageModal() {
+    window.openSabotageModal = function() {
       const act = maf.turn === 1 ? maf.p1 : maf.p2;
       const rvl = maf.turn === 1 ? maf.p2 : maf.p1;
       const actName = maf.turn === 1 ? party.p1Name : party.p2Name;
@@ -2327,9 +2526,9 @@
           party.isWaiting = false; updateUI_MAF();
         }
       });
-    }
+    };
 
-    async function mafActionBrew() {
+    window.mafActionBrew = async function() {
       if (party.isWaiting) return;
       party.isWaiting = true; updateUI_MAF();
       try {
@@ -2363,13 +2562,13 @@
       } catch(e) {
         party.isWaiting = false; updateUI_MAF();
       }
-    }
+    };
 
-    function mafActionPass() {
+    window.mafActionPass = function() {
       const actName = maf.turn === 1 ? party.p1Name : party.p2Name;
       cLog(`⏳ ${actName} no hace movimientos y guarda su Efectivo.`);
       nextTurnMAF();
-    }
+    };
 
     function nextTurnMAF() {
       maf.turn = maf.turn === 1 ? 2 : 1;
@@ -2402,7 +2601,7 @@
       renderDistricts('maf-p1-parcels', maf.p1);
       renderDistricts('maf-p2-parcels', maf.p2);
 
-      const isWait = party.isWaiting;
+      const isWait = party.isWaiting || !isMyTurnNetwork();
       const isRollPhase = maf.phase === 'roll';
       const isActionPhase = maf.phase === 'action';
       const act = maf.turn === 1 ? maf.p1 : maf.p2;
@@ -2414,7 +2613,7 @@
       const egoistToggle = document.getElementById('maf-egoist-check');
       document.getElementById('egoist-label').style.opacity = act.coins >= 1 ? '1' : '0.5';
       if (act.coins < 1) egoistToggle.checked = false;
-      egoistToggle.disabled = isWait || act.coins < 1;
+      egoistToggle.disabled = party.isWaiting || !isMyTurnNetwork() || act.coins < 1;
 
       document.getElementById('maf-btn-safe').disabled = isWait;
       document.getElementById('maf-btn-exotic').disabled = isWait;
@@ -2472,7 +2671,7 @@
       updateUI_POK();
     }
 
-    async function pokAction(type) {
+    window.pokAction = async function(type) {
       if (party.isWaiting) return;
       party.isWaiting = true; updateUI_POK();
       
@@ -2549,7 +2748,7 @@
       } catch(e) {
         party.isWaiting = false; updateUI_POK();
       }
-    }
+    };
 
     function nextTurnPOK() {
       pok.turn = pok.turn === 1 ? 2 : 1;
@@ -2585,7 +2784,6 @@
       m1Box.classList.toggle('active-turn', pok.turn === 1);
       m2Box.classList.toggle('active-turn', pok.turn === 2);
 
-      // PELIGRO CRÍTICO (< 3 FICHAS)
       m1Box.classList.toggle('low-hp-warning', pok.p1.tokens <= 2);
       m2Box.classList.toggle('low-hp-warning', pok.p2.tokens <= 2);
 
@@ -2594,7 +2792,7 @@
 
       const act = pok.turn === 1 ? pok.p1 : pok.p2;
       const rvl = pok.turn === 1 ? pok.p2 : pok.p1;
-      const dis = party.isWaiting;
+      const dis = party.isWaiting || !isMyTurnNetwork();
 
       document.getElementById('pok-btn-q').disabled = dis || act.tokens < 1;
       document.getElementById('pok-btn-s').disabled = dis || act.tokens < 3;
