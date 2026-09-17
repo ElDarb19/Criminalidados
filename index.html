@@ -883,8 +883,16 @@
     let isHost = true;
     let roomPath = null;
 
-    let rollQueue = [];
-    let rollResolver = null;
+    let netRollIndex = 0;
+    let currentGameStatus = 'SETUP';
+
+    function resetRollSync() {
+      netRollIndex = 0;
+      if (isHost && gameMode === 'online' && roomPath) {
+        db.ref(roomPath + '/rolls').remove();
+        db.ref(roomPath + '/guestManualRolls').remove();
+      }
+    }
 
     function setGameMode(mode) {
       gameMode = mode;
@@ -943,7 +951,6 @@
       if (gameMode !== 'online') return;
 
       if (isHost) {
-        // HOST: Puede cambiar P1, Game settings y Botón Comenzar
         enableInput('p1-name-input');
         enableInput('p1-color-input');
         disableInput('p2-name-input');
@@ -956,7 +963,6 @@
         btnStart.style.opacity = '1';
         btnStart.innerText = "¡COMENZAR!";
       } else {
-        // RIVAL (P2): Puede cambiar P2 únicamente
         disableInput('p1-name-input');
         disableInput('p1-color-input');
         enableInput('p2-name-input');
@@ -1005,7 +1011,6 @@
       btnStart.innerText = "¡COMENZAR!";
     }
 
-    // TRANSMITIR CONFIGURACIÓN DE NOMBRES/COLORES A FIREBASE
     function onPlayerSetupInput() {
       if (gameMode !== 'online' || !roomPath) return;
       if (isHost) syncHostSetupToFirebase();
@@ -1042,22 +1047,20 @@
       if (!roomPath) return;
 
       db.ref(roomPath + '/rolls').off();
+      db.ref(roomPath + '/guestManualRolls').off();
       db.ref(roomPath + '/actions').off();
       db.ref(roomPath + '/gameStatus').off();
       db.ref(roomPath + '/p2_joined').off();
       db.ref(roomPath + '/setup').off();
 
-      // Escuchar cambios de dados
-      db.ref(roomPath + '/rolls').on('child_added', (snap) => {
-        if (isHost) return;
-        const val = snap.val();
-        if (rollResolver) {
-            rollResolver(val);
-            rollResolver = null;
-        } else {
-            rollQueue.push(val);
-        }
-      });
+      // Recibir tiros manuales del Rival en el Host
+      if (isHost) {
+        db.ref(roomPath + '/guestManualRolls').on('child_added', (snap) => {
+          const rIdx = snap.key;
+          const val = snap.val();
+          db.ref(roomPath + '/rolls/' + rIdx).set(val);
+        });
+      }
 
       // Escuchar acciones de botones
       db.ref(roomPath + '/actions').on('child_added', (snap) => {
@@ -1067,12 +1070,15 @@
         }
       });
 
-      // Escuchar estado global de inicio de juego (AMBOS RECIBEN LA ORDEN)
+      // Escuchar estado global de inicio de juego
       db.ref(roomPath + '/gameStatus').on('value', (snap) => {
         const data = snap.val();
-        if (data && data.status === 'PLAYING') {
+        if (!data) return;
+        if (data.status === 'PLAYING' && currentGameStatus !== 'PLAYING') {
+            currentGameStatus = 'PLAYING';
             window.networkStartGame(data.party);
-        } else if (data && data.status === 'SETUP') {
+        } else if (data.status === 'SETUP' && currentGameStatus !== 'SETUP') {
+            currentGameStatus = 'SETUP';
             window.networkReturnToMenu();
         }
       });
@@ -1157,23 +1163,42 @@
       db.ref(roomPath + '/actions').push({ func: funcName, args: args, ts: firebase.database.ServerValue.TIMESTAMP });
     }
 
-    function getNetworkRoll(sides) {
+    // SISTEMA DE DADOS SINCRONIZADOS POR ÍNDICE (DADO #0, DADO #1, DADO #2...)
+    function getNetworkRoll(sides, forcedVal = null) {
       if (gameMode === 'local') {
-        return Promise.resolve(Math.floor(Math.random() * sides) + 1);
+        const val = forcedVal !== null ? forcedVal : (Math.floor(Math.random() * sides) + 1);
+        return Promise.resolve(val);
       }
-      return new Promise((resolve) => {
-          if (isHost) {
-              const r = Math.floor(Math.random() * sides) + 1;
-              db.ref(roomPath + '/rolls').push(r);
-              resolve(r);
-          } else {
-              if (rollQueue.length > 0) {
-                  resolve(rollQueue.shift());
-              } else {
-                  rollResolver = resolve;
-              }
+      
+      const rollIdx = netRollIndex++;
+      
+      if (isHost) {
+        return new Promise((resolve) => {
+          const valToSet = forcedVal !== null ? forcedVal : (Math.floor(Math.random() * sides) + 1);
+          if (roomPath) {
+            db.ref(roomPath + '/rolls/' + rollIdx).set(valToSet);
           }
-      });
+          resolve(valToSet);
+        });
+      } else {
+        // En dispositivo Rival / Cliente
+        if (forcedVal !== null && roomPath) {
+          db.ref(roomPath + '/guestManualRolls/' + rollIdx).set(forcedVal);
+        }
+        return new Promise((resolve) => {
+          if (!roomPath) {
+            resolve(forcedVal !== null ? forcedVal : (Math.floor(Math.random() * sides) + 1));
+            return;
+          }
+          const rollRef = db.ref(roomPath + '/rolls/' + rollIdx);
+          rollRef.on('value', function handler(snap) {
+            if (snap.exists()) {
+              rollRef.off('value', handler);
+              resolve(snap.val());
+            }
+          });
+        });
+      }
     }
 
     window.onload = () => {
@@ -1692,7 +1717,7 @@
     window.hostStartCoreGame = function() {
       if (!isHost) return;
       startCoreGame();
-      db.ref(roomPath + '/rolls').remove();
+      resetRollSync();
       db.ref(roomPath + '/actions').remove();
       db.ref(roomPath + '/gameStatus').set({ status: 'PLAYING', party: party, ts: firebase.database.ServerValue.TIMESTAMP });
     };
@@ -1753,6 +1778,7 @@
     }
 
     function startNextMiniGame() {
+      resetRollSync();
       party.currentGame = party.playlist[party.matchesPlayed];
       document.body.className = `theme-${party.currentGame}`;
       
@@ -1820,11 +1846,12 @@
 
     window.networkReturnToMenu = function() {
       stopHeartbeat();
+      resetRollSync();
       document.getElementById('win-overlay').classList.add('hidden');
       document.getElementById('game-screen').classList.add('hidden');
       document.getElementById('setup-screen').classList.remove('hidden');
       document.body.className = `theme-${party.singleGameChoice}`; 
-      if (gameMode === 'online' && roomPath) {
+      if (gameMode === 'online' && roomPath && isHost) {
         db.ref(roomPath + '/gameStatus').set({ status: 'SETUP' });
       }
     }
@@ -1865,14 +1892,14 @@
       });
     }
 
-    async function roll(sides, desc, overrideColor = null, actionImg = 'idle', actionAnim = 'anim-bounce', soundName = null) {
+    async function roll(sides, desc, overrideColor = null, actionImg = 'idle', actionAnim = 'anim-bounce', soundName = null, forcedVal = null) {
       party.abortController = new AbortController();
       const signal = party.abortController.signal;
-      if (party.diceMode === 'virtual') return await virtualRoll(sides, desc, signal, overrideColor, actionImg, actionAnim, soundName);
-      else return await manualRoll(sides, desc, signal, overrideColor, actionImg, actionAnim, soundName);
+      if (party.diceMode === 'virtual') return await virtualRoll(sides, desc, signal, overrideColor, actionImg, actionAnim, soundName, forcedVal);
+      else return await manualRoll(sides, desc, signal, overrideColor, actionImg, actionAnim, soundName, forcedVal);
     }
 
-    function virtualRoll(sides, desc, signal, overrideColor = null, actionImg = 'idle', actionAnim = 'anim-bounce', soundName = null) {
+    function virtualRoll(sides, desc, signal, overrideColor = null, actionImg = 'idle', actionAnim = 'anim-bounce', soundName = null, forcedVal = null) {
       return new Promise((resolve, reject) => {
         const modal = document.getElementById('modal-virtual');
         const wrapper = document.getElementById('modal-dice-wrapper');
@@ -1891,6 +1918,9 @@
 
         const playerColorCode = overrideColor || getActivePlayerColorCode();
         const diceFolder = `assets/D${sides}`;
+
+        // Inicia el registro o consulta del dado en Firebase de inmediato
+        const rollPromise = getNetworkRoll(sides, forcedVal);
 
         charImg.src = `assets/characters/${playerColorCode}/${actionImg}.png`;
         charImg.onerror = () => {
@@ -1951,33 +1981,32 @@
             triggerVibrate(20);
           }, 50);
 
-          setTimeout(() => {
+          setTimeout(async () => {
             clearInterval(interval);
             
-            getNetworkRoll(sides).then(finalRoll => {
-                numEl.style.backgroundImage = `url('${diceFolder}/${finalRoll}.png')`;
-                wrapper.style.transform = 'rotate(0deg) scale(1)';
+            const finalRoll = await rollPromise;
+            numEl.style.backgroundImage = `url('${diceFolder}/${finalRoll}.png')`;
+            wrapper.style.transform = 'rotate(0deg) scale(1)';
 
-                playSound('diceLanding');
-                triggerVibrate(50);
-                if (modalContent) {
-                  modalContent.style.transition = 'background-color 0.05s ease';
-                  modalContent.style.backgroundColor = 'rgba(255, 255, 255, 0.25)';
-                  setTimeout(() => { modalContent.style.backgroundColor = ''; }, 90);
-                }
+            playSound('diceLanding');
+            triggerVibrate(50);
+            if (modalContent) {
+              modalContent.style.transition = 'background-color 0.05s ease';
+              modalContent.style.backgroundColor = 'rgba(255, 255, 255, 0.25)';
+              setTimeout(() => { modalContent.style.backgroundColor = ''; }, 90);
+            }
 
-                setTimeout(() => {
-                  cleanUp();
-                  resolve(finalRoll);
-                }, 1000);
-            });
+            setTimeout(() => {
+              cleanUp();
+              resolve(finalRoll);
+            }, 1000);
           }, 800);
 
         }, 700);
       });
     }
 
-    function manualRoll(sides, desc, signal, overrideColor = null, actionImg = 'idle', actionAnim = 'anim-bounce', soundName = null) {
+    function manualRoll(sides, desc, signal, overrideColor = null, actionImg = 'idle', actionAnim = 'anim-bounce', soundName = null, forcedVal = null) {
       return new Promise((resolve, reject) => {
         const modal = document.getElementById('modal-manual');
         const input = document.getElementById('input-manual-value');
@@ -2013,12 +2042,12 @@
         } else {
             input.disabled = false;
             btn.innerText = "CONFIRMAR DADO";
-            const validateAndResolve = () => {
+            const validateAndResolve = async () => {
               const val = parseInt(input.value, 10);
               if (val >= 1 && val <= sides) { 
-                  if (gameMode === 'online') db.ref(roomPath + '/rolls').push(val);
+                  const finalVal = await getNetworkRoll(sides, val);
                   cleanUp(); 
-                  resolve(val); 
+                  resolve(finalVal); 
               } else { alert(`Número entre 1 y ${sides}`); }
             };
             btn.onclick = validateAndResolve;
