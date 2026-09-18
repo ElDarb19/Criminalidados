@@ -372,6 +372,14 @@
 </head>
 <body class="theme-rpg">
 
+  <!-- ==================== MODAL SPLASH DE TITULO DE MINIJUEGO ==================== -->
+  <div id="modal-splash" class="modal-overlay hidden">
+    <div class="modal-content" style="border-color: var(--theme-accent); padding: 45px 25px;">
+      <h1 id="splash-title" style="font-size: 2.2rem; margin: 0; text-transform: uppercase; color: var(--theme-accent);">MINIJUEGO</h1>
+      <p id="splash-subtitle" style="color: var(--accent-gold); font-size: 1.1rem; margin-top: 12px; font-weight: bold; letter-spacing: 2px;">PREPARANDO EL CONTRATO...</p>
+    </div>
+  </div>
+
   <!-- ==================== PANTALLA SETUP ==================== -->
   <div id="setup-screen" class="screen">
     <!-- BOTÓN MANUAL DE CAPO -->
@@ -477,7 +485,7 @@
 
       <div id="party-settings" class="hidden" style="margin-top:15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1)">
         <h2>Total de contratos (Playlist)</h2>
-        <input type="number" id="total-matches" value="3" min="2" oninput="updatePartyText(); syncHostSetupToFirebase();" style="margin-bottom: 10px;">
+        <input type="number" id="total-matches" value="4" min="1" oninput="updatePartyText(); syncHostSetupToFirebase();" style="margin-bottom: 10px;">
         
         <h2>Actividades a incluir</h2>
         <div class="checkbox-group">
@@ -486,7 +494,7 @@
           <label class="checkbox-label"><input type="checkbox" id="party-cb-maf" value="maf" checked onchange="validateCheckboxes(); syncHostSetupToFirebase();"> Imperio Criminal (Gestión Territorial)</label>
           <label class="checkbox-label"><input type="checkbox" id="party-cb-pok" value="pok" checked onchange="validateCheckboxes(); syncHostSetupToFirebase();"> Apuestas Clandestinas (Poker y Riesgo)</label>
         </div>
-        <p id="party-desc-text" style="font-size:0.75rem; color: var(--theme-accent); margin-top:10px">El primero en ganar 2 contratos dominará la ciudad.</p>
+        <p id="party-desc-text" style="font-size:0.75rem; color: var(--theme-accent); margin-top:10px">Mínimo 4 contratos requeridos. El primero en ganar 3 victorias dominará la ciudad.</p>
 
         <!-- ACORDEÓN MODO PARTY -->
         <div class="party-accordion">
@@ -1053,7 +1061,6 @@
       db.ref(roomPath + '/p2_joined').off();
       db.ref(roomPath + '/setup').off();
 
-      // Recibir tiros manuales del Rival en el Host
       if (isHost) {
         db.ref(roomPath + '/guestManualRolls').on('child_added', (snap) => {
           const rIdx = snap.key;
@@ -1062,7 +1069,6 @@
         });
       }
 
-      // Escuchar acciones de botones
       db.ref(roomPath + '/actions').on('child_added', (snap) => {
         const data = snap.val();
         if (window[data.func]) {
@@ -1070,7 +1076,6 @@
         }
       });
 
-      // Escuchar estado global de inicio de juego
       db.ref(roomPath + '/gameStatus').on('value', (snap) => {
         const data = snap.val();
         if (!data) return;
@@ -1083,7 +1088,6 @@
         }
       });
 
-      // Escuchar cambios de interfaz durante el Setup
       db.ref(roomPath + '/setup/p1').on('value', snap => {
         const val = snap.val();
         if (val && !isHost) {
@@ -1163,7 +1167,7 @@
       db.ref(roomPath + '/actions').push({ func: funcName, args: args, ts: firebase.database.ServerValue.TIMESTAMP });
     }
 
-    // SISTEMA DE DADOS SINCRONIZADOS POR ÍNDICE (DADO #0, DADO #1, DADO #2...)
+    // SISTEMA DE DADOS SINCRONIZADOS POR ÍNDICE EXACTO
     function getNetworkRoll(sides, forcedVal = null) {
       if (gameMode === 'local') {
         const val = forcedVal !== null ? forcedVal : (Math.floor(Math.random() * sides) + 1);
@@ -1181,7 +1185,6 @@
           resolve(valToSet);
         });
       } else {
-        // En dispositivo Rival / Cliente
         if (forcedVal !== null && roomPath) {
           db.ref(roomPath + '/guestManualRolls/' + rollIdx).set(forcedVal);
         }
@@ -1591,6 +1594,19 @@
       setTimeout(() => el.remove(), 850);
     }
 
+    function showMinigameSplash(title) {
+      return new Promise((resolve) => {
+        const splash = document.getElementById('modal-splash');
+        document.getElementById('splash-title').innerText = title;
+        splash.classList.remove('hidden');
+        playSound('win');
+        setTimeout(() => {
+          splash.classList.add('hidden');
+          resolve();
+        }, 1400);
+      });
+    }
+
     function selectSingleGame(game) {
       party.singleGameChoice = game;
       document.getElementById('opt-single-rpg').classList.toggle('selected', game === 'rpg');
@@ -1605,13 +1621,32 @@
       party.isParty = document.getElementById('party-mode-check').checked;
       document.getElementById('party-settings').classList.toggle('hidden', !party.isParty);
       document.getElementById('single-game-settings').classList.toggle('hidden', party.isParty);
-      if(party.isParty) updatePartyText();
+      if(party.isParty) validateCheckboxes();
     }
 
     function updatePartyText() {
-      const num = parseInt(document.getElementById('total-matches').value, 10) || 3;
+      const totalInput = document.getElementById('total-matches');
+      const cbRpg = document.getElementById('party-cb-rpg');
+      const cbExp = document.getElementById('party-cb-exp');
+      const cbMaf = document.getElementById('party-cb-maf');
+      const cbPok = document.getElementById('party-cb-pok');
+      
+      let selectedCount = 0;
+      if (cbRpg && cbRpg.checked) selectedCount++;
+      if (cbExp && cbExp.checked) selectedCount++;
+      if (cbMaf && cbMaf.checked) selectedCount++;
+      if (cbPok && cbPok.checked) selectedCount++;
+
+      if (selectedCount > 0 && totalInput) {
+        totalInput.min = selectedCount;
+        if (parseInt(totalInput.value, 10) < selectedCount) {
+          totalInput.value = selectedCount;
+        }
+      }
+
+      const num = parseInt(totalInput.value, 10) || selectedCount || 3;
       const winsNeeded = Math.floor(num / 2) + 1;
-      document.getElementById('party-desc-text').innerText = `El primero en ganar ${winsNeeded} contratos dominará la ciudad.`;
+      document.getElementById('party-desc-text').innerText = `Mínimo ${selectedCount} contratos requeridos. El primero en ganar ${winsNeeded} victorias dominará la ciudad.`;
     }
 
     function validateCheckboxes() {
@@ -1619,10 +1654,25 @@
       const cbExp = document.getElementById('party-cb-exp');
       const cbMaf = document.getElementById('party-cb-maf');
       const cbPok = document.getElementById('party-cb-pok');
-      if (!cbRpg.checked && !cbExp.checked && !cbMaf.checked && !cbPok.checked) {
+      
+      let selectedCount = 0;
+      if (cbRpg.checked) selectedCount++;
+      if (cbExp.checked) selectedCount++;
+      if (cbMaf.checked) selectedCount++;
+      if (cbPok.checked) selectedCount++;
+
+      if (selectedCount === 0) {
         alert("Debes seleccionar al menos un contrato.");
         cbRpg.checked = true; 
+        selectedCount = 1;
       }
+
+      const totalInput = document.getElementById('total-matches');
+      totalInput.min = selectedCount;
+      if (parseInt(totalInput.value, 10) < selectedCount) {
+        totalInput.value = selectedCount;
+      }
+      updatePartyText();
     }
 
     function setDice(d) {
@@ -1730,14 +1780,27 @@
 
       party.matchesPlayed = 0; party.p1Wins = 0; party.p2Wins = 0;
       party.isParty = document.getElementById('party-mode-check').checked;
-      party.totalMatches = parseInt(document.getElementById('total-matches').value, 10) || 3;
+      
+      const cbRpg = document.getElementById('party-cb-rpg');
+      const cbExp = document.getElementById('party-cb-exp');
+      const cbMaf = document.getElementById('party-cb-maf');
+      const cbPok = document.getElementById('party-cb-pok');
+      
+      let selectedCount = 0;
+      if (cbRpg && cbRpg.checked) selectedCount++;
+      if (cbExp && cbExp.checked) selectedCount++;
+      if (cbMaf && cbMaf.checked) selectedCount++;
+      if (cbPok && cbPok.checked) selectedCount++;
+
+      const numInput = parseInt(document.getElementById('total-matches').value, 10);
+      party.totalMatches = Math.max(numInput || selectedCount || 3, selectedCount || 1);
 
       if (party.isParty) {
         let selected = [];
-        if(document.getElementById('party-cb-rpg').checked) selected.push('rpg');
-        if(document.getElementById('party-cb-exp').checked) selected.push('exp');
-        if(document.getElementById('party-cb-maf').checked) selected.push('maf');
-        if(document.getElementById('party-cb-pok').checked) selected.push('pok');
+        if(cbRpg.checked) selected.push('rpg');
+        if(cbExp.checked) selected.push('exp');
+        if(cbMaf.checked) selected.push('maf');
+        if(cbPok.checked) selected.push('pok');
         buildPlaylist(selected, party.totalMatches);
       } else {
         party.playlist = [party.singleGameChoice];
@@ -1758,6 +1821,8 @@
         document.getElementById('party-score-bar').classList.remove('hidden');
         document.getElementById('global-p1-name').innerText = party.p1Name;
         document.getElementById('global-p2-name').innerText = party.p2Name;
+        document.getElementById('global-p1-val').innerText = party.p1Wins || 0;
+        document.getElementById('global-p2-val').innerText = party.p2Wins || 0;
       } else {
         document.getElementById('party-score-bar').classList.add('hidden');
       }
@@ -1777,11 +1842,14 @@
       }
     }
 
-    function startNextMiniGame() {
+    async function startNextMiniGame() {
       resetRollSync();
       party.currentGame = party.playlist[party.matchesPlayed];
       document.body.className = `theme-${party.currentGame}`;
       
+      // Mostrar Banner del Minijuego
+      await showMinigameSplash(gameTitles[party.currentGame]);
+
       document.getElementById('rpg-container').classList.toggle('hidden', party.currentGame !== 'rpg');
       document.getElementById('exp-container').classList.toggle('hidden', party.currentGame !== 'exp');
       document.getElementById('maf-container').classList.toggle('hidden', party.currentGame !== 'maf');
@@ -1847,6 +1915,10 @@
     window.networkReturnToMenu = function() {
       stopHeartbeat();
       resetRollSync();
+      party.matchesPlayed = 0; party.p1Wins = 0; party.p2Wins = 0;
+      document.getElementById('global-p1-val').innerText = '0';
+      document.getElementById('global-p2-val').innerText = '0';
+
       document.getElementById('win-overlay').classList.add('hidden');
       document.getElementById('game-screen').classList.add('hidden');
       document.getElementById('setup-screen').classList.remove('hidden');
@@ -1919,7 +1991,6 @@
         const playerColorCode = overrideColor || getActivePlayerColorCode();
         const diceFolder = `assets/D${sides}`;
 
-        // Inicia el registro o consulta del dado en Firebase de inmediato
         const rollPromise = getNetworkRoll(sides, forcedVal);
 
         charImg.src = `assets/characters/${playerColorCode}/${actionImg}.png`;
@@ -2237,7 +2308,19 @@
             const acc = await roll(20, `${attName}: Francotirador (Req. 11+)`, null, 'rpg_sniper', 'anim-recoil', 'sniper_reload');
             if (acc >= 11) {
               if (acc === 20) { triggerScreenShake(); }
-              const dmg = await roll(12, `${attName}: Daño Francotirador`, null, 'rpg_sniper', 'anim-recoil', 'sniper_shot');
+              let dmg = await roll(12, `${attName}: Daño Francotirador`, null, 'rpg_sniper', 'anim-recoil', 'sniper_shot');
+              
+              if (acc === 20) {
+                // Si saca 20, le suma +2 de daño mientras no se pase de la vida restante del rival
+                if (dmg + 2 <= def.hp) {
+                  dmg += 2;
+                  cLog(`🎯 ¡TIRO PERFECTO (d20 = 20)! +2 de daño crítico extra.`);
+                  spawnFloatingText(defBox, `+2 CRÍTICO!`, 'status');
+                } else {
+                  cLog(`🎯 ¡TIRO PERFECTO (d20 = 20)! Daño calibrado para remate exacto.`);
+                }
+              }
+
               await applyDmgRPG(dmg, att, def, attName, defName, 'strong');
             } else { cLog(`💨 ¡El francotirador de ${attName} falló el tiro! (Sacó ${acc})`); }
           } else if (type === 'poison') {
@@ -2385,7 +2468,8 @@
         if (type === 'explore') {
           const res = await roll(6, `${pName}: Saquear Cajas Fuertes`, null, 'exp_boxes', 'anim-slide');
           if (res <= 2) {
-            p.hp -= 3; cLog(`🚨 ¡Trampa de seguridad! ${pName} pierde 3 de cobertura.`);
+            p.hp = Math.max(0, p.hp - 3);
+            cLog(`🚨 ¡Trampa de seguridad! ${pName} pierde 3 de cobertura.`);
             playSound('hit');
             triggerVibrate(40);
             spawnFloatingText(boxId, `-3 COB`, 'dmg');
@@ -2399,7 +2483,12 @@
         } else if (type === 'deep') {
           const acc = await roll(20, `${pName}: Destreza (11+)`, null, 'exp_vault', 'anim-slam', 'fuse');
           if (acc >= 11) {
-            const loot = await roll(12, `${pName}: Forzar Bóveda`, null, 'exp_vault', 'anim-slam', 'dynamite');
+            let loot = await roll(12, `${pName}: Forzar Bóveda`, null, 'exp_vault', 'anim-slam', 'dynamite');
+            if (acc === 20) {
+              loot += 2;
+              cLog(`🌟 ¡DESTREZA PERFECTA (d20 = 20)! +2 bolsas de botín extra.`);
+              spawnFloatingText(boxId, `+2 CRÍTICO!`, 'loot');
+            }
             p.temp += loot; cLog(`💎 ¡La puerta cede! ${pName} embolsa ${loot} bolsas de botín.`);
             playSound('coin');
             triggerScreenShake();
@@ -2407,12 +2496,20 @@
             spawnFloatingText(boxId, `+${loot} 💰`, 'loot');
             spawnParticles(boxId, 'loot'); await triggerAnimation(barId, 'anim-bar-loot');
           } else {
-            p.hp -= 6; cLog(`流 ¡Fallo! Se activa la alarma pesada. ${pName} recibe 6 de daño crítico.`);
+            let coverLoss = 6;
+            if (acc === 1) {
+              coverLoss = 7;
+              cLog(`💀 ¡FALLO CRÍTICO (d20 = 1)! La alarma pesada sobrecalentada causa -7 de daño a cobertura.`);
+              spawnFloatingText(boxId, `-7 CRÍTICO!`, 'dmg');
+            } else {
+              cLog(`流 ¡Fallo! Se activa la alarma pesada. ${pName} recibe 6 de daño crítico.`);
+            }
+            p.hp = Math.max(0, p.hp - coverLoss);
             playSound('crit');
             await triggerHitstop(140);
             triggerScreenShake();
             triggerVibrate([80, 50, 120]);
-            spawnFloatingText(boxId, `-6 COB`, 'dmg');
+            spawnFloatingText(boxId, `-${coverLoss} COB`, 'dmg');
             spawnParticles(boxId, 'dmg-heavy'); await triggerAnimation(barId, 'anim-bar-strong');
           }
         } else if (type === 'repair') {
@@ -2427,7 +2524,8 @@
         } else if (type === 'sabotage') {
           p.torpedoUses++;
           const dmg = await roll(4, `${pName}: Lanzar Granada`, null, 'exp_grenade', 'anim-recoil');
-          r.hp -= dmg; cLog(`💣 ¡SABOTAJE! ${pName} lanza una granada causando ${dmg} daños a la huida rival.`);
+          r.hp = Math.max(0, r.hp - dmg);
+          cLog(`💣 ¡SABOTAJE! ${pName} lanza una granada causando ${dmg} daños a la huida rival.`);
           playSound('crit');
           await triggerHitstop(140);
           triggerScreenShake();
@@ -2640,7 +2738,7 @@
         const res = await roll(sides, `Recaudación ${sides === 6 ? 'Segura (1d6)' : 'Arriesgada (1d12)'}`, null, actionImg, actionAnim);
         
         if (egoistCheck) {
-          act.coins -= 1;
+          act.coins = Math.max(0, act.coins - 1);
           cLog(`🔥 ${actName} paga 1💵 y procede a LAVAR DINERO (Solo él cobra).`);
         }
 
@@ -2713,7 +2811,7 @@
 
       openChoiceModal("CONTROLAR DISTRITO", `El costo actual para expandir tu territorio es de ${cost}💵. Elige el Distrito a tomar:`, options, async (val) => {
         await showActionModal(pNum, "¡DISTRITO CONTROLADO!", "maf_buy", "anim-slam", 1200);
-        act.coins -= cost;
+        act.coins = Math.max(0, act.coins - cost);
         act.parcels.push(val);
         act.parcels.sort((a, b) => a - b);
         cLog(`🏢 ${actName} toma el control del Distrito [${val}].`);
@@ -2761,7 +2859,7 @@
         party.isWaiting = true; updateUI_MAF(); 
         try {
           const turns = await roll(4, `${actName}: Duración de la Redada`, null, 'maf_raid', 'anim-slide');
-          act.coins -= 3;
+          act.coins = Math.max(0, act.coins - 3);
           rvl.sabotages[val] = turns;
           cLog(`🚨 ¡SOPLO! ${actName} envía una redada policial al Distrito [${val}] rival por ${turns} rondas.`);
           playSound('crit');
@@ -2788,7 +2886,7 @@
         const actBar = maf.turn === 1 ? 'maf-p1-bar-container' : 'maf-p2-bar-container';
 
         const res = await roll(20, `${actName}: Sobornar Político (d20)`, null, 'maf_bribe', 'anim-bounce');
-        act.coins -= 5;
+        act.coins = Math.max(0, act.coins - 5);
         
         let pts = 0; let desc = "";
         if (res <= 9) { pts = 1; desc = "Soborno Menor"; }
@@ -2836,6 +2934,9 @@
     function updateUI_MAF() {
       document.getElementById('round-indicator').innerText = `RONDA ${maf.round} (IMPERIO CRIMINAL)`;
       
+      maf.p1.coins = Math.max(0, maf.p1.coins);
+      maf.p2.coins = Math.max(0, maf.p2.coins);
+
       document.getElementById('maf-m1-box').classList.toggle('active-turn', maf.turn === 1);
       document.getElementById('maf-m2-box').classList.toggle('active-turn', maf.turn === 2);
 
@@ -2928,13 +3029,14 @@
       const p = pok.turn === 1 ? pok.p1 : pok.p2;
       const r = pok.turn === 1 ? pok.p2 : pok.p1;
       const pName = pok.turn === 1 ? party.p1Name : party.p2Name;
+      const rName = pok.turn === 1 ? party.p2Name : party.p1Name;
       const pBox = pok.turn === 1 ? 'pok-m1-box' : 'pok-m2-box';
       const rBox = pok.turn === 1 ? 'pok-m2-box' : 'pok-m1-box';
 
       try {
         if(type === 'apuesta') {
             const res = await roll(6, `${pName}: Apuesta (Gana con 4+)`, null, 'pok_bet', 'anim-slide');
-            p.tokens -= 1;
+            p.tokens = Math.max(0, p.tokens - 1);
             cLog(`🎰 ${pName} paga 1 ficha y tira los dados...`);
             if(res >= 4) {
                 p.tokens += 2;
@@ -2950,10 +3052,15 @@
             }
         } else if(type === 'golpe') {
             const acc = await roll(20, `${pName}: Riesgo (Req. 11+)`, null, 'pok_slam', 'anim-slam');
-            p.tokens -= 3;
+            p.tokens = Math.max(0, p.tokens - 3);
             cLog(`💥 ${pName} arriesga 3 fichas y da un Golpe a la Mesa...`);
             if(acc >= 11) {
-                const win = await roll(12, `${pName}: Ganancias del Golpe`, null, 'pok_slam', 'anim-slam');
+                let win = await roll(12, `${pName}: Ganancias del Golpe`, null, 'pok_slam', 'anim-slam');
+                if (acc === 20) {
+                  win += 2;
+                  cLog(`🎉 ¡GOLPE PERFECTO (d20 = 20)! +2 fichas extra ganadas.`);
+                  spawnFloatingText(pBox, `+2 CRÍTICO!`, 'loot');
+                }
                 p.tokens += win;
                 cLog(`🎉 ¡JACKPOT! ${pName} arrasa la mesa y extrae ${win} fichas.`);
                 playSound('coin');
@@ -2974,9 +3081,9 @@
             if(!party.isParty) p.tahurCD = 3;
             
             const actualSteal = Math.min(steal, r.tokens);
-            r.tokens -= actualSteal;
+            r.tokens = Math.max(0, r.tokens - actualSteal);
             p.tokens += actualSteal;
-            cLog(`🎭 ¡TRAMPA! ${pName} hace un juego de manos y roba ${actualSteal} fichas a ${r.turn === 1 ? party.p2Name : party.p1Name}.`);
+            cLog(`🎭 ¡TRAMPA! ${pName} hace un juego de manos y roba ${actualSteal} fichas a ${rName}.`);
             playSound('coin');
             spawnFloatingText(pBox, `+${actualSteal} 🎰`, 'loot');
             spawnFloatingText(rBox, `-${actualSteal} 🎰`, 'dmg');
@@ -2984,8 +3091,8 @@
             setTimeout(() => spawnParticles(pBox, 'coin'), 400);
         }
         
-        if (p.tokens < 0) p.tokens = 0;
-        if (r.tokens < 0) r.tokens = 0;
+        p.tokens = Math.max(0, p.tokens);
+        r.tokens = Math.max(0, r.tokens);
 
         if (p.tokens === 0 || r.tokens === 0) {
             updateUI_POK();
