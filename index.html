@@ -231,10 +231,27 @@
     .floating-text.coin { color: #f1c40f; }
     .floating-text.status { color: #9b59b6; }
 
+    /* NÚMEROS FLOTANTES CRÍTICOS (REUBICADOS Y DESTACADOS) */
+    .floating-text.crit {
+      color: #f39c12;
+      font-size: 2.2rem;
+      top: 15%;
+      text-shadow: 0 0 15px #f1c40f, 2px 2px 0px #000;
+      animation: floatUpCrit 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+      z-index: 300;
+    }
+
     @keyframes floatUpFade {
       0% { opacity: 1; transform: translate(-50%, 0) scale(0.7); }
       35% { transform: translate(-50%, -30px) scale(1.35); }
       100% { opacity: 0; transform: translate(-50%, -70px) scale(1); }
+    }
+
+    @keyframes floatUpCrit {
+      0% { opacity: 0; transform: translate(-50%, 10px) scale(0.5); }
+      20% { opacity: 1; transform: translate(-50%, -20px) scale(1.3); }
+      75% { opacity: 1; transform: translate(-50%, -40px) scale(1.1); }
+      100% { opacity: 0; transform: translate(-50%, -70px) scale(0.8); }
     }
 
     /* SACUDIDA DE PANTALLA GLOBAL */
@@ -485,7 +502,7 @@
 
       <div id="party-settings" class="hidden" style="margin-top:15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1)">
         <h2>Total de contratos (Playlist)</h2>
-        <input type="number" id="total-matches" value="4" min="1" oninput="updatePartyText(); syncHostSetupToFirebase();" style="margin-bottom: 10px;">
+        <input type="number" id="total-matches" value="5" min="1" oninput="updatePartyText(); syncHostSetupToFirebase();" style="margin-bottom: 10px;">
         
         <h2>Actividades a incluir</h2>
         <div class="checkbox-group">
@@ -494,7 +511,7 @@
           <label class="checkbox-label"><input type="checkbox" id="party-cb-maf" value="maf" checked onchange="validateCheckboxes(); syncHostSetupToFirebase();"> Imperio Criminal (Gestión Territorial)</label>
           <label class="checkbox-label"><input type="checkbox" id="party-cb-pok" value="pok" checked onchange="validateCheckboxes(); syncHostSetupToFirebase();"> Apuestas Clandestinas (Poker y Riesgo)</label>
         </div>
-        <p id="party-desc-text" style="font-size:0.75rem; color: var(--theme-accent); margin-top:10px">Mínimo 4 contratos requeridos. El primero en ganar 3 victorias dominará la ciudad.</p>
+        <p id="party-desc-text" style="font-size:0.75rem; color: var(--theme-accent); margin-top:10px">El primero en ganar 3 victorias dominará la ciudad.</p>
 
         <!-- ACORDEÓN MODO PARTY -->
         <div class="party-accordion">
@@ -1160,14 +1177,18 @@
         if (window[funcName]) window[funcName].apply(null, args);
         return;
       }
-      if (funcName !== 'networkCancelAction' && funcName !== 'onStartButtonClick' && funcName !== 'networkModalChoice') {
-          if (!isMyTurnNetwork()) return; 
+      if (funcName === 'hostStartCoreGame' && !isHost) return;
+      
+      const hostOnlyActions = ['networkNextGame', 'networkReturnToMenu', 'networkNextDive'];
+      if (hostOnlyActions.includes(funcName)) {
+        if (!isHost) return;
+      } else if (funcName !== 'onStartButtonClick') {
+        if (!isMyTurnNetwork()) return; 
       }
 
       db.ref(roomPath + '/actions').push({ func: funcName, args: args, ts: firebase.database.ServerValue.TIMESTAMP });
     }
 
-    // SISTEMA DE DADOS SINCRONIZADOS POR ÍNDICE EXACTO
     function getNetworkRoll(sides, forcedVal = null) {
       if (gameMode === 'local') {
         const val = forcedVal !== null ? forcedVal : (Math.floor(Math.random() * sides) + 1);
@@ -1591,7 +1612,7 @@
       el.innerText = text;
 
       container.appendChild(el);
-      setTimeout(() => el.remove(), 850);
+      setTimeout(() => el.remove(), type === 'crit' ? 1200 : 850);
     }
 
     function showMinigameSplash(title) {
@@ -1637,16 +1658,21 @@
       if (cbMaf && cbMaf.checked) selectedCount++;
       if (cbPok && cbPok.checked) selectedCount++;
 
+      let minMatches = selectedCount;
+      if (selectedCount % 2 === 0 && selectedCount > 0) {
+        minMatches = selectedCount + 1; 
+      }
+
       if (selectedCount > 0 && totalInput) {
-        totalInput.min = selectedCount;
-        if (parseInt(totalInput.value, 10) < selectedCount) {
-          totalInput.value = selectedCount;
+        totalInput.min = minMatches;
+        if (parseInt(totalInput.value, 10) < minMatches) {
+          totalInput.value = minMatches;
         }
       }
 
-      const num = parseInt(totalInput.value, 10) || selectedCount || 3;
+      const num = parseInt(totalInput.value, 10) || minMatches || 3;
       const winsNeeded = Math.floor(num / 2) + 1;
-      document.getElementById('party-desc-text').innerText = `Mínimo ${selectedCount} contratos requeridos. El primero en ganar ${winsNeeded} victorias dominará la ciudad.`;
+      document.getElementById('party-desc-text').innerText = `El primero en ganar ${winsNeeded} victorias dominará la ciudad.`;
     }
 
     function validateCheckboxes() {
@@ -1667,10 +1693,15 @@
         selectedCount = 1;
       }
 
+      let minMatches = selectedCount;
+      if (selectedCount % 2 === 0 && selectedCount > 0) {
+        minMatches = selectedCount + 1;
+      }
+
       const totalInput = document.getElementById('total-matches');
-      totalInput.min = selectedCount;
-      if (parseInt(totalInput.value, 10) < selectedCount) {
-        totalInput.value = selectedCount;
+      totalInput.min = minMatches;
+      if (parseInt(totalInput.value, 10) < minMatches) {
+        totalInput.value = minMatches;
       }
       updatePartyText();
     }
@@ -1792,8 +1823,11 @@
       if (cbMaf && cbMaf.checked) selectedCount++;
       if (cbPok && cbPok.checked) selectedCount++;
 
+      let minMatches = selectedCount;
+      if (selectedCount % 2 === 0 && selectedCount > 0) minMatches = selectedCount + 1;
+
       const numInput = parseInt(document.getElementById('total-matches').value, 10);
-      party.totalMatches = Math.max(numInput || selectedCount || 3, selectedCount || 1);
+      party.totalMatches = Math.max(numInput || minMatches || 3, minMatches || 1);
 
       if (party.isParty) {
         let selected = [];
@@ -1847,7 +1881,6 @@
       party.currentGame = party.playlist[party.matchesPlayed];
       document.body.className = `theme-${party.currentGame}`;
       
-      // Mostrar Banner del Minijuego
       await showMinigameSplash(gameTitles[party.currentGame]);
 
       document.getElementById('rpg-container').classList.toggle('hidden', party.currentGame !== 'rpg');
@@ -1888,12 +1921,15 @@
 
       const winsNeeded = Math.floor(party.totalMatches / 2) + 1;
       const isPartyOver = party.isParty && (party.p1Wins >= winsNeeded || party.p2Wins >= winsNeeded || party.matchesPlayed >= party.totalMatches);
+      const isHostOrLocal = (gameMode === 'local') || isHost;
 
       if (!party.isParty) {
         title.innerText = winnerName.toUpperCase();
         msg.innerText = `FIN DEL JUEGO - ${scoreText}`;
-        btn.innerText = "VOLVER A LOS NEGOCIOS";
-        btn.onclick = () => dispatchAction('networkReturnToMenu');
+        btn.innerText = isHostOrLocal ? "VOLVER A LOS NEGOCIOS" : "ESPERANDO AL CAPO 1...";
+        btn.disabled = !isHostOrLocal;
+        btn.style.opacity = isHostOrLocal ? '1' : '0.5';
+        btn.onclick = () => { if (isHostOrLocal) dispatchAction('networkReturnToMenu'); };
       } else if (isPartyOver) {
         let grandWinner = "¡EMPATE TOTAL!";
         if (party.p1Wins > party.p2Wins) grandWinner = party.p1Name;
@@ -1901,13 +1937,17 @@
         
         title.innerText = grandWinner.toUpperCase();
         msg.innerText = `🏆 JEFE ABSOLUTO (${party.p1Wins} - ${party.p2Wins})`;
-        btn.innerText = "VOLVER A LOS NEGOCIOS";
-        btn.onclick = () => dispatchAction('networkReturnToMenu');
+        btn.innerText = isHostOrLocal ? "VOLVER A LOS NEGOCIOS" : "ESPERANDO AL CAPO 1...";
+        btn.disabled = !isHostOrLocal;
+        btn.style.opacity = isHostOrLocal ? '1' : '0.5';
+        btn.onclick = () => { if (isHostOrLocal) dispatchAction('networkReturnToMenu'); };
       } else {
         title.innerText = winnerName.toUpperCase();
         msg.innerText = `Gana este contrato de ${gameTitles[party.currentGame]} (${scoreText})`;
-        btn.innerText = "SIGUIENTE CONTRATO";
-        btn.onclick = () => dispatchAction('networkNextGame');
+        btn.innerText = isHostOrLocal ? "SIGUIENTE CONTRATO" : "ESPERANDO AL CAPO 1...";
+        btn.disabled = !isHostOrLocal;
+        btn.style.opacity = isHostOrLocal ? '1' : '0.5';
+        btn.onclick = () => { if (isHostOrLocal) dispatchAction('networkNextGame'); };
       }
       overlay.classList.remove('hidden');
     }
@@ -1940,27 +1980,32 @@
         const charImg = document.getElementById('modal-char-img');
         const cancelBtn = modal.querySelector('.btn-cancel');
 
+        // Limpieza previa para evitar guiños o flashes de la imagen anterior
+        charImg.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+        charImg.className = '';
+        wrapper.classList.add('hidden');
+
         document.getElementById('virtual-title').innerText = titleText;
         if (cancelBtn) cancelBtn.classList.add('hidden'); 
-        wrapper.classList.add('hidden'); 
 
         const playerColorCode = playerNum === 1 ? party.p1Color : party.p2Color;
-        charImg.src = `assets/characters/${playerColorCode}/${actionImg}.png`;
-        charImg.onerror = () => {
-          charImg.src = `assets/characters/${actionImg}.png`;
-          charImg.onerror = () => { charImg.src = `assets/characters/None/idle.png`; };
-        };
+        
+        setTimeout(() => {
+          charImg.src = `assets/characters/${playerColorCode}/${actionImg}.png`;
+          charImg.onerror = () => {
+            charImg.src = `assets/characters/${actionImg}.png`;
+            charImg.onerror = () => { charImg.src = `assets/characters/None/idle.png`; };
+          };
 
-        charImg.className = '';
-        void charImg.offsetWidth;
-        charImg.classList.add(actionAnim);
-
-        modal.classList.remove('hidden');
+          void charImg.offsetWidth;
+          charImg.classList.add(actionAnim);
+          modal.classList.remove('hidden');
+        }, 50);
 
         setTimeout(() => {
           modal.classList.add('hidden');
           resolve();
-        }, duration);
+        }, duration + 50);
       });
     }
 
@@ -1983,6 +2028,15 @@
         const colorEl = document.getElementById('modal-dice-color');
         const baseEl = document.getElementById('modal-dice-base');
         const numEl = document.getElementById('modal-dice-num');
+
+        // Limpieza profunda de capas de dados para evitar ver sombras solas u oscuras
+        shadowEl.style.backgroundImage = 'none';
+        colorEl.style.backgroundImage = 'none';
+        baseEl.style.backgroundImage = 'none';
+        numEl.style.backgroundImage = 'none';
+
+        charImg.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+        charImg.className = '';
         
         document.getElementById('virtual-title').innerText = desc;
         if (cancelBtn) cancelBtn.classList.remove('hidden'); 
@@ -1993,15 +2047,16 @@
 
         const rollPromise = getNetworkRoll(sides, forcedVal);
 
-        charImg.src = `assets/characters/${playerColorCode}/${actionImg}.png`;
-        charImg.onerror = () => {
-          charImg.src = `assets/characters/${actionImg}.png`;
-          charImg.onerror = () => { charImg.src = `assets/characters/None/idle.png`; };
-        };
+        setTimeout(() => {
+          charImg.src = `assets/characters/${playerColorCode}/${actionImg}.png`;
+          charImg.onerror = () => {
+            charImg.src = `assets/characters/${actionImg}.png`;
+            charImg.onerror = () => { charImg.src = `assets/characters/None/idle.png`; };
+          };
 
-        charImg.className = '';
-        void charImg.offsetWidth; 
-        charImg.classList.add(actionAnim);
+          void charImg.offsetWidth; 
+          charImg.classList.add(actionAnim);
+        }, 50);
 
         if (soundName) {
           playSound(soundName);
@@ -2084,16 +2139,22 @@
         const btn = document.getElementById('btn-confirm-manual');
         const charImg = document.getElementById('modal-manual-char-img');
 
+        charImg.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+        charImg.className = '';
+
         document.getElementById('manual-title').innerText = `Tira d${sides}`;
         document.getElementById('manual-desc').innerText = desc;
 
         const playerColorCode = overrideColor || getActivePlayerColorCode();
-        charImg.src = `assets/characters/${playerColorCode}/${actionImg}.png`;
-        charImg.onerror = () => {
-          charImg.src = `assets/characters/${actionImg}.png`;
-          charImg.onerror = () => { charImg.src = `assets/characters/None/idle.png`; };
-        };
-        charImg.className = actionAnim;
+        
+        setTimeout(() => {
+          charImg.src = `assets/characters/${playerColorCode}/${actionImg}.png`;
+          charImg.onerror = () => {
+            charImg.src = `assets/characters/${actionImg}.png`;
+            charImg.onerror = () => { charImg.src = `assets/characters/None/idle.png`; };
+          };
+          charImg.className = actionAnim;
+        }, 50);
 
         modal.classList.remove('hidden');
         input.value = ''; setTimeout(() => input.focus(), 50);
@@ -2151,22 +2212,32 @@
       const container = document.getElementById('choice-container');
       container.innerHTML = '';
 
+      const myTurn = isMyTurnNetwork();
+
       options.forEach(opt => {
         const btn = document.createElement('button');
         btn.className = 'btn-action';
         btn.style.width = '100%';
         btn.innerHTML = opt.label;
-        btn.disabled = opt.disabled || !isMyTurnNetwork();
+        btn.disabled = opt.disabled || !myTurn;
         
         if(opt.isOwned) btn.classList.add('owned');
-        else if(opt.disabled) btn.style.opacity = '0.3';
+        else if(opt.disabled || !myTurn) btn.style.opacity = '0.3';
 
         btn.onclick = () => { 
-            if (!isMyTurnNetwork()) return;
+            if (!myTurn) return;
             dispatchAction('networkModalChoice', opt.value);
         };
         container.appendChild(btn);
       });
+
+      const cancelBtn = document.querySelector('#modal-choice .btn-cancel');
+      if (cancelBtn) {
+        cancelBtn.disabled = !myTurn;
+        cancelBtn.style.opacity = myTurn ? '1' : '0.3';
+        cancelBtn.style.pointerEvents = myTurn ? 'auto' : 'none';
+      }
+
       document.getElementById('modal-choice').classList.remove('hidden');
     }
 
@@ -2311,11 +2382,10 @@
               let dmg = await roll(12, `${attName}: Daño Francotirador`, null, 'rpg_sniper', 'anim-recoil', 'sniper_shot');
               
               if (acc === 20) {
-                // Si saca 20, le suma +2 de daño mientras no se pase de la vida restante del rival
                 if (dmg + 2 <= def.hp) {
                   dmg += 2;
                   cLog(`🎯 ¡TIRO PERFECTO (d20 = 20)! +2 de daño crítico extra.`);
-                  spawnFloatingText(defBox, `+2 CRÍTICO!`, 'status');
+                  spawnFloatingText(defBox, `🎯 +2 CRÍTICO!`, 'crit');
                 } else {
                   cLog(`🎯 ¡TIRO PERFECTO (d20 = 20)! Daño calibrado para remate exacto.`);
                 }
@@ -2487,7 +2557,7 @@
             if (acc === 20) {
               loot += 2;
               cLog(`🌟 ¡DESTREZA PERFECTA (d20 = 20)! +2 bolsas de botín extra.`);
-              spawnFloatingText(boxId, `+2 CRÍTICO!`, 'loot');
+              spawnFloatingText(boxId, `🌟 +2 CRÍTICO!`, 'crit');
             }
             p.temp += loot; cLog(`💎 ¡La puerta cede! ${pName} embolsa ${loot} bolsas de botín.`);
             playSound('coin');
@@ -2500,7 +2570,7 @@
             if (acc === 1) {
               coverLoss = 7;
               cLog(`💀 ¡FALLO CRÍTICO (d20 = 1)! La alarma pesada sobrecalentada causa -7 de daño a cobertura.`);
-              spawnFloatingText(boxId, `-7 CRÍTICO!`, 'dmg');
+              spawnFloatingText(boxId, `💀 -7 CRÍTICO!`, 'crit');
             } else {
               cLog(`流 ¡Fallo! Se activa la alarma pesada. ${pName} recibe 6 de daño crítico.`);
             }
@@ -2613,8 +2683,13 @@
         document.getElementById('final-winner-name').innerText = "ATRACO COMPLETADO";
         document.getElementById('final-winner-msg').innerText = `Botín robado: P1(${exp.p1.secured}) | P2(${exp.p2.secured})`;
         const btn = document.getElementById('btn-next-match');
-        btn.innerText = "SIGUIENTE ATRACO";
-        btn.onclick = () => dispatchAction('networkNextDive');
+        
+        const isHostOrLocal = (gameMode === 'local') || isHost;
+        btn.innerText = isHostOrLocal ? "SIGUIENTE ATRACO" : "ESPERANDO AL CAPO 1...";
+        btn.disabled = !isHostOrLocal;
+        btn.style.opacity = isHostOrLocal ? '1' : '0.5';
+        btn.onclick = () => { if (isHostOrLocal) dispatchAction('networkNextDive'); };
+        
         overlay.classList.remove('hidden');
       }
     }
@@ -2654,9 +2729,9 @@
       p1Bar.style.background = exp.p1.hp <= 5 ? 'var(--accent-red)' : 'var(--accent-cyan)';
       p2Bar.style.background = exp.p2.hp <= 5 ? 'var(--accent-red)' : 'var(--accent-cyan)';
 
-      document.getElementById('exp-p1-status').innerText = exp.p1.surfaced ? (exp.p1.hp > 0 ? "✅ A salvo" : "m Arrestado") : "🏦 Dentro del banco...";
+      document.getElementById('exp-p1-status').innerText = exp.p1.surfaced ? (exp.p1.hp > 0 ? "✅ A salvo" : "Arrestado") : "🏦 Dentro del banco...";
       document.getElementById('exp-p1-status').style.color = exp.p1.surfaced && exp.p1.hp === 0 ? "var(--accent-red)" : "var(--text-light)";
-      document.getElementById('exp-p2-status').innerText = exp.p2.surfaced ? (exp.p2.hp > 0 ? "✅ A salvo" : "m Arrestado") : "🏦 Dentro del banco...";
+      document.getElementById('exp-p2-status').innerText = exp.p2.surfaced ? (exp.p2.hp > 0 ? "✅ A salvo" : "Arrestado") : "🏦 Dentro del banco...";
       document.getElementById('exp-p2-status').style.color = exp.p2.surfaced && exp.p2.hp === 0 ? "var(--accent-red)" : "var(--text-light)";
 
       const act = exp.turn === 1 ? exp.p1 : exp.p2;
@@ -3059,7 +3134,7 @@
                 if (acc === 20) {
                   win += 2;
                   cLog(`🎉 ¡GOLPE PERFECTO (d20 = 20)! +2 fichas extra ganadas.`);
-                  spawnFloatingText(pBox, `+2 CRÍTICO!`, 'loot');
+                  spawnFloatingText(pBox, `🎉 +2 CRÍTICO!`, 'crit');
                 }
                 p.tokens += win;
                 cLog(`🎉 ¡JACKPOT! ${pName} arrasa la mesa y extrae ${win} fichas.`);
