@@ -76,7 +76,7 @@
     .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; margin-bottom: 12px; }
     .card-option { background: rgba(0,0,0,0.3); border: 2px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 12px; text-align: center; cursor: pointer; transition: 0.2s; }
     .card-option.selected { border-color: var(--theme-accent); background: rgba(255,255,255,0.05); box-shadow: 0 0 10px rgba(255,255,255,0.1); }
-    .card-option h3 { font-size: 0.85rem; color: #fff; pointer-events: none; }
+    .card-option h3 { font-size: 0.82rem; color: #fff; pointer-events: none; }
     
     .checkbox-group { display: flex; flex-direction: column; gap: 8px; margin-top: 8px;}
     .checkbox-label { display: flex; align-items: center; gap: 10px; font-weight: 600; cursor: pointer; color: var(--text-bright); font-size: 0.85rem;}
@@ -408,15 +408,18 @@
 
     <h1>CRIMEN URBANO<br><span style="font-size:0.95rem; color:var(--text-light); font-family:'Inter'; letter-spacing:3px;">PARTY ARCADE</span></h1>
     
-    <!-- SELECTOR DE MODO DE JUEGO (LOCAL vs ONLINE) -->
+    <!-- SELECTOR DE MODO DE JUEGO (LOCAL, SOLO VS IA, ONLINE) -->
     <div class="setup-card">
       <h2>Modo de Juego</h2>
-      <div class="options-grid" style="margin-bottom: 0;">
+      <div class="options-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 0;">
         <div class="card-option selected" id="m-local" onclick="setGameMode('local')">
-          <h3>📱 Local<br><small style="font-weight:400; opacity:0.7;">Un Mismo Dispositivo</small></h3>
+          <h3>📱 Local<br><small style="font-weight:400; opacity:0.7;">2 Jugadores</small></h3>
+        </div>
+        <div class="card-option" id="m-solo" onclick="setGameMode('solo')">
+          <h3>🤖 Solo vs IA<br><small style="font-weight:400; opacity:0.7;">VS El Bot</small></h3>
         </div>
         <div class="card-option" id="m-online" onclick="setGameMode('online')">
-          <h3>🌐 Online<br><small style="font-weight:400; opacity:0.7;">Dos Dispositivos</small></h3>
+          <h3>🌐 Online<br><small style="font-weight:400; opacity:0.7;">Multijugador</small></h3>
         </div>
       </div>
     </div>
@@ -693,7 +696,7 @@
     <!-- ========= APUESTAS CLANDESTINAS (POKER) ========= -->
     <div id="pok-container" class="hidden">
       <div style="display:flex; flex-direction: column; justify-content: center; width:100%; margin-bottom:8px; background:rgba(0,0,0,0.5); padding:8px; border-radius:8px; border:1px solid rgba(255,255,255,0.1);">
-        <div style="text-align:center; font-weight:bold; color:var(--accent-loot); font-size:0.85rem; margin-bottom: 6px; letter-spacing: 1px;">MESA DE APUESTAS</div>
+        <div style="text-align:center; font-weight:bold; color:var(--accent-loot); font-size:0.85rem; margin-bottom: 6px; letter-spacing: 1px;">MESA DE APUESTAS (SUMA CERO / P2P)</div>
       </div>
 
       <div id="pok-m1-box" class="monster-box active-turn">
@@ -717,8 +720,8 @@
       <div class="log-box" id="pok-log-box"></div>
 
       <div class="action-panel" style="grid-template-columns: 1fr 1fr;">
-        <button class="btn-action btn-green" id="pok-btn-q" onclick="dispatchAction('pokAction', 'apuesta')">APUESTA BÁSICA<br><small style="font-weight:400; opacity:0.7;">Paga 1. 1d6 >=4 = +2</small></button>
-        <button class="btn-action btn-gold" id="pok-btn-s" onclick="dispatchAction('pokAction', 'golpe')">GOLPE A LA MESA<br><small style="font-weight:400; opacity:0.7;">Paga 3. d20>=11 = +1d12</small></button>
+        <button class="btn-action btn-green" id="pok-btn-q" onclick="dispatchAction('pokAction', 'apuesta')">APUESTA BÁSICA<br><small style="font-weight:400; opacity:0.7;">Pagas 1. 1d6 >=4 roba 1 al rival</small></button>
+        <button class="btn-action btn-gold" id="pok-btn-s" onclick="dispatchAction('pokAction', 'golpe')">GOLPE A LA MESA<br><small style="font-weight:400; opacity:0.7;">Arriesgas 3. d20>=11 roba 1d12</small></button>
         <button class="btn-action btn-red" id="pok-btn-sab" onclick="dispatchAction('pokAction', 'tahur')" style="grid-column: 1 / -1;">
           <span id="pok-badge-sab" class="badge-uses">Activo</span>
           TRAMPA DE TAHÚR<br><small style="font-weight:400; opacity:0.7;">Roba 1d4 fichas rivales</small>
@@ -797,10 +800,10 @@
           <li><b>En Modo Party:</b> La meta se acelera a <b>10 Puntos de Influencia</b>.</li>
         </ul>
 
-        <p><b class="highlight-gold">3. Apuestas Clandestinas:</b></p>
+        <p><b class="highlight-gold">3. Apuestas Clandestinas (Suma Cero P2P):</b></p>
         <ul>
-          <li><b>Original:</b> Ambos Capos arrancan con <b>12 Fichas</b>. La Trampa de Tahúr tiene un tiempo de espera de 3 rondas tras usarse.</li>
-          <li><b>En Modo Party:</b> Inician con <b>8 Fichas</b>. La Trampa de Tahúr se limita a <b>1 único uso por partida</b>.</li>
+          <li><b>Original:</b> Interacción contra la Banca. Ambos Capos arrancaban con 12 Fichas.</li>
+          <li><b>En Modo Party P2P:</b> Inician con <b>8 Fichas cada uno</b>. La transferencia de monedas es <b>directa entre jugadores</b>. La Trampa de Tahúr se limita a <b>1 único uso por partida</b>.</li>
         </ul>
 
         <p><b class="highlight-gold">4. Guerra de Bandas:</b></p>
@@ -851,15 +854,15 @@
           <li><b>Redada Policial:</b> Pagas 3💵. Tira <b class="highlight-gold">1d4</b>. Clausura un distrito rival durante 1 a 4 rondas.</li>
         </ul>
 
-        <h3>4. Apuestas Clandestinas</h3>
+        <h3>4. Apuestas Clandestinas (Suma Cero P2P)</h3>
         <ul>
-          <li><b>Apuesta Básica:</b> Pagas 1 ficha. Tira <b class="highlight-gold">1d6</b>.
-            <br>&nbsp;&nbsp;• <b>4 - 6:</b> Acierto (+2 fichas: recuperas la apostada + 1 de ganancia).
-            <br>&nbsp;&nbsp;• <b>1 - 3:</b> Fallo (La banca se queda con la ficha).
+          <li><b>Apuesta Básica:</b> Arriesgas 1 moneda. Tira <b class="highlight-gold">1d6</b>.
+            <br>&nbsp;&nbsp;• <b>4 - 6:</b> Éxito (Le quitas 1 moneda directamente al rival).
+            <br>&nbsp;&nbsp;• <b>1 - 3:</b> Fallo (El rival te quita 1 moneda).
           </li>
-          <li><b>Golpe a la Mesa:</b> Pagas 3 fichas. Tira <b class="highlight-gold">1d20</b> para riesgo.
-            <br>&nbsp;&nbsp;• <b>11 a 20:</b> Acierto. Tira <b class="highlight-gold">1d12</b> y gana de 1 a 12 fichas.
-            <br>&nbsp;&nbsp;• <b>1 a 10:</b> Fallo (Pierdes las 3 fichas en el pozo).
+          <li><b>Golpe a la Mesa:</b> Arriesgas 3 monedas. Tira <b class="highlight-gold">1d20</b> para riesgo.
+            <br>&nbsp;&nbsp;• <b>11 a 20:</b> Éxito. Tira <b class="highlight-gold">1d12</b> y le robas esa cantidad de monedas al rival.
+            <br>&nbsp;&nbsp;• <b>1 a 10:</b> Fallo (El rival se queda con tus 3 monedas arriesgadas).
           </li>
           <li><b>Trampa de Tahúr:</b> Tira <b class="highlight-gold">1d4</b>. Roba de 1 a 4 fichas directamente al rival.</li>
         </ul>
@@ -905,7 +908,7 @@
     const db = firebase.database();
 
     // ==========================================
-    // LÓGICA MODO DE JUEGO (LOCAL / ONLINE) Y RED
+    // LÓGICA MODO DE JUEGO (LOCAL / SOLO VS IA / ONLINE) Y RED
     // ==========================================
     let gameMode = 'local';
     let roomId = null;
@@ -926,11 +929,14 @@
     function setGameMode(mode) {
       gameMode = mode;
       document.getElementById('m-local').classList.toggle('selected', mode === 'local');
+      document.getElementById('m-solo').classList.toggle('selected', mode === 'solo');
       document.getElementById('m-online').classList.toggle('selected', mode === 'online');
       document.getElementById('network-panel').classList.toggle('hidden', mode !== 'online');
 
       if (mode === 'local') {
         unlockAllSetupInputs();
+      } else if (mode === 'solo') {
+        unlockSoloSetupInputs();
       }
     }
 
@@ -1031,6 +1037,24 @@
       enableInput('p1-color-input');
       enableInput('p2-name-input');
       enableInput('p2-color-input');
+      document.getElementById('p2-name-input').value = "";
+      updateMenuPreviews();
+      enableSetupSection('setup-card-game');
+      enableSetupSection('setup-card-dice');
+
+      const btnStart = document.getElementById('btn-start-game');
+      btnStart.style.pointerEvents = 'auto';
+      btnStart.style.opacity = '1';
+      btnStart.innerText = "¡COMENZAR!";
+    }
+
+    function unlockSoloSetupInputs() {
+      enableInput('p1-name-input');
+      enableInput('p1-color-input');
+      disableInput('p2-name-input');
+      disableInput('p2-color-input');
+      document.getElementById('p2-name-input').value = "La Sombra (IA)";
+      updateMenuPreviews();
       enableSetupSection('setup-card-game');
       enableSetupSection('setup-card-dice');
 
@@ -1169,6 +1193,14 @@
 
     function isMyTurnNetwork() {
       if (gameMode === 'local') return true; 
+      if (gameMode === 'solo') {
+        let turn = 1;
+        if (party.currentGame === 'rpg') turn = rpg.turn;
+        else if (party.currentGame === 'exp') turn = exp.turn;
+        else if (party.currentGame === 'maf') turn = maf.turn;
+        else if (party.currentGame === 'pok') turn = pok.turn;
+        return turn === 1; 
+      }
       if (party.currentGame === 'rpg') return isHost ? (rpg.turn === 1) : (rpg.turn === 2);
       if (party.currentGame === 'exp') return isHost ? (exp.turn === 1) : (exp.turn === 2);
       if (party.currentGame === 'maf') return isHost ? (maf.turn === 1) : (maf.turn === 2);
@@ -1177,7 +1209,7 @@
     }
 
     function dispatchAction(funcName, ...args) {
-      if (gameMode === 'local') {
+      if (gameMode === 'local' || gameMode === 'solo') {
         if (window[funcName]) window[funcName].apply(null, args);
         return;
       }
@@ -1194,7 +1226,7 @@
     }
 
     function getNetworkRoll(sides, forcedVal = null) {
-      if (gameMode === 'local') {
+      if (gameMode === 'local' || gameMode === 'solo') {
         const val = forcedVal !== null ? forcedVal : (Math.floor(Math.random() * sides) + 1);
         return Promise.resolve(val);
       }
@@ -1809,7 +1841,7 @@
 
     function startCoreGame() {
       party.p1Name = document.getElementById('p1-name-input').value.trim() || "Capo Alpha";
-      party.p2Name = document.getElementById('p2-name-input').value.trim() || "Capo Bravo";
+      party.p2Name = gameMode === 'solo' ? "La Sombra (IA)" : (document.getElementById('p2-name-input').value.trim() || "Capo Bravo");
       party.p1Color = document.getElementById('p1-color-input').value || 'Color_R';
       party.p2Color = document.getElementById('p2-color-input').value || 'Color_B';
 
@@ -1845,7 +1877,7 @@
         party.totalMatches = 1;
       }
 
-      if (gameMode === 'local') {
+      if (gameMode === 'local' || gameMode === 'solo') {
         window.networkStartGame(party);
       }
     }
@@ -1925,7 +1957,7 @@
 
       const winsNeeded = Math.floor(party.totalMatches / 2) + 1;
       const isPartyOver = party.isParty && (party.p1Wins >= winsNeeded || party.p2Wins >= winsNeeded || party.matchesPlayed >= party.totalMatches);
-      const isHostOrLocal = (gameMode === 'local') || isHost;
+      const isHostOrLocal = (gameMode === 'local' || gameMode === 'solo') || isHost;
 
       if (!party.isParty) {
         title.innerText = winnerName.toUpperCase();
@@ -1984,7 +2016,6 @@
         const charImg = document.getElementById('modal-char-img');
         const cancelBtn = modal.querySelector('.btn-cancel');
 
-        // Limpieza previa para evitar guiños o flashes de la imagen anterior
         charImg.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
         charImg.className = '';
         wrapper.classList.add('hidden');
@@ -2033,7 +2064,6 @@
         const baseEl = document.getElementById('modal-dice-base');
         const numEl = document.getElementById('modal-dice-num');
 
-        // Limpieza profunda de capas de dados para evitar ver sombras solas u oscuras
         shadowEl.style.backgroundImage = 'none';
         colorEl.style.backgroundImage = 'none';
         baseEl.style.backgroundImage = 'none';
@@ -2324,6 +2354,157 @@
     }
 
     // ==========================================
+    // LÓGICA DE INTELIGENCIA ARTIFICIAL (IA / BOT)
+    // ==========================================
+    let aiThinkingTimeout = null;
+
+    function isAiTurn() {
+      if (gameMode !== 'solo') return false;
+      if (party.currentGame === 'rpg') return rpg.turn === 2 && rpg.p2.hp > 0;
+      if (party.currentGame === 'exp') return exp.turn === 2 && !exp.p2.surfaced && exp.p2.hp > 0;
+      if (party.currentGame === 'maf') return maf.turn === 2;
+      if (party.currentGame === 'pok') return pok.turn === 2 && pok.p2.tokens > 0;
+      return false;
+    }
+
+    function checkAiTurn() {
+      if (!isAiTurn() || party.isWaiting) return;
+      if (aiThinkingTimeout) clearTimeout(aiThinkingTimeout);
+
+      aiThinkingTimeout = setTimeout(() => {
+        if (!isAiTurn() || party.isWaiting) return;
+        executeAiTurn();
+      }, 1100);
+    }
+
+    async function executeAiTurn() {
+      if (party.isWaiting) return;
+
+      if (party.currentGame === 'rpg') {
+        const ai = rpg.p2;
+        const human = rpg.p1;
+        if (ai.hp <= 0) return;
+
+        if (ai.hp / ai.max < 0.35 && ai.heals < 3 && !ai.blocked && rpg.round > 1) {
+          rpgAction('heal');
+        } else if (human.hp <= 6) {
+          rpgAction('quick');
+        } else if (human.poison === 0 && Math.random() < 0.4) {
+          rpgAction('poison');
+        } else if (Math.random() < 0.5) {
+          rpgAction('strong');
+        } else {
+          rpgAction('quick');
+        }
+      } else if (party.currentGame === 'exp') {
+        const ai = exp.p2;
+        const human = exp.p1;
+        if (ai.surfaced) return;
+
+        const maxTorpedos = party.isParty ? 1 : 3;
+        const canRepair = !party.isParty ? (ai.repairUses < 1) : (ai.repairCooldown === 0);
+
+        if (ai.hp <= 6 && ai.temp > 0) {
+          expAction('surface');
+        } else if (ai.temp >= 5) {
+          expAction('surface');
+        } else if (!human.surfaced && ai.torpedoUses < maxTorpedos && Math.random() < 0.35) {
+          expAction('sabotage');
+        } else if (ai.hp <= 14 && canRepair && Math.random() < 0.4) {
+          expAction('repair');
+        } else if (Math.random() < 0.5) {
+          expAction('explore');
+        } else {
+          expAction('deep');
+        }
+      } else if (party.currentGame === 'maf') {
+        const ai = maf.p2;
+        const human = maf.p1;
+
+        if (maf.phase === 'roll') {
+          const egoist = ai.coins >= 3 && Math.random() < 0.3;
+          const sides = (ai.parcels.length <= 2 || Math.random() < 0.3) ? 12 : 6;
+          mafRollHarvest(sides, egoist);
+        } else if (maf.phase === 'action') {
+          const nextParcelCost = ai.parcels.length >= 6 ? 999 : ai.parcels.length + 1;
+          const humanActiveSabotages = Object.values(human.sabotages).filter(v => v > 0).length;
+
+          if (ai.coins >= 5 && ai.prestige + 2 >= maf.winScore) {
+            mafActionBrew();
+          } else if (ai.coins >= nextParcelCost && ai.parcels.length < 6) {
+            let freeParcels = [1, 2, 3, 4, 5, 6].filter(i => !ai.parcels.includes(i));
+            if (freeParcels.length > 0) {
+              const choice = freeParcels[Math.floor(Math.random() * freeParcels.length)];
+              aiBuyParcelDirect(choice);
+            } else {
+              mafActionPass();
+            }
+          } else if (ai.coins >= 5 && Math.random() < 0.6) {
+            mafActionBrew();
+          } else if (ai.coins >= 3 && humanActiveSabotages < 3 && human.parcels.some(i => human.sabotages[i] === 0)) {
+            let validSabotages = human.parcels.filter(i => human.sabotages[i] === 0);
+            if (validSabotages.length > 0) {
+              const choice = validSabotages[Math.floor(Math.random() * validSabotages.length)];
+              aiSabotageParcelDirect(choice);
+            } else {
+              mafActionPass();
+            }
+          } else {
+            mafActionPass();
+          }
+        }
+      } else if (party.currentGame === 'pok') {
+        const ai = pok.p2;
+        const human = pok.p1;
+        const canTahur = party.isParty ? (ai.tahurUsos < 1) : (ai.tahurCD === 0);
+
+        if (ai.tokens <= 2) {
+          pokAction('apuesta');
+        } else if (canTahur && human.tokens >= 2 && Math.random() < 0.5) {
+          pokAction('tahur');
+        } else if (ai.tokens >= 5 && Math.random() < 0.4) {
+          pokAction('golpe');
+        } else {
+          pokAction('apuesta');
+        }
+      }
+    }
+
+    async function aiBuyParcelDirect(val) {
+      party.isWaiting = true; updateUI_MAF();
+      const cost = maf.p2.parcels.length + 1;
+      await showActionModal(2, "¡DISTRITO CONTROLADO!", "maf_buy", "anim-slam", 1200);
+      maf.p2.coins = Math.max(0, maf.p2.coins - cost);
+      maf.p2.parcels.push(val);
+      maf.p2.parcels.sort((a, b) => a - b);
+      cLog(`🏢 ${party.p2Name} toma el control del Distrito [${val}].`);
+      playSound('coin');
+      spawnFloatingText('maf-m2-box', `+DISTRITO [${val}]`, 'loot');
+      spawnParticles('maf-m2-box', 'growth');
+      nextTurnMAF();
+    }
+
+    async function aiSabotageParcelDirect(val) {
+      party.isWaiting = true; updateUI_MAF();
+      try {
+        const turns = await roll(4, `${party.p2Name}: Duración de la Redada`, null, 'maf_raid', 'anim-slide');
+        maf.p2.coins = Math.max(0, maf.p2.coins - 3);
+        maf.p1.sabotages[val] = turns;
+        cLog(`🚨 ¡SOPLO! ${party.p2Name} envía una redada policial al Distrito [${val}] rival por ${turns} rondas.`);
+        playSound('crit');
+        await triggerHitstop(140);
+        triggerScreenShake();
+        triggerVibrate([80, 50, 120]);
+        spawnFloatingText('maf-m1-box', `REDADA [${val}]`, 'status');
+        spawnParticles('maf-m1-box', 'poison');
+        party.isWaiting = false;
+        nextTurnMAF();
+      } catch(e) {
+        party.isWaiting = false; updateUI_MAF();
+      }
+    }
+
+    // ==========================================
     // GUERRA DE BANDAS (RPG)
     // ==========================================
     async function initRPG() {
@@ -2505,6 +2686,7 @@
       document.getElementById('rpg-btn-p').disabled = dis || def.poison > 0;
 
       updateHeartbeat();
+      checkAiTurn();
     }
 
     // ==========================================
@@ -2686,7 +2868,7 @@
         document.getElementById('final-winner-msg').innerText = `Botín robado: P1(${exp.p1.secured}) | P2(${exp.p2.secured})`;
         const btn = document.getElementById('btn-next-match');
         
-        const isHostOrLocal = (gameMode === 'local') || isHost;
+        const isHostOrLocal = (gameMode === 'local' || gameMode === 'solo') || isHost;
         btn.innerText = isHostOrLocal ? "SIGUIENTE ATRACO" : "ESPERANDO AL CAPO 1...";
         btn.disabled = !isHostOrLocal;
         btn.style.opacity = isHostOrLocal ? '1' : '0.5';
@@ -2759,6 +2941,7 @@
       }
 
       updateHeartbeat();
+      checkAiTurn();
     }
 
     // ==========================================
@@ -3057,6 +3240,7 @@
       document.getElementById('maf-btn-pass').disabled = isWait;
 
       updateHeartbeat();
+      checkAiTurn();
     }
 
     function renderDistricts(containerId, playerState) {
@@ -3083,7 +3267,7 @@
     }
 
     // ==========================================
-    // APUESTAS CLANDESTINAS (POKER)
+    // APUESTAS CLANDESTINAS (POKER - SUMA CERO P2P)
     // ==========================================
     function initPOK() {
       pok.round = 1; pok.turn = 1; pok.maxRounds = 8;
@@ -3094,7 +3278,7 @@
       
       document.getElementById('pok-log-box').innerHTML = '';
       cLog(`🎲 ¡Se abren las mesas clandestinas! Ambos capos inician con ${initTokens} fichas.`);
-      cLog(`⚠️ Objetivo: Desplumar al rival o liderar después de ${pok.maxRounds} rondas.`);
+      cLog(`⚠️ Objetivo: Desplumar al rival en duelos directos durante ${pok.maxRounds} rondas.`);
       party.isWaiting = false;
       updateUI_POK();
     }
@@ -3113,24 +3297,29 @@
       try {
         if(type === 'apuesta') {
             const res = await roll(6, `${pName}: Apuesta (Gana con 4+)`, null, 'pok_bet', 'anim-slide');
-            p.tokens = Math.max(0, p.tokens - 1);
-            cLog(`🎰 ${pName} paga 1 ficha y tira los dados...`);
+            cLog(`🎰 ${pName} arriesga 1 ficha contra ${rName}...`);
             if(res >= 4) {
-                p.tokens += 2;
-                cLog(`✅ ¡Acierto! Recupera su ficha y gana 1 más.`);
+                const stolen = Math.min(1, r.tokens);
+                p.tokens += stolen;
+                r.tokens -= stolen;
+                cLog(`✅ ¡Acierto! ${pName} gana 1 ficha directamente del alijo de ${rName}.`);
                 playSound('coin');
-                spawnFloatingText(pBox, `+2 🎰`, 'loot');
+                spawnFloatingText(pBox, `+${stolen} 🎰`, 'loot');
+                spawnFloatingText(rBox, `-${stolen} 🎰`, 'dmg');
                 spawnParticles(pBox, 'coin');
             } else {
-                cLog(`❌ Falla. La banca se queda con la ficha.`);
+                const lost = Math.min(1, p.tokens);
+                p.tokens -= lost;
+                r.tokens += lost;
+                cLog(`❌ Falla. ${rName} gana 1 ficha directamente de ${pName}.`);
                 playSound('hit');
-                spawnFloatingText(pBox, `-1 🎰`, 'dmg');
+                spawnFloatingText(pBox, `-${lost} 🎰`, 'dmg');
+                spawnFloatingText(rBox, `+${lost} 🎰`, 'loot');
                 spawnParticles(pBox, 'dmg-light');
             }
         } else if(type === 'golpe') {
             const acc = await roll(20, `${pName}: Riesgo (Req. 11+)`, null, 'pok_slam', 'anim-slam');
-            p.tokens = Math.max(0, p.tokens - 3);
-            cLog(`💥 ${pName} arriesga 3 fichas y da un Golpe a la Mesa...`);
+            cLog(`💥 ${pName} arriesga 3 fichas en un golpe directo contra ${rName}...`);
             if(acc >= 11) {
                 let baseWin = await roll(12, `${pName}: Ganancias del Golpe`, null, 'pok_slam', 'anim-slam');
                 let critBonus = 0;
@@ -3139,18 +3328,28 @@
                   cLog(`🎉 ¡GOLPE PERFECTO (d20 = 20)! +2 fichas extra ganadas.`);
                   spawnFloatingText(pBox, `🎉 +2 CRÍTICO!`, 'crit');
                 }
-                p.tokens += (baseWin + critBonus);
-                cLog(`🎉 ¡JACKPOT! ${pName} arrasa la mesa y extrae ${baseWin + critBonus} fichas.`);
+                let totalWin = baseWin + critBonus;
+                let actualSteal = Math.min(totalWin, r.tokens);
+                p.tokens += actualSteal;
+                r.tokens -= actualSteal;
+
+                cLog(`🎉 ¡JACKPOT! ${pName} arrasa la mesa y le roba ${actualSteal} fichas a ${rName}.`);
                 playSound('coin');
                 await triggerHitstop(140);
                 triggerScreenShake();
                 triggerVibrate([80, 50, 120]);
                 spawnFloatingText(pBox, `+${baseWin} 🎰`, 'loot');
+                spawnFloatingText(rBox, `-${actualSteal} 🎰`, 'dmg');
                 spawnParticles(pBox, 'loot');
             } else {
-                cLog(`💀 Las cosas salen mal. Pierde las 3 fichas en el pozo.`);
+                let actualLoss = Math.min(3, p.tokens);
+                p.tokens -= actualLoss;
+                r.tokens += actualLoss;
+
+                cLog(`💀 Las cosas salen mal. ${rName} gana las ${actualLoss} fichas del riesgo.`);
                 playSound('hit');
-                spawnFloatingText(pBox, `-3 🎰`, 'dmg');
+                spawnFloatingText(pBox, `-${actualLoss} 🎰`, 'dmg');
+                spawnFloatingText(rBox, `+${actualLoss} 🎰`, 'loot');
                 spawnParticles(pBox, 'dmg-light');
             }
         } else if(type === 'tahur') {
@@ -3229,8 +3428,8 @@
       const rvl = pok.turn === 1 ? pok.p2 : pok.p1;
       const dis = party.isWaiting || !isMyTurnNetwork();
 
-      document.getElementById('pok-btn-q').disabled = dis || act.tokens < 1;
-      document.getElementById('pok-btn-s').disabled = dis || act.tokens < 3;
+      document.getElementById('pok-btn-q').disabled = dis || act.tokens < 1 || rvl.tokens < 1;
+      document.getElementById('pok-btn-s').disabled = dis || act.tokens < 3 || rvl.tokens < 1;
 
       const tahurBadge = document.getElementById('pok-badge-sab');
       const tahurBtn = document.getElementById('pok-btn-sab');
@@ -3243,6 +3442,7 @@
       }
 
       updateHeartbeat();
+      checkAiTurn();
     }
 
   </script>
