@@ -166,12 +166,88 @@
     .score-val { font-size: 1.4rem; font-weight: 900; color: var(--theme-accent); font-family: 'Cinzel', serif; }
     .score-name { font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
 
+    /* BANCARTA EVENTO DE CIUDAD (FASE 5) */
+    .city-event-banner {
+      width: 100%;
+      background: linear-gradient(135deg, #1f0202 0%, #3d0a0a 100%);
+      border: 1px solid var(--accent-red);
+      border-radius: 10px;
+      padding: 8px 12px;
+      margin-bottom: 10px;
+      text-align: center;
+      animation: fadeIn 0.5s ease;
+      box-shadow: 0 0 12px rgba(231, 76, 60, 0.4);
+    }
+    .city-event-title {
+      font-family: 'Cinzel', serif;
+      color: #ff4d4d;
+      font-size: 0.85rem;
+      font-weight: 900;
+      letter-spacing: 1px;
+    }
+    .city-event-desc {
+      font-size: 0.72rem;
+      color: #f1c40f;
+      margin-top: 2px;
+    }
+
     .monster-box { background: var(--theme-card); border: 2px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 12px; width: 100%; transition: 0.3s; position: relative; overflow: visible; margin-bottom: 10px;}
     .monster-box.active-turn { border-color: var(--theme-accent); box-shadow: 0 0 15px rgba(255,255,255,0.1); }
     .monster-box.surfaced { opacity: 0.5; filter: grayscale(50%); border-color: var(--accent-loot); }
     
     .hp-main-label { font-weight: 700; font-size: 1rem; color: var(--theme-accent); }
     .loot-label { font-weight: 700; font-size: 0.9rem; color: var(--accent-loot); margin-top: 4px; display: flex; justify-content: space-between;}
+
+    /* HUD DE SLOTS DE DECK-BUILDING EN PARTIDA (FASE 2, 3, 4) */
+    .player-deck-hud {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0,0,0,0.4);
+      border-radius: 8px;
+      padding: 4px 8px;
+      margin-top: 6px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .contacts-hud-slots {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+    .contact-slot-badge {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid var(--accent-gold);
+      border-radius: 6px;
+      padding: 2px 6px;
+      font-size: 0.7rem;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .combo-badge {
+      font-family: 'Cinzel', serif;
+      font-weight: 900;
+      color: var(--accent-orange);
+      font-size: 0.85rem;
+      text-shadow: 0 0 6px rgba(230, 126, 34, 0.6);
+    }
+    .btn-use-consumable {
+      background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+      color: #fff;
+      border: 1px solid #f39c12;
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 0.7rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .btn-use-consumable:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      background: #444;
+      border-color: #666;
+    }
 
     /* --- BARRAS --- */
     .hp-bar-container { background: #000; height: 16px; border-radius: 8px; overflow: hidden; margin: 8px 0; position: relative; width: 100%; transition: 0.1s ease; }
@@ -337,6 +413,118 @@
     
     .choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
     .btn-action.owned { background: rgba(46, 204, 113, 0.1); border-color: var(--accent-green) !important; color: var(--accent-green); opacity: 0.8 !important;}
+
+    /* ESTILOS MERCADO NEGRO (FASE 1, 2, 3) */
+    .market-overlay-content {
+      background: var(--bg-card-maf);
+      border: 2px solid var(--accent-gold);
+      border-radius: 20px;
+      padding: 16px;
+      width: 100%;
+      max-width: 480px;
+      text-align: center;
+      box-shadow: 0 0 25px rgba(197, 160, 89, 0.25);
+    }
+    .market-header {
+      font-family: 'Cinzel', serif;
+      color: var(--accent-gold);
+      font-size: 1.4rem;
+      margin-bottom: 4px;
+      text-shadow: 0 0 10px rgba(241, 196, 15, 0.4);
+    }
+    .market-balances {
+      display: flex;
+      justify-content: space-around;
+      background: rgba(0,0,0,0.4);
+      padding: 8px;
+      border-radius: 12px;
+      border: 1px solid rgba(241, 196, 15, 0.2);
+      margin: 8px 0 12px;
+    }
+    .market-balance-item {
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+    .market-balance-val {
+      color: var(--accent-gold);
+      font-size: 1.05rem;
+      font-family: 'Cinzel', serif;
+    }
+    .market-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      max-height: 250px;
+      overflow-y: auto;
+      padding-right: 4px;
+      margin-bottom: 12px;
+    }
+    .market-item-card {
+      background: rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 12px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      transition: 0.2s;
+    }
+    .market-item-card:hover {
+      border-color: var(--accent-gold);
+    }
+    .market-item-type {
+      font-size: 0.62rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-bottom: 4px;
+    }
+    .type-contact { background: rgba(155, 89, 182, 0.3); color: #d5a6bd; border: 1px solid #9b59b6; }
+    .type-consumable { background: rgba(230, 126, 34, 0.3); color: #f5cba7; border: 1px solid #e67e22; }
+    .type-passive { background: rgba(52, 152, 219, 0.3); color: #a9cce3; border: 1px solid #3498db; }
+
+    .market-item-icon {
+      font-size: 1.5rem;
+      margin-bottom: 2px;
+    }
+    .market-item-title {
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 3px;
+    }
+    .market-item-desc {
+      font-size: 0.65rem;
+      color: var(--text-light);
+      line-height: 1.2;
+      margin-bottom: 6px;
+    }
+    .market-item-cost {
+      font-size: 0.75rem;
+      font-weight: bold;
+      color: var(--accent-gold);
+      margin-bottom: 4px;
+    }
+    .btn-buy-market {
+      background: var(--accent-gold);
+      color: #000;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-weight: 800;
+      font-size: 0.72rem;
+      cursor: pointer;
+      width: 100%;
+      transition: 0.2s;
+    }
+    .btn-buy-market:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      background: #555;
+      color: #888;
+    }
 
     /* PESTAÑAS DEL MANUAL DE CAPO */
     .tab-header { display: flex; gap: 8px; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; }
@@ -547,6 +735,12 @@
   <div id="game-screen" class="screen hidden">
     <!-- BOTÓN MANUAL EN PANTALLA DE JUEGO -->
     <button class="btn-guide-trigger" onclick="openManualGuide()" style="align-self: flex-end;">📖 Manual</button>
+
+    <!-- BANCARTA EVENTO DE CIUDAD (FASE 5) -->
+    <div id="city-event-banner" class="city-event-banner hidden">
+      <div id="city-event-title" class="city-event-title">📰 EVENTO URBANO: LEY SECA</div>
+      <div id="city-event-desc" class="city-event-desc">-50% a Curaciones | -1 a Tiradas de d6</div>
+    </div>
     
     <div id="party-score-bar" class="scoreboard hidden">
       <div class="scoreboard-header" id="party-match-indicator">CONTRATO 1 DE 3</div>
@@ -574,6 +768,13 @@
         </div>
         <div id="rpg-p1-bar-container" class="hp-bar-container"><div id="rpg-p1-bar" class="hp-bar"></div></div>
         <div id="rpg-p1-status" style="font-size: 0.8rem; font-weight: bold; margin-top:4px;"></div>
+        
+        <!-- HUD DECK-BUILDING P1 -->
+        <div class="player-deck-hud">
+          <div id="p1-contacts-hud" class="contacts-hud-slots"></div>
+          <div id="p1-combo-hud" class="combo-badge">🔥 x1.0</div>
+          <button id="p1-consumable-btn" class="btn-use-consumable" onclick="dispatchAction('useConsumable', 1)" disabled>🚬 PURO</button>
+        </div>
       </div>
 
       <div id="rpg-m2-box" class="monster-box">
@@ -583,6 +784,13 @@
         </div>
         <div id="rpg-p2-bar-container" class="hp-bar-container"><div id="rpg-p2-bar" class="hp-bar"></div></div>
         <div id="rpg-p2-status" style="font-size: 0.8rem; font-weight: bold; margin-top:4px;"></div>
+
+        <!-- HUD DECK-BUILDING P2 -->
+        <div class="player-deck-hud">
+          <div id="p2-contacts-hud" class="contacts-hud-slots"></div>
+          <div id="p2-combo-hud" class="combo-badge">🔥 x1.0</div>
+          <button id="p2-consumable-btn" class="btn-use-consumable" onclick="dispatchAction('useConsumable', 2)" disabled>🚬 PURO</button>
+        </div>
       </div>
 
       <div class="log-box" id="rpg-log-box"></div>
@@ -772,6 +980,33 @@
     </div>
   </div>
 
+  <!-- MODAL MERCADO NEGRO (FASE 1, 2, 3) -->
+  <div id="modal-market" class="modal-overlay hidden">
+    <div class="market-overlay-content">
+      <div class="market-header">🏪 MERCADO NEGRO</div>
+      <p style="font-size:0.75rem; color:var(--text-light);">Consigue ventajas, artefactos, contactos y contrabando.</p>
+      
+      <div class="market-balances">
+        <div class="market-balance-item">
+          <span class="p1-display-name">P1</span><br>
+          <span class="market-balance-val">🪙 <span id="market-p1-coins">0</span></span>
+        </div>
+        <div class="market-balance-item">
+          <span class="p2-display-name">P2</span><br>
+          <span class="market-balance-val">🪙 <span id="market-p2-coins">0</span></span>
+        </div>
+      </div>
+
+      <div id="market-grid-container" class="market-grid">
+        <!-- Generado dinámicamente -->
+      </div>
+
+      <button class="btn-confirm" id="btn-market-continue" onclick="dispatchAction('networkNextGame')">
+        CONTINUAR AL SIGUIENTE CONTRATO ➔
+      </button>
+    </div>
+  </div>
+
   <!-- MODAL MANUAL DEL CAPO -->
   <div id="modal-manual-guide" class="modal-overlay hidden">
     <div class="modal-content" style="max-width: 460px;">
@@ -906,6 +1141,18 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+
+    // ==========================================
+    // CATÁLOGO INFRAESTRUCTURA MERCADO NEGRO (FASE 1, 2, 3)
+    // ==========================================
+    const MARKET_CATALOG = [
+      { id: 'contact_armero', name: 'Armero Clandestino', icon: '🔫', cost: 150, desc: 'Contacto Pasivo: Suma +2 a todas tus tiradas d20.', type: 'contact' },
+      { id: 'item_puro', name: 'Puro del Capo', icon: '🚬', cost: 80, desc: 'Consumible: Te permite repetir la última tirada de dado en tu turno.', type: 'consumable' },
+      { id: 'item_armor', name: 'Chaleco de Kevlar', icon: '🛡️', cost: 100, desc: 'Artefacto: Reduce el daño inicial recibido.', type: 'passive' },
+      { id: 'item_bribe', name: 'Contactos Policiales', icon: '📜', cost: 120, desc: 'Favores de la autoridad para el próximo contrato.', type: 'passive' },
+      { id: 'item_lucky_dice', name: 'Dados Cargados', icon: '🎲', cost: 150, desc: 'Pesa los dados aumentando probabilidades tácticas.', type: 'passive' },
+      { id: 'item_medkit', name: 'Botiquín Clandestino', icon: '🩺', cost: 80, desc: 'Insumos médicos de emergencia de la calle.', type: 'passive' }
+    ];
 
     // ==========================================
     // LÓGICA MODO DE JUEGO (LOCAL / SOLO VS IA / ONLINE) Y RED
@@ -1215,7 +1462,7 @@
       }
       if (funcName === 'hostStartCoreGame' && !isHost) return;
       
-      const hostOnlyActions = ['networkNextGame', 'networkReturnToMenu', 'networkNextDive'];
+      const hostOnlyActions = ['networkNextGame', 'networkReturnToMenu', 'networkNextDive', 'openBlackMarket'];
       if (hostOnlyActions.includes(funcName)) {
         if (!isHost) return;
       } else if (funcName !== 'onStartButtonClick') {
@@ -1279,13 +1526,20 @@
     };
 
     // ==========================================
-    // VARIABLES GLOBALES
+    // VARIABLES GLOBALES Y DECK-BUILDING STATE
     // ==========================================
     let party = {
       p1Name: '', p2Name: '', p1Color: 'Color_R', p2Color: 'Color_B', diceMode: 'virtual',
       isParty: false, singleGameChoice: 'rpg',
       totalMatches: 3, matchesPlayed: 0, p1Wins: 0, p2Wins: 0,
-      playlist: [], currentGame: null, abortController: null, isWaiting: false
+      playlist: [], currentGame: null, abortController: null, isWaiting: false,
+      p1Coins: 100, p2Coins: 100, 
+      p1Contacts: [], p2Contacts: [], // FASE 2: Max 3 slots de contactos pasivos
+      p1Consumable: null, p2Consumable: null, // FASE 3: 1 Slot de consumible
+      p1Combo: 1.0, p2Combo: 1.0, // FASE 4: Combos
+      cityEvent: null, // FASE 5: Modificadores globales
+      currentMarketStock: [],
+      lastRollData: null
     };
 
     const gameTitles = {
@@ -1758,6 +2012,14 @@
       return turn === 1 ? party.p1Color : party.p2Color;
     }
 
+    function getCurrentTurnPlayerNum() {
+      if (party.currentGame === 'rpg') return rpg.turn;
+      if (party.currentGame === 'exp') return exp.turn;
+      if (party.currentGame === 'maf') return maf.turn;
+      if (party.currentGame === 'pok') return pok.turn;
+      return 1;
+    }
+
     function updateMenuPreviews() {
       const p1Color = document.getElementById('p1-color-input').value || 'Color_R';
       const p2Color = document.getElementById('p2-color-input').value || 'Color_B';
@@ -1846,6 +2108,11 @@
       party.p2Color = document.getElementById('p2-color-input').value || 'Color_B';
 
       party.matchesPlayed = 0; party.p1Wins = 0; party.p2Wins = 0;
+      party.p1Coins = 100; party.p2Coins = 100;
+      party.p1Contacts = []; party.p2Contacts = [];
+      party.p1Consumable = null; party.p2Consumable = null;
+      party.p1Combo = 1.0; party.p2Combo = 1.0;
+      party.cityEvent = null;
       party.isParty = document.getElementById('party-mode-check').checked;
       
       const cbRpg = document.getElementById('party-cb-rpg');
@@ -1917,6 +2184,17 @@
       party.currentGame = party.playlist[party.matchesPlayed];
       document.body.className = `theme-${party.currentGame}`;
       
+      // FASE 5: Modificador de Ciudad (30% de probabilidad)
+      if (Math.random() < 0.30) {
+        party.cityEvent = 'ley_seca';
+        document.getElementById('city-event-banner').classList.remove('hidden');
+        document.getElementById('city-event-title').innerText = '📰 EVENTO URBANO: LEY SECA';
+        document.getElementById('city-event-desc').innerText = '-50% a Curaciones | -1 a Tiradas de d6';
+      } else {
+        party.cityEvent = null;
+        document.getElementById('city-event-banner').classList.add('hidden');
+      }
+
       await showMinigameSplash(gameTitles[party.currentGame]);
 
       document.getElementById('rpg-container').classList.toggle('hidden', party.currentGame !== 'rpg');
@@ -1928,10 +2206,17 @@
         document.getElementById('party-match-indicator').innerText = `CONTRATO ${party.matchesPlayed + 1} DE ${party.totalMatches} (${gameTitles[party.currentGame]})`;
       }
 
+      updateDeckHUD();
+
       if (party.currentGame === 'rpg') initRPG();
       if (party.currentGame === 'exp') initEXP();
       if (party.currentGame === 'maf') initMAF();
       if (party.currentGame === 'pok') initPOK();
+    }
+
+    function generateMarketStock() {
+      const shuffled = [...MARKET_CATALOG].sort(() => Math.random() - 0.5);
+      party.currentMarketStock = shuffled.slice(0, 4);
     }
 
     function handleMiniGameEnd(winnerCode, scoreText) { 
@@ -1945,6 +2230,11 @@
       if (winnerCode === 'p1') { party.p1Wins++; winnerName = party.p1Name; }
       if (winnerCode === 'p2') { party.p2Wins++; winnerName = party.p2Name; }
       
+      // Recompensas del Mercado Negro (Fase 1)
+      party.p1Coins = (party.p1Coins || 0) + (winnerCode === 'p1' ? 120 : 60);
+      party.p2Coins = (party.p2Coins || 0) + (winnerCode === 'p2' ? 120 : 60);
+      generateMarketStock();
+
       document.getElementById('global-p1-val').innerText = party.p1Wins;
       document.getElementById('global-p2-val').innerText = party.p2Wins;
 
@@ -1980,22 +2270,212 @@
       } else {
         title.innerText = winnerName.toUpperCase();
         msg.innerText = `Gana este contrato de ${gameTitles[party.currentGame]} (${scoreText})`;
-        btn.innerText = isHostOrLocal ? "SIGUIENTE CONTRATO" : "ESPERANDO AL CAPO 1...";
+        btn.innerText = isHostOrLocal ? "IR AL MERCADO NEGRO" : "ESPERANDO AL CAPO 1...";
         btn.disabled = !isHostOrLocal;
         btn.style.opacity = isHostOrLocal ? '1' : '0.5';
-        btn.onclick = () => { if (isHostOrLocal) dispatchAction('networkNextGame'); };
+        btn.onclick = () => { if (isHostOrLocal) dispatchAction('openBlackMarket'); };
       }
       overlay.classList.remove('hidden');
     }
+
+    // LÓGICA DE MERCADO NEGRO (FASE 1, 2, 3)
+    window.openBlackMarket = function() {
+      document.getElementById('win-overlay').classList.add('hidden');
+      renderBlackMarket();
+      document.getElementById('modal-market').classList.remove('hidden');
+      playSound('coin');
+
+      if (gameMode === 'solo') {
+        setTimeout(() => { executeAiMarketPurchases(); }, 700);
+      }
+    };
+
+    function renderBlackMarket() {
+      document.getElementById('market-p1-coins').innerText = party.p1Coins || 0;
+      document.getElementById('market-p2-coins').innerText = party.p2Coins || 0;
+      
+      const container = document.getElementById('market-grid-container');
+      container.innerHTML = '';
+
+      const myPlayerNum = (gameMode === 'online' && !isHost) ? 2 : 1;
+      const myCoins = myPlayerNum === 1 ? party.p1Coins : party.p2Coins;
+
+      party.currentMarketStock.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'market-item-card';
+        
+        const myContacts = myPlayerNum === 1 ? (party.p1Contacts || []) : (party.p2Contacts || []);
+        const myConsumable = myPlayerNum === 1 ? party.p1Consumable : party.p2Consumable;
+        
+        const isBought = item.type === 'contact' ? myContacts.includes(item.id) : (item.type === 'consumable' ? myConsumable === item.id : false);
+        const isContactsFull = item.type === 'contact' && myContacts.length >= 3 && !isBought;
+
+        let typeBadgeClass = 'type-passive';
+        let typeBadgeText = 'Artefacto';
+        if (item.type === 'contact') { typeBadgeClass = 'type-contact'; typeBadgeText = 'Contacto Pasivo'; }
+        if (item.type === 'consumable') { typeBadgeClass = 'type-consumable'; typeBadgeText = 'Consumible'; }
+
+        card.innerHTML = `
+          <span class="market-item-type ${typeBadgeClass}">${typeBadgeText}</span>
+          <div class="market-item-icon">${item.icon}</div>
+          <div class="market-item-title">${item.name}</div>
+          <div class="market-item-desc">${item.desc}</div>
+          <div class="market-item-cost">🪙 ${item.cost}</div>
+          <button class="btn-buy-market" id="buy-btn-${item.id}" 
+            ${(myCoins < item.cost || isBought || isContactsFull) ? 'disabled' : ''}>
+            ${isBought ? 'EQUIPADO' : (isContactsFull ? 'MAX CONTACTOS' : 'COMPRAR')}
+          </button>
+        `;
+
+        const buyBtn = card.querySelector(`#buy-btn-${item.id}`);
+        if (buyBtn && !isBought && !isContactsFull) {
+          buyBtn.onclick = () => {
+            dispatchAction('buyMarketItem', myPlayerNum, item.id);
+          };
+        }
+
+        container.appendChild(card);
+      });
+
+      const btnCont = document.getElementById('btn-market-continue');
+      const isHostOrLocal = (gameMode === 'local' || gameMode === 'solo') || isHost;
+      btnCont.innerText = isHostOrLocal ? "CONTINUAR AL SIGUIENTE CONTRATO ➔" : "ESPERANDO AL CAPO 1...";
+      btnCont.disabled = !isHostOrLocal;
+      btnCont.style.opacity = isHostOrLocal ? '1' : '0.5';
+    }
+
+    window.buyMarketItem = function(playerNum, itemId) {
+      const item = MARKET_CATALOG.find(i => i.id === itemId);
+      if (!item) return;
+
+      const pCoins = playerNum === 1 ? party.p1Coins : party.p2Coins;
+      const pContacts = playerNum === 1 ? (party.p1Contacts || []) : (party.p2Contacts || []);
+
+      if (pCoins >= item.cost) {
+        if (item.type === 'contact') {
+          if (pContacts.length >= 3) {
+            alert("¡Límite de 3 Contactos pasivos alcanzado!");
+            return;
+          }
+          if (playerNum === 1) { party.p1Coins -= item.cost; if(!party.p1Contacts) party.p1Contacts=[]; party.p1Contacts.push(itemId); }
+          else { party.p2Coins -= item.cost; if(!party.p2Contacts) party.p2Contacts=[]; party.p2Contacts.push(itemId); }
+        } else if (item.type === 'consumable') {
+          if (playerNum === 1) { party.p1Coins -= item.cost; party.p1Consumable = itemId; }
+          else { party.p2Coins -= item.cost; party.p2Consumable = itemId; }
+        }
+
+        const pName = playerNum === 1 ? party.p1Name : party.p2Name;
+        cLog(`🛒 ${pName} compró en el Mercado: ${item.name} (${item.icon})`);
+        playSound('coin');
+        spawnParticles('market-grid-container', 'loot');
+      }
+
+      renderBlackMarket();
+    };
+
+    function executeAiMarketPurchases() {
+      if (gameMode !== 'solo') return;
+      party.currentMarketStock.forEach(item => {
+        if (party.p2Coins >= item.cost && Math.random() < 0.6) {
+          buyMarketItem(2, item.id);
+        }
+      });
+    }
+
+    // ACTUALIZACIÓN DE HUD Y MECÁNICAS DE COMBOS Y CONSUMIBLES (FASE 2, 3, 4)
+    function updateDeckHUD() {
+      updatePlayerHUD(1, 'p1-contacts-hud', 'p1-combo-hud', 'p1-consumable-btn');
+      updatePlayerHUD(2, 'p2-contacts-hud', 'p2-combo-hud', 'p2-consumable-btn');
+    }
+
+    function updatePlayerHUD(playerNum, contactsHudId, comboHudId, consumableBtnId) {
+      const contacts = playerNum === 1 ? (party.p1Contacts || []) : (party.p2Contacts || []);
+      const consumable = playerNum === 1 ? party.p1Consumable : party.p2Consumable;
+      const combo = playerNum === 1 ? (party.p1Combo || 1.0) : (party.p2Combo || 1.0);
+
+      const contactsContainer = document.getElementById(contactsHudId);
+      if (contactsContainer) {
+        contactsContainer.innerHTML = '';
+        contacts.forEach(cId => {
+          const item = MARKET_CATALOG.find(i => i.id === cId);
+          if (item) {
+            const badge = document.createElement('div');
+            badge.className = 'contact-slot-badge';
+            badge.innerHTML = `${item.icon} <span style="font-size:0.6rem;">${item.name}</span>`;
+            contactsContainer.appendChild(badge);
+          }
+        });
+      }
+
+      const comboContainer = document.getElementById(comboHudId);
+      if (comboContainer) {
+        comboContainer.innerText = `🔥 x${combo.toFixed(1)}`;
+      }
+
+      const consumableBtn = document.getElementById(consumableBtnId);
+      if (consumableBtn) {
+        if (consumable) {
+          const item = MARKET_CATALOG.find(i => i.id === consumable);
+          consumableBtn.innerText = `${item ? item.icon : '🚬'} ${item ? item.name : 'PURO'}`;
+          const currentTurn = getCurrentTurnPlayerNum();
+          consumableBtn.disabled = (playerNum !== currentTurn) || !party.lastRollData || party.isWaiting || !isMyTurnNetwork();
+        } else {
+          consumableBtn.innerText = '🚬 VACÍO';
+          consumableBtn.disabled = true;
+        }
+      }
+    }
+
+    function addCombo(playerNum) {
+      if (playerNum === 1) {
+        party.p1Combo = Math.min(3.0, (party.p1Combo || 1.0) + 0.5);
+      } else {
+        party.p2Combo = Math.min(3.0, (party.p2Combo || 1.0) + 0.5);
+      }
+      updateDeckHUD();
+    }
+
+    function resetCombo(playerNum) {
+      if (playerNum === 1) party.p1Combo = 1.0;
+      else party.p2Combo = 1.0;
+      updateDeckHUD();
+    }
+
+    window.useConsumable = function(playerNum) {
+      const consumable = playerNum === 1 ? party.p1Consumable : party.p2Consumable;
+      if (!consumable || !party.lastRollData) return;
+
+      const pName = playerNum === 1 ? party.p1Name : party.p2Name;
+
+      if (consumable === 'item_puro') {
+        cLog(`🚬 ¡${pName} enciende un PURO DEL CAPO y repite su última tirada de dado!`);
+        if (playerNum === 1) party.p1Consumable = null;
+        else party.p2Consumable = null;
+
+        updateDeckHUD();
+        playSound('roll');
+        
+        // Re-ejecutar tirada anterior
+        const last = party.lastRollData;
+        roll(last.sides, last.desc + " (RE-TIRADA)", last.overrideColor, last.actionImg, last.actionAnim, last.soundName);
+      }
+    };
 
     window.networkReturnToMenu = function() {
       stopHeartbeat();
       resetRollSync();
       party.matchesPlayed = 0; party.p1Wins = 0; party.p2Wins = 0;
+      party.p1Coins = 100; party.p2Coins = 100;
+      party.p1Contacts = []; party.p2Contacts = [];
+      party.p1Consumable = null; party.p2Consumable = null;
+      party.p1Combo = 1.0; party.p2Combo = 1.0;
+      party.cityEvent = null;
+
       document.getElementById('global-p1-val').innerText = '0';
       document.getElementById('global-p2-val').innerText = '0';
 
       document.getElementById('win-overlay').classList.add('hidden');
+      document.getElementById('modal-market').classList.add('hidden');
       document.getElementById('game-screen').classList.add('hidden');
       document.getElementById('setup-screen').classList.remove('hidden');
       document.body.className = `theme-${party.singleGameChoice}`; 
@@ -2006,6 +2486,7 @@
 
     window.networkNextGame = function() {
       document.getElementById('win-overlay').classList.add('hidden');
+      document.getElementById('modal-market').classList.add('hidden');
       startNextMiniGame();
     }
 
@@ -2047,8 +2528,29 @@
     async function roll(sides, desc, overrideColor = null, actionImg = 'idle', actionAnim = 'anim-bounce', soundName = null, forcedVal = null) {
       party.abortController = new AbortController();
       const signal = party.abortController.signal;
-      if (party.diceMode === 'virtual') return await virtualRoll(sides, desc, signal, overrideColor, actionImg, actionAnim, soundName, forcedVal);
-      else return await manualRoll(sides, desc, signal, overrideColor, actionImg, actionAnim, soundName, forcedVal);
+
+      party.lastRollData = { sides, desc, overrideColor, actionImg, actionAnim, soundName };
+      updateDeckHUD();
+
+      let val = 0;
+      if (party.diceMode === 'virtual') val = await virtualRoll(sides, desc, signal, overrideColor, actionImg, actionAnim, soundName, forcedVal);
+      else val = await manualRoll(sides, desc, signal, overrideColor, actionImg, actionAnim, soundName, forcedVal);
+
+      // FASE 5: Modificador Ley Seca (-1 a dados d6)
+      if (party.cityEvent === 'ley_seca' && sides === 6) {
+        val = Math.max(1, val - 1);
+      }
+
+      // FASE 2.2: El Armero Clandestino (+2 a tiradas d20)
+      const currentPNum = getCurrentTurnPlayerNum();
+      const currentContacts = currentPNum === 1 ? (party.p1Contacts || []) : (party.p2Contacts || []);
+      if (sides === 20 && currentContacts.includes('contact_armero')) {
+        val = val + 2;
+        const boxId = currentPNum === 1 ? 'rpg-m1-box' : 'rpg-m2-box';
+        spawnFloatingText(boxId, `+2 ARMERO!`, 'crit');
+      }
+
+      return val;
     }
 
     function virtualRoll(sides, desc, signal, overrideColor = null, actionImg = 'idle', actionAnim = 'anim-bounce', soundName = null, forcedVal = null) {
@@ -2536,6 +3038,7 @@
       if (party.isWaiting) return;
       party.isWaiting = true; updateUI_RPG();
 
+      const pNum = rpg.turn;
       const att = rpg.turn === 1 ? rpg.p1 : rpg.p2;
       const def = rpg.turn === 1 ? rpg.p2 : rpg.p1;
       const attName = rpg.turn === 1 ? party.p1Name : party.p2Name;
@@ -2548,6 +3051,10 @@
         if (type === 'heal') {
           att.heals++;
           let h = await roll(8, `${attName}: Médico Matasanos`, null, 'rpg_doctor', 'anim-bounce');
+          
+          // FASE 5: Ley Seca reduccion curaciones
+          if (party.cityEvent === 'ley_seca') h = Math.max(1, Math.floor(h * 0.5));
+
           att.hp += h; cLog(`💚 Médico de calle: ${attName} recupera +${h} de Salud.`);
           playSound('heal');
           spawnFloatingText(attBox, `+${h} SALUD`, 'heal');
@@ -2558,8 +3065,8 @@
           att.heals = 0;
           
           if (type === 'quick') {
-            const dmg = await roll(6, `${attName}: Ráfaga Tommy Gun`, null, 'rpg_tommy', 'anim-tommy');
-            await applyDmgRPG(dmg, 0, att, def, attName, defName, 'quick');
+            let dmg = await roll(6, `${attName}: Ráfaga Tommy Gun`, null, 'rpg_tommy', 'anim-tommy');
+            await applyDmgRPG(dmg, 0, att, def, attName, defName, 'quick', pNum);
           } else if (type === 'strong') {
             const acc = await roll(20, `${attName}: Francotirador (Req. 11+)`, null, 'rpg_sniper', 'anim-recoil', 'sniper_reload');
             if (acc >= 11) {
@@ -2577,12 +3084,16 @@
                 }
               }
 
-              await applyDmgRPG(baseDmg, critBonus, att, def, attName, defName, 'strong');
-            } else { cLog(`💨 ¡El francotirador de ${attName} falló el tiro! (Sacó ${acc})`); }
+              await applyDmgRPG(baseDmg, critBonus, att, def, attName, defName, 'strong', pNum);
+            } else { 
+              cLog(`💨 ¡El francotirador de ${attName} falló el tiro! (Sacó ${acc})`); 
+              resetCombo(pNum);
+            }
           } else if (type === 'poison') {
             const turns = await roll(4, `${attName}: Infiltrar Soplón`, null, 'rpg_rat', 'anim-slide');
             def.poison = turns; cLog(`🕵️‍♂️ ${attName} infiltra a un soplón por ${turns} rondas.`);
             spawnFloatingText(defBox, `SOPLÓN`, 'status');
+            addCombo(pNum);
           }
         }
 
@@ -2617,14 +3128,21 @@
       }
     };
 
-    async function applyDmgRPG(baseDmg, critBonus, att, def, attName, defName, type) {
+    async function applyDmgRPG(baseDmg, critBonus, att, def, attName, defName, type, pNum) {
       const defBar = rpg.turn === 1 ? 'rpg-p2-bar-container' : 'rpg-p1-bar-container';
       const defBox = rpg.turn === 1 ? 'rpg-m2-box' : 'rpg-m1-box';
-      const totalDmg = baseDmg + critBonus;
+      const comboMult = pNum === 1 ? (party.p1Combo || 1.0) : (party.p2Combo || 1.0);
+      const totalDmg = Math.round((baseDmg + critBonus) * comboMult);
       
-      if (totalDmg > def.hp) { cLog(`🛡️ Disparo fallido (Daño ${totalDmg} > ${def.hp} Salud Restante).`); } 
-      else {
-        def.hp -= totalDmg; cLog(`💥 ${attName} acierta e inflige ${totalDmg} de daño a ${defName}.`);
+      if (totalDmg > def.hp) { 
+        cLog(`🛡️ Disparo fallido (Daño ${totalDmg} > ${def.hp} Salud Restante).`); 
+        resetCombo(pNum);
+      } else {
+        def.hp -= totalDmg; 
+        cLog(`💥 ${attName} acierta e inflige ${totalDmg} de daño a ${defName}. (Mult: x${comboMult.toFixed(1)})`);
+        addCombo(pNum);
+        resetCombo(pNum === 1 ? 2 : 1);
+
         if (type === 'strong' || totalDmg >= 8 || def.hp === 0) {
           playSound('crit');
           await triggerHitstop(140);
@@ -2634,7 +3152,7 @@
           playSound('hit');
           triggerVibrate(40);
         }
-        spawnFloatingText(defBox, `-${baseDmg} SALUD`, 'dmg');
+        spawnFloatingText(defBox, `-${totalDmg} SALUD`, 'dmg');
         spawnParticles(defBox, type); await triggerAnimation(defBar, type==='strong'?'anim-bar-strong':'anim-bar-quick');
         if (def.hp === 0) return endRPG(rpg.turn === 1 ? 'p1' : 'p2');
       }
@@ -2685,6 +3203,7 @@
       document.getElementById('rpg-btn-h').disabled = dis || rpg.round === 1 || att.blocked;
       document.getElementById('rpg-btn-p').disabled = dis || def.poison > 0;
 
+      updateDeckHUD();
       updateHeartbeat();
       checkAiTurn();
     }
@@ -2721,6 +3240,7 @@
       const pName = exp.turn === 1 ? party.p1Name : party.p2Name;
       const barId = exp.turn === 1 ? 'exp-p1-bar-container' : 'exp-p2-bar-container';
       const boxId = exp.turn === 1 ? 'exp-m1-box' : 'exp-m2-box';
+      const comboMult = pNum === 1 ? (party.p1Combo || 1.0) : (party.p2Combo || 1.0);
 
       try {
         if (type === 'explore') {
@@ -2728,14 +3248,19 @@
           if (res <= 2) {
             p.hp = Math.max(0, p.hp - 3);
             cLog(`🚨 ¡Trampa de seguridad! ${pName} pierde 3 de cobertura.`);
+            resetCombo(pNum);
             playSound('hit');
             triggerVibrate(40);
             spawnFloatingText(boxId, `-3 COB`, 'dmg');
             spawnParticles(boxId, 'dmg-light'); await triggerAnimation(barId, 'anim-bar-quick');
           } else {
-            const loot = res === 6 ? 3 : 1; p.temp += loot; cLog(`💵 ${pName} saca ${loot} fajo(s) de billetes.`);
+            const baseLoot = res === 6 ? 3 : 1; 
+            const totalLoot = Math.round(baseLoot * comboMult);
+            p.temp += totalLoot; 
+            cLog(`💵 ${pName} saca ${totalLoot} fajo(s) de billetes.`);
+            addCombo(pNum);
             playSound('coin');
-            spawnFloatingText(boxId, `+${loot} 💰`, 'loot');
+            spawnFloatingText(boxId, `+${totalLoot} 💰`, 'loot');
             spawnParticles(boxId, 'loot'); await triggerAnimation(barId, 'anim-bar-loot');
           }
         } else if (type === 'deep') {
@@ -2748,8 +3273,10 @@
               cLog(`🌟 ¡DESTREZA PERFECTA (d20 = 20)! +2 bolsas de botín extra.`);
               spawnFloatingText(boxId, `🌟 +2 CRÍTICO!`, 'crit');
             }
-            p.temp += (baseLoot + critBonus); 
-            cLog(`💎 ¡La puerta cede! ${pName} embolsa ${baseLoot + critBonus} bolsas de botín.`);
+            const totalLoot = Math.round((baseLoot + critBonus) * comboMult);
+            p.temp += totalLoot; 
+            cLog(`💎 ¡La puerta cede! ${pName} embolsa ${totalLoot} bolsas de botín.`);
+            addCombo(pNum);
             playSound('coin');
             triggerScreenShake();
             triggerVibrate(60);
@@ -2759,6 +3286,7 @@
             let coverLoss = 6;
             cLog(`🚨 ¡Fallo! Se activa la alarma pesada. ${pName} recibe 6 de daño a cobertura.`);
             p.hp = Math.max(0, p.hp - coverLoss);
+            resetCombo(pNum);
             playSound('crit');
             await triggerHitstop(140);
             triggerScreenShake();
@@ -2770,7 +3298,9 @@
           if (!party.isParty) p.repairUses++;
           else p.repairCooldown = 5; 
 
-          const h = await roll(4, `${pName}: Reforzar Cobertura`, null, 'exp_cover', 'anim-bounce');
+          let h = await roll(4, `${pName}: Reforzar Cobertura`, null, 'exp_cover', 'anim-bounce');
+          if (party.cityEvent === 'ley_seca') h = Math.max(1, Math.floor(h * 0.5));
+
           p.hp = Math.min(p.max, p.hp + h); cLog(`🔧 ${pName} se atrinchera y recupera ${h} de Cobertura.`);
           playSound('heal');
           spawnFloatingText(boxId, `+${h} COB`, 'heal');
@@ -2780,6 +3310,8 @@
           const dmg = await roll(4, `${pName}: Lanzar Granada`, null, 'exp_grenade', 'anim-recoil');
           r.hp = Math.max(0, r.hp - dmg);
           cLog(`💣 ¡SABOTAJE! ${pName} lanza una granada causando ${dmg} daños a la huida rival.`);
+          addCombo(pNum);
+          resetCombo(pNum === 1 ? 2 : 1);
           playSound('crit');
           await triggerHitstop(140);
           triggerScreenShake();
@@ -2799,6 +3331,7 @@
           await showActionModal(pNum, "¡COCHE DE ESCAPE!", "exp_getaway", "anim-slide", 1200);
           p.surfaced = true; p.secured += p.temp;
           cLog(`🚗💨 ${pName} arranca el Coche de Escape y asegura ${p.temp} de botín.`);
+          addCombo(pNum);
           playSound('coin');
           spawnFloatingText(boxId, `¡A SALVO!`, 'loot');
           p.temp = 0; spawnParticles(boxId, 'surface');
@@ -2807,6 +3340,7 @@
         if (p.hp <= 0 && !p.surfaced) {
           p.hp = 0; p.temp = 0; p.surfaced = true;
           cLog(`管制 ¡LA POLICÍA TE ATRAPÓ! Pierdes todo el botín no asegurado.`);
+          resetCombo(pNum);
           playSound('crit');
           await triggerHitstop(140);
           triggerScreenShake();
@@ -2940,6 +3474,7 @@
         repBtn.disabled = dis || act.hp >= act.max || act.repairCooldown > 0;
       }
 
+      updateDeckHUD();
       updateHeartbeat();
       checkAiTurn();
     }
@@ -2989,8 +3524,10 @@
       party.isWaiting = true; updateUI_MAF();
 
       try {
+        const pNum = maf.turn;
         const act = maf.turn === 1 ? maf.p1 : maf.p2;
         const actName = maf.turn === 1 ? party.p1Name : party.p2Name;
+        const comboMult = pNum === 1 ? (party.p1Combo || 1.0) : (party.p2Combo || 1.0);
 
         const actionImg = sides === 6 ? 'maf_safe' : 'maf_risk';
         const actionAnim = sides === 6 ? 'anim-bounce' : 'anim-slam';
@@ -3005,6 +3542,8 @@
         let logStr = `🎲 Cobro en el Distrito <b>[${res}]</b>: <br>`;
         const playersToHarvest = egoistCheck ? [act] : [maf.p1, maf.p2];
 
+        let anySuccess = false;
+
         playersToHarvest.forEach((p) => {
           const pName = p === maf.p1 ? party.p1Name : party.p2Name;
           const boxId = p === maf.p1 ? 'maf-m1-box' : 'maf-m2-box';
@@ -3013,8 +3552,10 @@
             if (p.sabotages[res] > 0) {
               logStr += `&nbsp;&nbsp;❌ ${pName} falla (Distrito en Redada).<br>`;
             } else {
-              const gain = sides === 12 ? 3 : 1;
+              const baseGain = sides === 12 ? 3 : 1;
+              const gain = Math.round(baseGain * comboMult);
               p.coins += gain;
+              anySuccess = true;
               logStr += `&nbsp;&nbsp;💵 ${pName} recauda +${gain} Efectivo.<br>`;
               playSound('coin');
               spawnFloatingText(boxId, `+${gain} 💵`, 'coin');
@@ -3023,9 +3564,13 @@
           }
         });
 
+        if (anySuccess) addCombo(pNum);
+        else resetCombo(pNum);
+
         if (sides === 12 && res > 6) {
           logStr += `&nbsp;&nbsp;🚓 Demasiada vigilancia policial. Nadie cobra.<br>`;
           playSound('hit');
+          resetCombo(pNum);
         }
         
         cLog(logStr);
@@ -3075,6 +3620,7 @@
         act.parcels.push(val);
         act.parcels.sort((a, b) => a - b);
         cLog(`🏢 ${actName} toma el control del Distrito [${val}].`);
+        addCombo(pNum);
         playSound('coin');
         spawnFloatingText(actBox, `+DISTRITO [${val}]`, 'loot');
         spawnParticles(actBox, 'growth');
@@ -3083,6 +3629,7 @@
     };
 
     window.openSabotageModal = function() {
+      const pNum = maf.turn;
       const act = maf.turn === 1 ? maf.p1 : maf.p2;
       const rvl = maf.turn === 1 ? maf.p2 : maf.p1;
       const actName = maf.turn === 1 ? party.p1Name : party.p2Name;
@@ -3122,6 +3669,8 @@
           act.coins = Math.max(0, act.coins - 3);
           rvl.sabotages[val] = turns;
           cLog(`🚨 ¡SOPLO! ${actName} envía una redada policial al Distrito [${val}] rival por ${turns} rondas.`);
+          addCombo(pNum);
+          resetCombo(pNum === 1 ? 2 : 1);
           playSound('crit');
           await triggerHitstop(140);
           triggerScreenShake();
@@ -3140,6 +3689,7 @@
       if (party.isWaiting) return;
       party.isWaiting = true; updateUI_MAF();
       try {
+        const pNum = maf.turn;
         const act = maf.turn === 1 ? maf.p1 : maf.p2;
         const actName = maf.turn === 1 ? party.p1Name : party.p2Name;
         const actBox = maf.turn === 1 ? 'maf-m1-box' : 'maf-m2-box';
@@ -3155,6 +3705,7 @@
 
         act.prestige += pts;
         cLog(`🎩 ${desc} (Sacó ${res}). ${actName} gana +${pts} Influencia.`);
+        addCombo(pNum);
         playSound('heal');
         spawnFloatingText(actBox, `+${pts} INFLUENCIA`, 'heal');
         
@@ -3239,6 +3790,7 @@
       document.getElementById('maf-btn-sab').disabled = isWait || act.coins < 3 || rvlActiveSabotages >= 3;
       document.getElementById('maf-btn-pass').disabled = isWait;
 
+      updateDeckHUD();
       updateHeartbeat();
       checkAiTurn();
     }
@@ -3287,22 +3839,27 @@
       if (party.isWaiting) return;
       party.isWaiting = true; updateUI_POK();
       
+      const pNum = pok.turn;
       const p = pok.turn === 1 ? pok.p1 : pok.p2;
       const r = pok.turn === 1 ? pok.p2 : pok.p1;
       const pName = pok.turn === 1 ? party.p1Name : party.p2Name;
       const rName = pok.turn === 1 ? party.p2Name : party.p1Name;
       const pBox = pok.turn === 1 ? 'pok-m1-box' : 'pok-m2-box';
       const rBox = pok.turn === 1 ? 'pok-m2-box' : 'pok-m1-box';
+      const comboMult = pNum === 1 ? (party.p1Combo || 1.0) : (party.p2Combo || 1.0);
 
       try {
         if(type === 'apuesta') {
             const res = await roll(6, `${pName}: Apuesta (Gana con 4+)`, null, 'pok_bet', 'anim-slide');
             cLog(`🎰 ${pName} arriesga 1 ficha contra ${rName}...`);
             if(res >= 4) {
-                const stolen = Math.min(1, r.tokens);
+                const baseStolen = 1;
+                const stolen = Math.min(Math.round(baseStolen * comboMult), r.tokens);
                 p.tokens += stolen;
                 r.tokens -= stolen;
-                cLog(`✅ ¡Acierto! ${pName} gana 1 ficha directamente del alijo de ${rName}.`);
+                cLog(`✅ ¡Acierto! ${pName} gana ${stolen} ficha(s) directamente del alijo de ${rName}.`);
+                addCombo(pNum);
+                resetCombo(pNum === 1 ? 2 : 1);
                 playSound('coin');
                 spawnFloatingText(pBox, `+${stolen} 🎰`, 'loot');
                 spawnFloatingText(rBox, `-${stolen} 🎰`, 'dmg');
@@ -3312,6 +3869,7 @@
                 p.tokens -= lost;
                 r.tokens += lost;
                 cLog(`❌ Falla. ${rName} gana 1 ficha directamente de ${pName}.`);
+                resetCombo(pNum);
                 playSound('hit');
                 spawnFloatingText(pBox, `-${lost} 🎰`, 'dmg');
                 spawnFloatingText(rBox, `+${lost} 🎰`, 'loot');
@@ -3328,12 +3886,14 @@
                   cLog(`🎉 ¡GOLPE PERFECTO (d20 = 20)! +2 fichas extra ganadas.`);
                   spawnFloatingText(pBox, `🎉 +2 CRÍTICO!`, 'crit');
                 }
-                let totalWin = baseWin + critBonus;
+                let totalWin = Math.round((baseWin + critBonus) * comboMult);
                 let actualSteal = Math.min(totalWin, r.tokens);
                 p.tokens += actualSteal;
                 r.tokens -= actualSteal;
 
                 cLog(`🎉 ¡JACKPOT! ${pName} arrasa la mesa y le roba ${actualSteal} fichas a ${rName}.`);
+                addCombo(pNum);
+                resetCombo(pNum === 1 ? 2 : 1);
                 playSound('coin');
                 await triggerHitstop(140);
                 triggerScreenShake();
@@ -3347,6 +3907,7 @@
                 r.tokens += actualLoss;
 
                 cLog(`💀 Las cosas salen mal. ${rName} gana las ${actualLoss} fichas del riesgo.`);
+                resetCombo(pNum);
                 playSound('hit');
                 spawnFloatingText(pBox, `-${actualLoss} 🎰`, 'dmg');
                 spawnFloatingText(rBox, `+${actualLoss} 🎰`, 'loot');
@@ -3361,6 +3922,7 @@
             r.tokens = Math.max(0, r.tokens - actualSteal);
             p.tokens += actualSteal;
             cLog(`🎭 ¡TRAMPA! ${pName} hace un juego de manos y roba ${actualSteal} fichas a ${rName}.`);
+            addCombo(pNum);
             playSound('coin');
             spawnFloatingText(pBox, `+${actualSteal} 🎰`, 'loot');
             spawnFloatingText(rBox, `-${actualSteal} 🎰`, 'dmg');
@@ -3441,6 +4003,7 @@
         tahurBtn.disabled = dis || act.tahurCD > 0 || rvl.tokens <= 0;
       }
 
+      updateDeckHUD();
       updateHeartbeat();
       checkAiTurn();
     }
