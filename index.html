@@ -1190,23 +1190,32 @@
     // CATÁLOGO INFRAESTRUCTURA MERCADO NEGRO (FASE 1, 2, 3)
     // ==========================================
     const MARKET_CATALOG = [
-      // CONTACTOS (PASIVAS)
-      { id: 'contact_armero', name: 'Armero Clandestino', icon: '🔫', cost: 150, desc: '+2 a tiradas d20.', type: 'contact' },
-      { id: 'contact_tahur', name: 'El Tahúr Tullido', icon: '🃏', cost: 120, desc: 'Si sacas 1 en d6, recuperas 20 Efectivo/Fichas.', type: 'contact' },
+      // CONTACTOS (PASIVAS - 18 TOTAL)
+      { id: 'contact_armero', name: 'Armero Clandestino', icon: '🔫', cost: 150, desc: '+2 a tiradas d20 (máximo 20).', type: 'contact' },
+      { id: 'contact_tahur', name: 'El Tahúr Tullido', icon: '🃏', cost: 120, desc: 'Si sacas 1 en d6, ganas +10🪙 / +10 Fichas de la banca.', type: 'contact' },
       { id: 'contact_crupier', name: 'Crupier de Esquina', icon: '🎰', cost: 220, desc: 'Resultados pares en d6 suman +1 extra.', type: 'contact' },
-      { id: 'contact_tallador', name: 'Tallador de Dados', icon: '🎲', cost: 320, desc: 'Tus d6 no pueden sacar 1 (se convierte en 2).', type: 'contact' },
-      { id: 'contact_matematico', name: 'Matemático del Sindicato', icon: '🧮', cost: 240, desc: 'Sacar el máximo en cualquier dado te da +100🪙.', type: 'contact' },
+      { id: 'contact_tallador', name: 'Tallador de Dados', icon: '🎲', cost: 320, desc: 'Anula el 1 en d6 (lo transforma en valor seguro).', type: 'contact' },
+      { id: 'contact_matematico', name: 'Matemático del Sindicato', icon: '🧮', cost: 240, desc: 'Sacar el máximo en cualquier dado otorga +100🪙.', type: 'contact' },
       { id: 'contact_matasanos', name: 'Médico Matasanos', icon: '🩺', cost: 200, desc: '+50% a toda curación recibida.', type: 'contact' },
       { id: 'contact_desguace', name: 'Dueño del Desguace', icon: '🏭', cost: 140, desc: 'Vender artículos te devuelve el 75% de su valor.', type: 'contact' },
       { id: 'contact_policia', name: 'Policía Sobornada', icon: '🚓', cost: 250, desc: 'Inmunidad a la pérdida de distritos por Redada.', type: 'contact' },
-      { id: 'contact_dinamita', name: 'Contrabandista Dinamita', icon: '🧨', cost: 350, desc: 'Trampas en el banco causan 3 de daño al rival.', type: 'contact' },
-      { id: 'contact_contador', name: 'Contador de la Mafia', icon: '📊', cost: 500, desc: 'Multiplica x1.5 dinero al final del contrato (Req: HP > 50%).', type: 'contact' },
+      { id: 'contact_dinamita', name: 'Contrabandista Dinamita', icon: '🧨', cost: 350, desc: 'Trampas en el banco causan 3 de daño a la cobertura rival.', type: 'contact' },
+      { id: 'contact_contador', name: 'Contador de la Mafia', icon: '📊', cost: 500, desc: 'Multiplica x1.5 la recompensa final si conservas HP > 50%.', type: 'contact' },
       { id: 'contact_usurero', name: 'Inversionista Usurero', icon: '📈', cost: 250, desc: 'Al salir de la tienda, +10% de interés sobre tu dinero (Max 200).', type: 'contact' },
+      { id: 'contact_prestamista', name: 'Prestamista Siniestro', icon: '🩸', cost: 300, desc: '+150🪙 al inicio de minijuego, pero -2 HP/COB máxima.', type: 'contact' },
+      { id: 'contact_extorsionador', name: 'Extorsionador de Barrio', icon: '💼', cost: 130, desc: 'Ganas +10🪙 por cada turno finalizado sin recibir daño.', type: 'contact' },
+      { id: 'contact_maton', name: 'Matón a Sueldo', icon: '🥊', cost: 160, desc: 'Tu primer ataque en cualquier minijuego inflige +2 daño.', type: 'contact' },
+      { id: 'contact_chofer', name: 'Chófer de Huida', icon: '🚗', cost: 210, desc: 'Si tu HP/COB cae del 25%, obtienes +3 de reducción de daño.', type: 'contact' },
+      { id: 'contact_quimico', name: 'Químico Chiflado', icon: '🧪', cost: 310, desc: 'Impactos críticos o d20=20 aplican Veneno por 3 rondas.', type: 'contact' },
+      { id: 'contact_arquitecto', name: 'Arquitecto de Búnkeres', icon: '🏛️', cost: 340, desc: 'Distritos producen +25% ingresos y bloquean la 1ª Redada.', type: 'contact' },
+      { id: 'contact_soplon', name: 'Soplón Infiltrado', icon: '🕵️', cost: 170, desc: 'Revela la táctica o estado estratégico del rival.', type: 'contact' },
+      
       // CONSUMIBLES
       { id: 'item_puro', name: 'Puro del Capo', icon: '🚬', cost: 80, desc: 'Repite la última tirada de dado.', type: 'consumable' },
       { id: 'item_whisky', name: 'Whisky Clandestino', icon: '🥃', cost: 100, desc: 'Duplica el daño/botín, pero resta 2 HP/Cobertura.', type: 'consumable' },
       { id: 'item_soborno', name: 'Soborno Relámpago', icon: '🤝', cost: 150, desc: 'Fuerza un 6 en tu próximo d6.', type: 'consumable' },
-      { id: 'item_adrenalina', name: 'Inyección Adrenalina', icon: '💉', cost: 90, desc: 'Cura +4 HP/Cobertura al instante.', type: 'consumable' }
+      { id: 'item_adrenalina', name: 'Inyección Adrenalina', icon: '💉', cost: 90, desc: 'Cura +4 HP/Cobertura al instante.', type: 'consumable' },
+      { id: 'item_falsa_alarma', name: 'Llamada Falsa Alarma', icon: '📞', cost: 120, desc: 'Cancela los efectos o estados negativos del turno rival previo.', type: 'consumable' }
     ];
 
     // ==========================================
@@ -1437,7 +1446,15 @@
       });
 
       db.ref(roomPath + '/currentEvent').on('value', snap => {
-        if (snap.exists() && !isHost) applyCityEvent(snap.val());
+        if (snap.exists() && !isHost) {
+          const val = snap.val();
+          if (typeof val === 'object' && val !== null) {
+            party.carniceroBoss = val.boss;
+            applyCityEvent(val.code);
+          } else {
+            applyCityEvent(val);
+          }
+        }
       });
 
       db.ref(roomPath + '/setup/p1').on('value', snap => {
@@ -2250,8 +2267,32 @@ let party = {
       }
     }
 
+    function applyInitGameContacts(playerNum, playerState) {
+      if (!party.isRoguelike) return;
+      const contacts = playerNum === 1 ? (party.p1Contacts || []) : (party.p2Contacts || []);
+      playerState.firstAttackDone = false; // Bandera para El Matón a Sueldo
+      playerState.tookDamageThisTurn = false; // Bandera para Extorsionador de Barrio
+
+      // El Prestamista Siniestro: +150🪙 iniciales, pero -2 HP/COB Máxima
+      if (contacts.includes('contact_prestamista')) {
+        if (playerNum === 1) party.p1Coins = (party.p1Coins || 0) + 150;
+        else party.p2Coins = (party.p2Coins || 0) + 150;
+
+        if (playerState.max && playerState.max > 2) {
+          playerState.max -= 2;
+          playerState.hp = Math.min(playerState.hp, playerState.max);
+        }
+        const boxId = playerNum === 1 ? 'rpg-m1-box' : 'rpg-m2-box';
+        cLog(`🩸 ${playerNum === 1 ? party.p1Name : party.p2Name} usa el Prestamista Siniestro (+150🪙, -2 Max HP/COB).`);
+      }
+    }
+
     async function startNextMiniGame() {
       resetRollSync();
+      party.carniceroBoss = null;
+      party.lastDmgToRPG = null;
+      party.lastGrenadeDmg = null;
+      party.lastTokensStolen = null;
       party.currentGame = party.playlist[party.matchesPlayed];
       document.body.className = `theme-${party.currentGame}`;
       
@@ -2263,12 +2304,19 @@ let party = {
           if (randEvent < 0.20) newEvent = 'purga';
           else if (randEvent < 0.40) newEvent = 'ley_seca';
           else if (randEvent < 0.55) newEvent = 'inspectores';
-          else if (randEvent < 0.65) newEvent = 'carnicero';
+          else if (randEvent < 0.65) {
+            newEvent = 'carnicero';
+            party.carniceroBoss = (gameMode === 'solo') ? 2 : (Math.random() < 0.5 ? 1 : 2);
+          }
           else if (randEvent < 0.75) newEvent = 'comisionado';
         }
-        if (gameMode === 'online' && roomPath) db.ref(roomPath + '/currentEvent').set(newEvent);
-        else applyCityEvent(newEvent);
+        if (gameMode === 'online' && roomPath) {
+          db.ref(roomPath + '/currentEvent').set({ code: newEvent, boss: party.carniceroBoss || null });
+        } else {
+          applyCityEvent(newEvent);
+        }
       }
+
       await showMinigameSplash(gameTitles[party.currentGame]);
 
       document.getElementById('rpg-container').classList.toggle('hidden', party.currentGame !== 'rpg');
@@ -2329,6 +2377,15 @@ let party = {
 
       if ((party.p1Contacts || []).includes('contact_contador') && p1HpPercent > 0.5) p1Reward = Math.floor(p1Reward * 1.5);
       if ((party.p2Contacts || []).includes('contact_contador') && p2HpPercent > 0.5) p2Reward = Math.floor(p2Reward * 1.5);
+
+      // Evento Carnicero: Vencer al Jefe otorga el doble de botín al rival
+      if (party.cityEvent === 'carnicero' && winnerCode !== 'tie') {
+        const winningPNum = winnerCode === 'p1' ? 1 : 2;
+        if (winningPNum !== party.carniceroBoss) {
+          if (winningPNum === 1) { p1Reward *= 2; cLog(`🏆 ¡${party.p1Name} derrotó al Carnicero y gana DOBLE BOTÍN! (+${p1Reward}🪙)`); }
+          else { p2Reward *= 2; cLog(`🏆 ¡${party.p2Name} derrotó al Carnicero y gana DOBLE BOTÍN! (+${p2Reward}🪙)`); }
+        }
+      }
 
       party.p1Coins = (party.p1Coins || 0) + p1Reward;
       party.p2Coins = (party.p2Coins || 0) + p2Reward;
@@ -2692,10 +2749,46 @@ let party = {
         if (playerNum === 1) party.p1Force6 = true; else party.p2Force6 = true;
         playSound('coin');
       }
+      else if (consumable === 'item_falsa_alarma') {
+        cLog(`📞 ¡${pName} realiza una LLAMADA DE FALSA ALARMA y cancela los efectos del rival!`);
+        playSound('heal');
+        triggerScreenShake();
+
+        if (party.currentGame === 'rpg') {
+          pStateRPG.poison = 0;
+          if (party.lastDmgToRPG && party.lastDmgToRPG.target === playerNum) {
+            pStateRPG.hp = Math.min(pStateRPG.max, pStateRPG.hp + party.lastDmgToRPG.amount);
+            party.lastDmgToRPG = null;
+          }
+          cLog(`📞 Estado purificado y Soplón cancelado.`);
+        } else if (party.currentGame === 'exp') {
+          if (party.lastGrenadeDmg && party.lastGrenadeDmg.target === playerNum) {
+            pStateEXP.hp = Math.min(pStateEXP.max, pStateEXP.hp + party.lastGrenadeDmg.amount);
+            party.lastGrenadeDmg = null;
+            cLog(`📞 Cobertura dañada por granada restaurada.`);
+          }
+        } else if (party.currentGame === 'maf') {
+          const actMAF = playerNum === 1 ? maf.p1 : maf.p2;
+          for (let i = 1; i <= 6; i++) { actMAF.sabotages[i] = 0; }
+          cLog(`📞 Redadas Policiales sobre tus distritos clausurados canceladas.`);
+        } else if (party.currentGame === 'pok') {
+          const actPOK = playerNum === 1 ? pok.p1 : pok.p2;
+          const rvlPOK = playerNum === 1 ? pok.p2 : pok.p1;
+          if (party.lastTokensStolen && party.lastTokensStolen.target === playerNum) {
+            const amt = Math.min(rvlPOK.tokens, party.lastTokensStolen.amount);
+            actPOK.tokens += amt;
+            rvlPOK.tokens -= amt;
+            party.lastTokensStolen = null;
+            cLog(`📞 Recobradas ${amt} fichas sustraídas por el rival.`);
+          }
+        }
+      }
 
       updateDeckHUD();
       if(party.currentGame === 'rpg') updateUI_RPG();
       if(party.currentGame === 'exp') updateUI_EXP();
+      if(party.currentGame === 'maf') updateUI_MAF();
+      if(party.currentGame === 'pok') updateUI_POK();
     };
 
     window.networkReturnToMenu = function() {
@@ -2743,9 +2836,13 @@ let party = {
       let eventTitle = ''; let eventDesc = '';
       if (eventCode === 'purga') { eventTitle = '📰 NOCHE DE PURGA'; eventDesc = 'Daño de armas (Tommy/Francotirador/Trampas) +2'; }
       else if (eventCode === 'ley_seca') { eventTitle = '📰 LEY SECA CLANDESTINA'; eventDesc = '-50% a Curaciones | -1 a Tiradas de d6'; }
-      else if (eventCode === 'inspectores') { eventTitle = '📰 GUERRA DE INSPECTORES'; eventDesc = 'Recaudación x2 | Riesgo Redada Policial sube'; }
-      else if (eventCode === 'carnicero') { eventTitle = '💀 JEFE: EL CARNICERO'; eventDesc = 'Oponente gana +10 HP inicial y Daño +1'; }
-      else if (eventCode === 'comisionado') { eventTitle = '💀 JEFE: COMISIONADO CORRUPTO'; eventDesc = '-10% de Efectivo al pasar turno'; }
+      else if (eventCode === 'inspectores') { eventTitle = '📰 GUERRA DE INSPECTORES'; eventDesc = 'Recaudación x2 | Riesgo Redada Policial sube al 50%'; }
+      else if (eventCode === 'carnicero') {
+        const bossName = party.carniceroBoss === 1 ? party.p1Name : party.p2Name;
+        eventTitle = `💀 JEFE: EL CARNICERO (${bossName.toUpperCase()})`;
+        eventDesc = `¡${bossName} asume el rol de Jefe! (+10 HP/COB, +1 Daño). Vencerlo otorga x2 Botín.`;
+      }
+      else if (eventCode === 'comisionado') { eventTitle = '💀 JEFE: COMISIONADO CORRUPTO'; eventDesc = '-10% de Efectivo/Fichas/Botín al pasar turno'; }
 
       const banner = document.getElementById('city-event-banner');
       if (party.cityEvent) {
@@ -2828,7 +2925,8 @@ let party = {
         spawnFloatingText(boxId, `+2 ARMERO`, 'crit');
       }
       if (sides === 6 && currentContacts.includes('contact_tallador') && val === 1) {
-        val = 2; spawnFloatingText(boxId, `TALLADOR (1->2)`, 'crit');
+        val = (party.currentGame === 'exp') ? 3 : 2; // Transforma el 1 en 3 en El Gran Atraco (evita trampa 1-2) o en 2
+        spawnFloatingText(boxId, `TALLADOR (${val})`, 'crit');
       }
       if (sides === 6 && currentContacts.includes('contact_crupier') && val % 2 === 0) {
         val += 1; spawnFloatingText(boxId, `+1 CRUPIER`, 'crit');
@@ -2838,8 +2936,14 @@ let party = {
         spawnFloatingText(boxId, `+100🪙 MATEMÁTICO`, 'loot'); playSound('coin');
       }
       if (sides === 6 && currentContacts.includes('contact_tahur') && val === 1) {
-        if (isP1) party.p1Coins += 20; else party.p2Coins += 20;
-        spawnFloatingText(boxId, `+20🪙 TAHÚR`, 'loot'); playSound('coin');
+        if (party.currentGame === 'pok') {
+          if (isP1) pok.p1.tokens += 10; else pok.p2.tokens += 10; // Fichas del pozo de la casa
+          spawnFloatingText(boxId, `+10🎰 TAHÚR`, 'loot');
+        } else {
+          if (isP1) party.p1Coins += 10; else party.p2Coins += 10;
+          spawnFloatingText(boxId, `+10🪙 TAHÚR`, 'loot');
+        }
+        playSound('coin');
       }
 
       return val;
@@ -3179,6 +3283,16 @@ let party = {
         const human = rpg.p1;
         if (ai.hp <= 0) return;
 
+        // Pasiva: Soplón Infiltrado (Revela la táctica de la IA)
+        if (party.isRoguelike && (party.p1Contacts || []).includes('contact_soplon')) {
+          let planned = "Ráfaga Tommy Gun";
+          if (ai.hp / ai.max < 0.35 && ai.heals < 3 && !ai.blocked && rpg.round > 1) planned = "Visita al Médico Matasanos";
+          else if (human.hp <= 6) planned = "Remate con Tommy Gun";
+          else if (human.poison === 0) planned = "Infiltrar Soplón";
+          else if (Math.random() < 0.5) planned = "Disparo de Francotirador";
+          cLog(`🕵️ Soplón Infiltrado revela: La IA se prepara para ejecutar: ${planned}.`);
+        }
+
         if (ai.hp / ai.max < 0.35 && ai.heals < 3 && !ai.blocked && rpg.round > 1) {
           rpgAction('heal');
         } else if (human.hp <= 6) {
@@ -3197,6 +3311,15 @@ let party = {
 
         const maxTorpedos = party.isParty ? 1 : 3;
         const canRepair = !party.isParty ? (ai.repairUses < 1) : (ai.repairCooldown === 0);
+
+        if (party.isRoguelike && (party.p1Contacts || []).includes('contact_soplon')) {
+          let planned = "Saquear Cajas";
+          if (ai.hp <= 6 && ai.temp > 0) planned = "Huir en Coche de Escape";
+          else if (!human.surfaced && ai.torpedoUses < maxTorpedos) planned = "Sabotaje con Granada";
+          else if (ai.hp <= 14 && canRepair) planned = "Reforzar Cobertura";
+          else planned = "Forzar Bóveda";
+          cLog(`🕵️ Soplón Infiltrado revela: La IA planea en el Atraco: ${planned}.`);
+        }
 
         if (ai.hp <= 6 && ai.temp > 0) {
           expAction('surface');
@@ -3218,10 +3341,21 @@ let party = {
         if (maf.phase === 'roll') {
           const egoist = ai.coins >= 3 && Math.random() < 0.3;
           const sides = (ai.parcels.length <= 2 || Math.random() < 0.3) ? 12 : 6;
+          if (party.isRoguelike && (party.p1Contacts || []).includes('contact_soplon')) {
+            cLog(`🕵️ Soplón Infiltrado revela: La IA planea Recaudación ${sides === 6 ? 'Segura (d6)' : 'Arriesgada (d12)'}${egoist ? ' Lavando Dinero' : ''}.`);
+          }
           mafRollHarvest(sides, egoist);
         } else if (maf.phase === 'action') {
           const nextParcelCost = ai.parcels.length >= 6 ? 999 : ai.parcels.length + 1;
           const humanActiveSabotages = Object.values(human.sabotages).filter(v => v > 0).length;
+
+          if (party.isRoguelike && (party.p1Contacts || []).includes('contact_soplon')) {
+            let planned = "Pasar Turno";
+            if (ai.coins >= 5 && ai.prestige + 2 >= maf.winScore) planned = "Sobornar Político";
+            else if (ai.coins >= nextParcelCost && ai.parcels.length < 6) planned = "Controlar Nuevo Distrito";
+            else if (ai.coins >= 3 && humanActiveSabotages < 3) planned = "Lanzar Redada Policial";
+            cLog(`🕵️ Soplón Infiltrado revela: La IA planea en Imperio: ${planned}.`);
+          }
 
           if (ai.coins >= 5 && ai.prestige + 2 >= maf.winScore) {
             mafActionBrew();
@@ -3256,6 +3390,13 @@ let party = {
         const ai = pok.p2;
         const human = pok.p1;
         const canTahur = party.isParty ? (ai.tahurUsos < 1) : (ai.tahurCD === 0);
+
+        if (party.isRoguelike && (party.p1Contacts || []).includes('contact_soplon')) {
+          let planned = "Apuesta Básica";
+          if (canTahur && human.tokens >= 2) planned = "Trampa de Tahúr";
+          else if (ai.tokens >= 5) planned = "Golpe a la Mesa";
+          cLog(`🕵️ Soplón Infiltrado revela: La IA planea en el Póker: ${planned}.`);
+        }
 
         if (ai.tokens <= 2) {
           pokAction('apuesta');
@@ -3322,9 +3463,16 @@ let party = {
         rpg.p2.hp = await roll(6, "Salud Inicial "+party.p2Name, party.p2Color, 'idle', 'anim-bounce') 
                   + await roll(6, "Salud Inicial "+party.p2Name, party.p2Color, 'idle', 'anim-bounce') 
                   + await roll(6, "Salud Inicial "+party.p2Name, party.p2Color, 'idle', 'anim-bounce') + 10;
-        if (party.cityEvent === 'carnicero') rpg.p2.hp += 10; // Evento: Jefe Carnicero
         rpg.p2.max = rpg.p2.hp;
+
+        if (party.cityEvent === 'carnicero') {
+          if (party.carniceroBoss === 1) { rpg.p1.hp += 10; rpg.p1.max = rpg.p1.hp; }
+          else { rpg.p2.hp += 10; rpg.p2.max = rpg.p2.hp; }
+        }
         
+        applyInitGameContacts(1, rpg.p1);
+        applyInitGameContacts(2, rpg.p2);
+
         party.isWaiting = false; updateUI_RPG();
         cLog(`🔫 ¡Empieza el tiroteo por el territorio! Turno de ${party.p1Name}`);
       } catch(e) {
@@ -3346,20 +3494,6 @@ let party = {
       const defBox = rpg.turn === 1 ? 'rpg-m2-box' : 'rpg-m1-box';
 
       try {
-        // DoT de Soplón: Se procesa al inicio del turno del atacante ANTES de su acción
-        if (att.poison > 0 && att.hp > 0) {
-          att.hp -= 1;
-          att.poison--;
-          cLog(`🧪 ¡El soplón filtra información de ${attName} antes de atacar! (-1 SALUD). Quedan ${att.poison} rd.`);
-          playSound('hit');
-          spawnFloatingText(attBox, `-1 SALUD`, 'status');
-          spawnParticles(attBox, 'poison');
-          await triggerAnimation(attBar, 'anim-bar-poison');
-          if (att.hp <= 0) {
-            att.hp = 0; updateUI_RPG(); return endRPG(pNum === 1 ? 'p2' : 'p1');
-          }
-        }
-
         if (type === 'heal') {
           att.heals++;
           let h = await roll(8, `${attName}: Médico Matasanos`, null, 'rpg_doctor', 'anim-bounce');
@@ -3415,11 +3549,15 @@ let party = {
           }
         }
 
-        // DoT de Soplón: Se procesa al inicio del turno del atacante antes de resolver su acción
+        // Si la acción anterior terminó la partida, no continuar con el DoT
+        if (def.hp <= 0 || att.hp <= 0) return;
+
+        // DoT de Soplón: Se procesa AL FINAL DEL TURNO del atacante (después de ejecutar su acción, estilo Veneno Pokémon)
         if (att.poison > 0 && att.hp > 0) {
           att.hp -= 1;
           att.poison--;
-          cLog(`🧪 ¡El soplón filtra información de ${attName} antes de atacar! (-1 SALUD). Quedan ${att.poison} rd.`);
+          att.tookDamageThisTurn = true; // Marca daño recibido para anular bono de Extorsionador
+          cLog(`🧪 ¡El soplón filtra información de ${attName} al finalizar su turno! (-1 SALUD). Quedan ${att.poison} rd.`);
           playSound('hit');
           spawnFloatingText(attBox, `-1 SALUD`, 'status');
           spawnParticles(attBox, 'poison');
@@ -3429,6 +3567,16 @@ let party = {
           }
         }
         
+        // Pasiva: Extorsionador de Barrio (+10🪙 por turno sin recibir daño)
+        const attContacts = pNum === 1 ? (party.p1Contacts || []) : (party.p2Contacts || []);
+        if (party.isRoguelike && attContacts.includes('contact_extorsionador') && !att.tookDamageThisTurn) {
+          if (pNum === 1) party.p1Coins = (party.p1Coins || 0) + 10;
+          else party.p2Coins = (party.p2Coins || 0) + 10;
+          cLog(`💼 Extorsionador de Barrio: ${attName} gana +10🪙 por finalizar el turno sin recibir daño.`);
+          spawnFloatingText(attBox, `+10🪙 EXTORSIONADOR`, 'loot');
+        }
+        att.tookDamageThisTurn = false;
+
         party.isWaiting = false;
         rpg.turn = rpg.turn === 1 ? 2 : 1;
 
@@ -3442,9 +3590,25 @@ let party = {
     async function applyDmgRPG(baseDmg, critBonus, att, def, attName, defName, type, pNum) {
       const defBar = rpg.turn === 1 ? 'rpg-p2-bar-container' : 'rpg-p1-bar-container';
       const defBox = rpg.turn === 1 ? 'rpg-m2-box' : 'rpg-m1-box';
+      const attContacts = pNum === 1 ? (party.p1Contacts || []) : (party.p2Contacts || []);
+      const defContacts = pNum === 1 ? (party.p2Contacts || []) : (party.p1Contacts || []);
+
+      // Matón a Sueldo (+2 al primer ataque)
+      if (party.isRoguelike && attContacts.includes('contact_maton') && !att.firstAttackDone) {
+        baseDmg += 2;
+        att.firstAttackDone = true;
+        cLog(`🥊 ¡Matón a Sueldo añade +2 daño al primer ataque de ${attName}!`);
+      }
+
       const comboMult = pNum === 1 ? (party.p1Combo || 1.0) : (party.p2Combo || 1.0);
       let totalDmg = Math.round((baseDmg + critBonus) * comboMult);
-      if (pNum === 2 && party.cityEvent === 'carnicero') totalDmg += 1; // Evento: Jefe Carnicero
+      if (party.cityEvent === 'carnicero' && pNum === party.carniceroBoss) totalDmg += 1;
+
+      // Chófer de Huida (-3 daño si HP < 25%)
+      if (party.isRoguelike && defContacts.includes('contact_chofer') && def.max > 0 && (def.hp / def.max) < 0.25) {
+        totalDmg = Math.max(1, totalDmg - 3);
+        spawnFloatingText(defBox, `-3 DEF CHÓFER`, 'status');
+      }
       
       if (totalDmg > def.hp) {
         cLog(`🛡️ Disparo anulado por sobredaño (${totalDmg} > ${def.hp} HP restante).`); 
@@ -3452,9 +3616,18 @@ let party = {
         playSound('hit');
         spawnFloatingText(defBox, `🛡️ ANULADO`, 'status');
       } else {
-        def.hp -= totalDmg; 
+        def.hp -= totalDmg;
+        def.tookDamageThisTurn = true; 
+        party.lastDmgToRPG = { target: pNum === 1 ? 2 : 1, amount: totalDmg };
         cLog(`💥 ${attName} acierta e inflige ${totalDmg} de daño a ${defName}. (Mult: x${comboMult.toFixed(1)})`);
         addCombo(pNum);
+
+        // El Químico Chiflado (Aplica Veneno DoT 3 rondas en crítico o tiro perfecto)
+        if (party.isRoguelike && attContacts.includes('contact_quimico') && (critBonus > 0 || type === 'strong')) {
+          def.poison = 3;
+          cLog(`🧪 ¡El Químico Chiflado de ${attName} envenena al rival por 3 rondas!`);
+          spawnFloatingText(defBox, `VENENO 🧪`, 'status');
+        }
 
         if (type === 'strong' || totalDmg >= 8 || def.hp === 0) {
           playSound('crit');
@@ -3535,11 +3708,14 @@ let party = {
     function startDiveEXP() {
       exp.round = 1; exp.turn = 1;
       [exp.p1, exp.p2].forEach((p, idx) => { 
-        p.max = (idx === 1 && party.cityEvent === 'carnicero') ? 30 : 20; // Evento: Jefe Carnicero (+10 HP)
+        const pNum = idx + 1;
+        const isCarnicero = (party.cityEvent === 'carnicero' && party.carniceroBoss === pNum);
+        p.max = isCarnicero ? 30 : 20;
         p.hp = p.max; p.temp = 0; p.surfaced = false; 
         p.repairUses = 0; p.repairCooldown = 0; p.torpedoUses = 0;
+        applyInitGameContacts(pNum, p);
       });
-      party.isWaiting = false; 
+      party.isWaiting = false;
       cLog(`💰 ¡Inicia ${party.isParty ? 'el Atraco Único' : 'Atraco '+exp.dive+' de 3'} a la bóveda!`);
       updateUI_EXP();
     }
@@ -3564,6 +3740,7 @@ let party = {
             if (party.cityEvent === 'purga') trapDmg += 2; // Evento: Noche de Purga
 
             p.hp = Math.max(0, p.hp - trapDmg);
+            p.tookDamageThisTurn = true;
             cLog(`🚨 ¡Trampa de seguridad! ${pName} pierde ${trapDmg} de cobertura.`);
             resetCombo(pNum);
             playSound('hit');
@@ -3614,6 +3791,7 @@ let party = {
             let coverLoss = 6;
             cLog(`🚨 ¡Fallo! Se activa la alarma pesada. ${pName} recibe 6 de daño a cobertura.`);
             p.hp = Math.max(0, p.hp - coverLoss);
+            p.tookDamageThisTurn = true;
             resetCombo(pNum);
             playSound('crit');
             await triggerHitstop(140);
@@ -3638,11 +3816,31 @@ let party = {
           playSound('heal');
           spawnFloatingText(boxId, `+${h} COB`, 'heal');
           spawnParticles(boxId, 'repair'); await triggerAnimation(barId, 'anim-bar-heal');
+
         } else if (type === 'sabotage') {
           p.torpedoUses++;
           let dmg = await roll(4, `${pName}: Lanzar Granada`, null, 'exp_grenade', 'anim-recoil');
           if (party.cityEvent === 'purga') dmg += 2; // Evento: Noche de Purga
+          if (party.cityEvent === 'carnicero' && pNum === party.carniceroBoss) dmg += 1; // Evento: Jefe Carnicero
+
+          // Pasiva: Matón a Sueldo (+2 al primer ataque)
+          const pContacts = pNum === 1 ? (party.p1Contacts || []) : (party.p2Contacts || []);
+          if (party.isRoguelike && pContacts.includes('contact_maton') && !p.firstAttackDone) {
+            dmg += 2;
+            p.firstAttackDone = true;
+            cLog(`🥊 ¡Matón a Sueldo añade +2 de daño a la granada de ${pName}!`);
+          }
+
+          // Pasiva: Chófer de Huida (-3 daño si Cobertura < 25%)
+          const rContacts = pNum === 1 ? (party.p2Contacts || []) : (party.p1Contacts || []);
+          if (party.isRoguelike && rContacts.includes('contact_chofer') && r.max > 0 && (r.hp / r.max) < 0.25) {
+            dmg = Math.max(1, dmg - 3);
+            spawnFloatingText(exp.turn === 1 ? 'exp-m2-box' : 'exp-m1-box', `-3 DEF CHÓFER`, 'status');
+          }
+
           r.hp = Math.max(0, r.hp - dmg);
+          r.tookDamageThisTurn = true;
+          party.lastGrenadeDmg = { target: pNum === 1 ? 2 : 1, amount: dmg };
           cLog(`💣 ¡SABOTAJE! ${pName} lanza una granada causando ${dmg} daños a la huida rival.`);
           addCombo(pNum);
           playSound('crit');
@@ -3687,27 +3885,41 @@ let party = {
       }
     };
 
-    // Evento Global: Impuestos del Comisionado Corrupto
+    // Evento Global: Impuestos del Comisionado Corrupto (Grava al jugador que finaliza su turno)
     function applyComisionadoTax() {
       if (party.cityEvent !== 'comisionado') return;
       let taxed = false;
+      const activePNum = getCurrentTurnPlayerNum();
+      
       if (party.currentGame === 'maf') {
-         if (maf.p1.coins > 0) { maf.p1.coins = Math.floor(maf.p1.coins * 0.9); taxed = true; }
-         if (maf.p2.coins > 0) { maf.p2.coins = Math.floor(maf.p2.coins * 0.9); taxed = true; }
+         const p = activePNum === 1 ? maf.p1 : maf.p2;
+         if (p.coins > 0) { p.coins = Math.floor(p.coins * 0.9); taxed = true; }
       } else if (party.currentGame === 'pok') {
-         if (pok.p1.tokens > 0) { pok.p1.tokens = Math.floor(pok.p1.tokens * 0.9); taxed = true; }
-         if (pok.p2.tokens > 0) { pok.p2.tokens = Math.floor(pok.p2.tokens * 0.9); taxed = true; }
+         const p = activePNum === 1 ? pok.p1 : pok.p2;
+         if (p.tokens > 0) { p.tokens = Math.floor(p.tokens * 0.9); taxed = true; }
       } else if (party.currentGame === 'exp') {
-         if (exp.p1.temp > 0) { exp.p1.temp = Math.floor(exp.p1.temp * 0.9); taxed = true; }
-         if (exp.p2.temp > 0) { exp.p2.temp = Math.floor(exp.p2.temp * 0.9); taxed = true; }
+         const p = activePNum === 1 ? exp.p1 : exp.p2;
+         if (p.temp > 0) { p.temp = Math.floor(p.temp * 0.9); taxed = true; }
       }
-      if (taxed) cLog("🕵️‍♂️ EL COMISIONADO CORRUPTO confisca el 10% de los fondos de la mesa.");
+      if (taxed) cLog(`🕵️‍♂️ EL COMISIONADO CORRUPTO confisca el 10% de los fondos de ${activePNum === 1 ? party.p1Name : party.p2Name}.`);
     }
 
     function nextTurnEXP() {
       applyComisionadoTax();
       const currentCode = exp.turn;
       const currentP = currentCode === 1 ? exp.p1 : exp.p2;
+      const pName = currentCode === 1 ? party.p1Name : party.p2Name;
+      const pContacts = currentCode === 1 ? (party.p1Contacts || []) : (party.p2Contacts || []);
+      const boxId = currentCode === 1 ? 'exp-m1-box' : 'exp-m2-box';
+
+      // Pasiva: Extorsionador de Barrio (+10🪙 por turno sin recibir daño a Cobertura)
+      if (party.isRoguelike && pContacts.includes('contact_extorsionador') && !currentP.tookDamageThisTurn && !currentP.surfaced) {
+        if (currentCode === 1) party.p1Coins = (party.p1Coins || 0) + 10;
+        else party.p2Coins = (party.p2Coins || 0) + 10;
+        cLog(`💼 Extorsionador de Barrio: ${pName} gana +10🪙 por finalizar el turno sin recibir daño a su Cobertura.`);
+        spawnFloatingText(boxId, `+10🪙 EXTORSIONADOR`, 'loot');
+      }
+      currentP.tookDamageThisTurn = false;
 
       if (exp.p1.surfaced && exp.p2.surfaced) {
         return finishDiveEXP();
@@ -3852,8 +4064,10 @@ let party = {
     async function initMAF() {
       maf.round = 1; maf.turn = 1; maf.phase = 'roll';
       maf.winScore = party.isParty ? 10 : 15;
-      maf.p1.parcels = []; maf.p1.coins = 0; maf.p1.prestige = 0; maf.p1.sabotages = {1:0, 2:0, 3:0, 4:0, 5:0, 6:0};
-      maf.p2.parcels = []; maf.p2.coins = 0; maf.p2.prestige = 0; maf.p2.sabotages = {1:0, 2:0, 3:0, 4:0, 5:0, 6:0};
+      maf.p1.parcels = []; maf.p1.coins = 0; maf.p1.prestige = 0; maf.p1.sabotages = {1:0, 2:0, 3:0, 4:0, 5:0, 6:0}; maf.p1.bunkerUsed = false;
+      maf.p2.parcels = []; maf.p2.coins = 0; maf.p2.prestige = 0; maf.p2.sabotages = {1:0, 2:0, 3:0, 4:0, 5:0, 6:0}; maf.p2.bunkerUsed = false;
+      applyInitGameContacts(1, maf.p1);
+      applyInitGameContacts(2, maf.p2);
       document.getElementById('maf-log-box').innerHTML = '';
       
       cLog("ENV La ciudad despierta. Repartiendo territorios...");
@@ -3895,26 +4109,40 @@ let party = {
 
         let anySuccess = false;
 
-        playersToHarvest.forEach((p) => {
-          const pName = p === maf.p1 ? party.p1Name : party.p2Name;
-          const boxId = p === maf.p1 ? 'maf-m1-box' : 'maf-m2-box';
-          
-          if (res >= 1 && res <= 6 && p.parcels.includes(res)) {
-            if (p.sabotages[res] > 0) {
-              logStr += `&nbsp;&nbsp;❌ ${pName} falla (Distrito en Redada).<br>`;
-            } else {
+        // Guerra de Inspectores: 50% de riesgo de inspección en Recaudación Segura (res > 3)
+        if (sides === 6 && party.cityEvent === 'inspectores' && res > 3) {
+          logStr += `&nbsp;&nbsp;🚓 ¡INSPECTORES! Redada sorpresiva en el Distrito [${res}]. Nadie cobra.<br>`;
+          playSound('hit');
+          resetCombo(pNum);
+        } else {
+          playersToHarvest.forEach((p) => {
+            const pName = p === maf.p1 ? party.p1Name : party.p2Name;
+            const boxId = p === maf.p1 ? 'maf-m1-box' : 'maf-m2-box';
+            
+            if (res >= 1 && res <= 6 && p.parcels.includes(res)) {
+              if (p.sabotages[res] > 0) {
+                logStr += `&nbsp;&nbsp;❌ ${pName} falla (Distrito en Redada).<br>`;
+              } else {
               const baseGain = sides === 12 ? 3 : 1;
               let gain = Math.round(baseGain * comboMult);
-              if (party.cityEvent === 'inspectores') gain *= 2; // Evento: Guerra de Inspectores
+              if (party.cityEvent === 'inspectores') gain *= 2;
+              
+              // Arquitecto de Búnkeres (+25% ingresos)
+              const pContacts = (p === maf.p1) ? (party.p1Contacts || []) : (party.p2Contacts || []);
+              if (party.isRoguelike && pContacts.includes('contact_arquitecto')) {
+                gain = Math.ceil(gain * 1.25);
+              }
+
               p.coins += gain;
               anySuccess = true;
               logStr += `&nbsp;&nbsp;💵 ${pName} recauda +${gain} Efectivo.<br>`;
               playSound('coin');
               spawnFloatingText(boxId, `+${gain} 💵`, 'coin');
               spawnParticles(boxId, 'coin');
+              }
             }
-          }
-        });
+          });
+        }
 
         if (anySuccess) addCombo(pNum);
         else resetCombo(pNum);
@@ -4024,6 +4252,19 @@ let options = [];
       openChoiceModal("REDADA POLICIAL", "Selecciona el Distrito rival que deseas clausurar temporalmente.", options, async (val) => {
         party.isWaiting = true; updateUI_MAF(); 
         try {
+          const rvlContacts = (rvl === maf.p1) ? (party.p1Contacts || []) : (party.p2Contacts || []);
+          
+          // Arquitecto de Búnkeres (Bloquea la primera redada)
+          if (party.isRoguelike && rvlContacts.includes('contact_arquitecto') && !rvl.bunkerUsed) {
+            rvl.bunkerUsed = true;
+            act.coins = Math.max(0, act.coins - 3);
+            cLog(`🏛️ ¡ARQUITECTO DE BÚNKERES! El búnker del rival absorbió la Redada Policial en el Distrito [${val}].`);
+            spawnFloatingText(rvlBox, `🏛️ BÚNKER ABSORT`, 'status');
+            playSound('hit');
+            party.isWaiting = false;
+            return nextTurnMAF();
+          }
+
           const turns = await roll(4, `${actName}: Duración de la Redada`, null, 'maf_raid', 'anim-slide');
           act.coins = Math.max(0, act.coins - 3);
           rvl.sabotages[val] = turns;
@@ -4089,6 +4330,21 @@ let options = [];
 
     function nextTurnMAF() {
       applyComisionadoTax();
+      const currentCode = maf.turn;
+      const currentP = currentCode === 1 ? maf.p1 : maf.p2;
+      const pName = currentCode === 1 ? party.p1Name : party.p2Name;
+      const pContacts = currentCode === 1 ? (party.p1Contacts || []) : (party.p2Contacts || []);
+      const boxId = currentCode === 1 ? 'maf-m1-box' : 'maf-m2-box';
+
+      // Pasiva: Extorsionador de Barrio (+10🪙 por turno finalizado sin contratiempos)
+      if (party.isRoguelike && pContacts.includes('contact_extorsionador') && !currentP.tookDamageThisTurn) {
+        if (currentCode === 1) party.p1Coins = (party.p1Coins || 0) + 10;
+        else party.p2Coins = (party.p2Coins || 0) + 10;
+        cLog(`💼 Extorsionador de Barrio: ${pName} gana +10🪙 por finalizar el turno sin contratiempos.`);
+        spawnFloatingText(boxId, `+10🪙 EXTORSIONADOR`, 'loot');
+      }
+      currentP.tookDamageThisTurn = false;
+
       maf.turn = maf.turn === 1 ? 2 : 1;
       if (maf.turn === 1) maf.round++;
       maf.phase = 'roll'; 
@@ -4186,6 +4442,8 @@ let options = [];
 
       pok.p1 = { tokens: initTokens, tahurCD: 0, tahurUsos: 0 };
       pok.p2 = { tokens: initTokens, tahurCD: 0, tahurUsos: 0 };
+      applyInitGameContacts(1, pok.p1);
+      applyInitGameContacts(2, pok.p2);
       
       document.getElementById('pok-log-box').innerHTML = '';
       cLog(`🎲 ¡Se abren las mesas clandestinas! Ambos capos inician con ${initTokens} fichas.`);
@@ -4216,6 +4474,7 @@ let options = [];
                 const stolen = Math.min(Math.round(baseStolen * comboMult), r.tokens);
                 p.tokens += stolen;
                 r.tokens -= stolen;
+                party.lastTokensStolen = { target: pNum === 1 ? 2 : 1, amount: stolen };
                 cLog(`✅ ¡Acierto! ${pName} gana ${stolen} ficha(s) directamente del alijo de ${rName}.`);
                 addCombo(pNum);
                 playSound('coin');
@@ -4286,6 +4545,7 @@ let options = [];
             const actualSteal = Math.min(steal, r.tokens);
             r.tokens = Math.max(0, r.tokens - actualSteal);
             p.tokens += actualSteal;
+            party.lastTokensStolen = { target: pNum === 1 ? 2 : 1, amount: actualSteal };
             cLog(`🎭 ¡TRAMPA! ${pName} hace un juego de manos y roba ${actualSteal} fichas a ${rName}.`);
             addCombo(pNum);
             playSound('coin');
@@ -4313,6 +4573,21 @@ let options = [];
 
     function nextTurnPOK() {
       applyComisionadoTax();
+      const currentCode = pok.turn;
+      const currentP = currentCode === 1 ? pok.p1 : pok.p2;
+      const pName = currentCode === 1 ? party.p1Name : party.p2Name;
+      const pContacts = currentCode === 1 ? (party.p1Contacts || []) : (party.p2Contacts || []);
+      const boxId = currentCode === 1 ? 'pok-m1-box' : 'pok-m2-box';
+
+      // Pasiva: Extorsionador de Barrio (+10🪙 por turno sin perder fichas)
+      if (party.isRoguelike && pContacts.includes('contact_extorsionador') && !currentP.tookDamageThisTurn) {
+        if (currentCode === 1) party.p1Coins = (party.p1Coins || 0) + 10;
+        else party.p2Coins = (party.p2Coins || 0) + 10;
+        cLog(`💼 Extorsionador de Barrio: ${pName} gana +10🪙 por finalizar el turno sin perder fichas.`);
+        spawnFloatingText(boxId, `+10🪙 EXTORSIONADOR`, 'loot');
+      }
+      currentP.tookDamageThisTurn = false;
+
       pok.turn = pok.turn === 1 ? 2 : 1;
       const nextP = pok.turn === 1 ? pok.p1 : pok.p2;
       
