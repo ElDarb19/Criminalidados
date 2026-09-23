@@ -3280,9 +3280,6 @@
           }
         }
 
-        party.isWaiting = false;
-        rpg.turn = rpg.turn === 1 ? 2 : 1;
-
         if (type === 'heal') {
           att.heals++;
           let h = await roll(8, `${attName}: Médico Matasanos`, null, 'rpg_doctor', 'anim-bounce');
@@ -3354,6 +3351,7 @@
         
         party.isWaiting = false;
         rpg.turn = rpg.turn === 1 ? 2 : 1;
+
         if (rpg.turn === 1) rpg.round++;
         updateUI_RPG();
       } catch(e) {
@@ -3581,7 +3579,7 @@
           
           if (r.hp <= 0 && !r.surfaced) {
             r.hp = 0; r.temp = 0; r.surfaced = true;
-            cLog(`管制 ¡Emboscada Policial al Coche Huida rival! Atrapados.`);
+            cLog(`🚨 ¡Emboscada Policial al Coche Huida rival! Atrapados.`);
             spawnParticles(rBox, 'dmg-heavy');
           }
         } else if (type === 'surface') {
@@ -3596,7 +3594,7 @@
 
         if (p.hp <= 0 && !p.surfaced) {
           p.hp = 0; p.temp = 0; p.surfaced = true;
-          cLog(`管制 ¡LA POLICÍA TE ATRAPÓ! Pierdes todo el botín no asegurado.`);
+          cLog(`🚨 ¡LA POLICÍA TE ATRAPÓ! Pierdes todo el botín no asegurado.`);
           resetCombo(pNum);
           playSound('crit');
           await triggerHitstop(140);
@@ -4182,7 +4180,7 @@ let options = [];
                 await triggerHitstop(140);
                 triggerScreenShake();
                 triggerVibrate([80, 50, 120]);
-                spawnFloatingText(pBox, `+${baseWin} 🎰`, 'loot');
+                spawnFloatingText(pBox, `+${actualSteal} 🎰`, 'loot');
                 spawnFloatingText(rBox, `-${actualSteal} 🎰`, 'dmg');
                 spawnParticles(pBox, 'loot');
             } else {
