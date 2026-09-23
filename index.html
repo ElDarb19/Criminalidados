@@ -684,6 +684,14 @@
           <span class="slider"></span>
         </label>
       </div>
+
+      <div class="party-toggle" style="margin-top: 8px;">
+        <span style="font-weight: 600; font-size: 0.9rem;">SISTEMA ROGUELIKE (Mercado y Combos)</span>
+        <label class="switch">
+          <input type="checkbox" id="roguelike-mode-check" checked onchange="syncHostSetupToFirebase();">
+          <span class="slider"></span>
+        </label>
+      </div>
       
       <div id="single-game-settings" style="margin-top: 12px;">
         <h2>Elegir Contrato</h2>
@@ -824,6 +832,11 @@
         <div id="exp-p1-bar-container" class="hp-bar-container"><div id="exp-p1-bar" class="hp-bar"></div></div>
         <div class="loot-label"><span>Botín en bolsas:</span><span id="exp-p1-temp-loot">💰 0</span></div>
         <div id="exp-p1-status" style="margin-top: 4px; font-size: 0.8rem; font-weight: bold;"></div>
+        <div class="player-deck-hud">
+          <div id="exp-p1-contacts-hud" class="contacts-hud-slots"></div>
+          <div id="exp-p1-combo-hud" class="combo-badge">🔥 x1.0</div>
+          <button id="exp-p1-consumable-btn" class="btn-use-consumable" onclick="dispatchAction('useConsumable', 1)" disabled>🚬 PURO</button>
+        </div>
       </div>
 
       <div id="exp-m2-box" class="monster-box">
@@ -834,6 +847,11 @@
         <div id="exp-p2-bar-container" class="hp-bar-container"><div id="exp-p2-bar" class="hp-bar"></div></div>
         <div class="loot-label"><span>Botín en bolsas:</span><span id="exp-p2-temp-loot">💰 0</span></div>
         <div id="exp-p2-status" style="margin-top: 4px; font-size: 0.8rem; font-weight: bold;"></div>
+        <div class="player-deck-hud">
+          <div id="exp-p2-contacts-hud" class="contacts-hud-slots"></div>
+          <div id="exp-p2-combo-hud" class="combo-badge">🔥 x1.0</div>
+          <button id="exp-p2-consumable-btn" class="btn-use-consumable" onclick="dispatchAction('useConsumable', 2)" disabled>🚬 PURO</button>
+        </div>
       </div>
 
       <div class="log-box" id="exp-log-box"></div>
@@ -866,6 +884,11 @@
           <b style="color:var(--accent-coin); font-size:1rem;">💵 <span id="maf-p1-coins">0</span> Efectivo</b>
         </div>
         <div class="parcel-grid" id="maf-p1-parcels"></div>
+        <div class="player-deck-hud">
+          <div id="maf-p1-contacts-hud" class="contacts-hud-slots"></div>
+          <div id="maf-p1-combo-hud" class="combo-badge">🔥 x1.0</div>
+          <button id="maf-p1-consumable-btn" class="btn-use-consumable" onclick="dispatchAction('useConsumable', 1)" disabled>🚬 PURO</button>
+        </div>
       </div>
 
       <div id="maf-m2-box" class="monster-box">
@@ -879,6 +902,11 @@
           <b style="color:var(--accent-coin); font-size:1rem;">💵 <span id="maf-p2-coins">0</span> Efectivo</b>
         </div>
         <div class="parcel-grid" id="maf-p2-parcels"></div>
+        <div class="player-deck-hud">
+          <div id="maf-p2-contacts-hud" class="contacts-hud-slots"></div>
+          <div id="maf-p2-combo-hud" class="combo-badge">🔥 x1.0</div>
+          <button id="maf-p2-consumable-btn" class="btn-use-consumable" onclick="dispatchAction('useConsumable', 2)" disabled>🚬 PURO</button>
+        </div>
       </div>
 
       <div class="log-box" id="maf-log-box"></div>
@@ -914,6 +942,11 @@
         <div style="display:flex; justify-content:center; margin-top:10px; align-items: center; background:rgba(0,0,0,0.3); border-radius:8px; padding:8px;">
           <b style="color:var(--accent-loot); font-size:1.4rem; font-family:'Cinzel';">🎰 <span id="pok-p1-tokens">12</span> FICHAS</b>
         </div>
+        <div class="player-deck-hud">
+          <div id="pok-p1-contacts-hud" class="contacts-hud-slots"></div>
+          <div id="pok-p1-combo-hud" class="combo-badge">🔥 x1.0</div>
+          <button id="pok-p1-consumable-btn" class="btn-use-consumable" onclick="dispatchAction('useConsumable', 1)" disabled>🚬 PURO</button>
+        </div>
       </div>
 
       <div id="pok-m2-box" class="monster-box">
@@ -922,6 +955,11 @@
         </div>
         <div style="display:flex; justify-content:center; margin-top:10px; align-items: center; background:rgba(0,0,0,0.3); border-radius:8px; padding:8px;">
           <b style="color:var(--accent-loot); font-size:1.4rem; font-family:'Cinzel';">🎰 <span id="pok-p2-tokens">12</span> FICHAS</b>
+        </div>
+        <div class="player-deck-hud">
+          <div id="pok-p2-contacts-hud" class="contacts-hud-slots"></div>
+          <div id="pok-p2-combo-hud" class="combo-badge">🔥 x1.0</div>
+          <button id="pok-p2-consumable-btn" class="btn-use-consumable" onclick="dispatchAction('useConsumable', 2)" disabled>🚬 PURO</button>
         </div>
       </div>
 
@@ -1342,6 +1380,7 @@
       });
       db.ref(roomPath + '/setup/game').set({
         isParty: document.getElementById('party-mode-check').checked,
+        isRoguelike: document.getElementById('roguelike-mode-check') ? document.getElementById('roguelike-mode-check').checked : true,
         singleGameChoice: party.singleGameChoice,
         totalMatches: parseInt(document.getElementById('total-matches').value, 10) || 3,
         diceMode: party.diceMode,
@@ -1423,6 +1462,10 @@
         const val = snap.val();
         if (val && !isHost) {
           document.getElementById('party-mode-check').checked = val.isParty;
+          if (document.getElementById('roguelike-mode-check')) {
+            document.getElementById('roguelike-mode-check').checked = val.isRoguelike !== false;
+          }
+          party.isRoguelike = val.isRoguelike !== false;
           party.singleGameChoice = val.singleGameChoice;
           selectSingleGame(val.singleGameChoice);
           document.getElementById('total-matches').value = val.totalMatches;
@@ -1553,9 +1596,9 @@
     // ==========================================
     // VARIABLES GLOBALES Y DECK-BUILDING STATE
     // ==========================================
-    let party = {
+let party = {
       p1Name: '', p2Name: '', p1Color: 'Color_R', p2Color: 'Color_B', diceMode: 'virtual',
-      isParty: false, singleGameChoice: 'rpg',
+      isParty: false, isRoguelike: true, singleGameChoice: 'rpg',
       totalMatches: 3, matchesPlayed: 0, p1Wins: 0, p2Wins: 0,
       playlist: [], currentGame: null, abortController: null, isWaiting: false,
       p1Coins: 100, p2Coins: 100, 
@@ -2140,6 +2183,8 @@
       party.p1Combo = 1.0; party.p2Combo = 1.0;
       party.cityEvent = null;
       party.isParty = document.getElementById('party-mode-check').checked;
+      const roguelikeEl = document.getElementById('roguelike-mode-check');
+      party.isRoguelike = roguelikeEl ? roguelikeEl.checked : true;
       
       const cbRpg = document.getElementById('party-cb-rpg');
       const cbExp = document.getElementById('party-cb-exp');
@@ -2212,18 +2257,18 @@
       
       // FASE 5: Sistema de Eventos Globales (Bucle Roguelike) Sincronizado
       if (gameMode === 'local' || gameMode === 'solo' || isHost) {
-        const randEvent = Math.random();
         let newEvent = null;
-        if (randEvent < 0.20) newEvent = 'purga';
-        else if (randEvent < 0.40) newEvent = 'ley_seca';
-        else if (randEvent < 0.55) newEvent = 'inspectores';
-        else if (randEvent < 0.65) newEvent = 'carnicero';
-        else if (randEvent < 0.75) newEvent = 'comisionado';
-        
+        if (party.isRoguelike) {
+          const randEvent = Math.random();
+          if (randEvent < 0.20) newEvent = 'purga';
+          else if (randEvent < 0.40) newEvent = 'ley_seca';
+          else if (randEvent < 0.55) newEvent = 'inspectores';
+          else if (randEvent < 0.65) newEvent = 'carnicero';
+          else if (randEvent < 0.75) newEvent = 'comisionado';
+        }
         if (gameMode === 'online' && roomPath) db.ref(roomPath + '/currentEvent').set(newEvent);
         else applyCityEvent(newEvent);
       }
-
       await showMinigameSplash(gameTitles[party.currentGame]);
 
       document.getElementById('rpg-container').classList.toggle('hidden', party.currentGame !== 'rpg');
@@ -2325,10 +2370,11 @@
       } else {
         title.innerText = winnerName.toUpperCase();
         msg.innerText = `Gana este contrato de ${gameTitles[party.currentGame]} (${scoreText})`;
-        btn.innerText = isHostOrLocal ? "IR AL MERCADO NEGRO" : "ESPERANDO AL CAPO 1...";
+        const nextAction = party.isRoguelike ? 'openBlackMarket' : 'networkNextGame';
+        btn.innerText = isHostOrLocal ? (party.isRoguelike ? "IR AL MERCADO NEGRO" : "SIGUIENTE CONTRATO ➔") : "ESPERANDO AL CAPO 1...";
         btn.disabled = !isHostOrLocal;
         btn.style.opacity = isHostOrLocal ? '1' : '0.5';
-        btn.onclick = () => { if (isHostOrLocal) dispatchAction('openBlackMarket'); };
+        btn.onclick = () => { if (isHostOrLocal) dispatchAction(nextAction); };
       }
       overlay.classList.remove('hidden');
     }
@@ -2509,6 +2555,16 @@
 
     // ACTUALIZACIÓN DE HUD Y MECÁNICAS DE COMBOS Y CONSUMIBLES (FASE 2, 3, 4)
     function updateDeckHUD() {
+      const showHud = party.isRoguelike !== false;
+      document.querySelectorAll('.player-deck-hud').forEach(el => el.style.display = showHud ? 'flex' : 'none');
+      if (!showHud) return;
+
+      const prefixes = ['rpg', 'exp', 'maf', 'pok'];
+      prefixes.forEach(pfx => {
+        updatePlayerHUD(1, `${pfx}-p1-contacts-hud`, `${pfx}-p1-combo-hud`, `${pfx}-p1-consumable-btn`);
+        updatePlayerHUD(2, `${pfx}-p2-contacts-hud`, `${pfx}-p2-combo-hud`, `${pfx}-p2-consumable-btn`);
+      });
+      // Fallback para elementos de Guerra de Bandas sin prefijo
       updatePlayerHUD(1, 'p1-contacts-hud', 'p1-combo-hud', 'p1-consumable-btn');
       updatePlayerHUD(2, 'p2-contacts-hud', 'p2-combo-hud', 'p2-consumable-btn');
     }
@@ -2553,6 +2609,7 @@
     }
 
     function addCombo(playerNum) {
+      if (!party.isRoguelike) return;
       const isP1 = (playerNum === 1);
       let combo = isP1 ? (party.p1Combo || 1.0) : (party.p2Combo || 1.0);
       combo = Math.min(3.0, combo + 0.5);
@@ -4188,19 +4245,27 @@ let options = [];
                   spawnFloatingText(pBox, `🎉 +2 CRÍTICO!`, 'crit');
                 }
                 let totalWin = Math.round((baseWin + critBonus) * comboMult);
-                let actualSteal = Math.min(totalWin, r.tokens);
-                p.tokens += actualSteal;
-                r.tokens -= actualSteal;
 
-                cLog(`🎉 ¡JACKPOT! ${pName} arrasa la mesa y le roba ${actualSteal} fichas a ${rName}.`);
-                addCombo(pNum);
-                playSound('coin');
-                await triggerHitstop(140);
-                triggerScreenShake();
-                triggerVibrate([80, 50, 120]);
-                spawnFloatingText(pBox, `+${actualSteal} 🎰`, 'loot');
-                spawnFloatingText(rBox, `-${actualSteal} 🎰`, 'dmg');
-                spawnParticles(pBox, 'loot');
+                // Regla de Anulación por Exceso de Robo (Sobredaño)
+                if (totalWin > r.tokens) {
+                  cLog(`🛡️ Golpe a la Mesa anulado por exceso (${totalWin} > ${r.tokens} Fichas del rival).`);
+                  resetCombo(pNum);
+                  playSound('hit');
+                  spawnFloatingText(pBox, `🛡️ ANULADO`, 'status');
+                } else {
+                  p.tokens += totalWin;
+                  r.tokens -= totalWin;
+
+                  cLog(`🎉 ¡JACKPOT! ${pName} arrasa la mesa y le roba ${totalWin} fichas a ${rName}.`);
+                  addCombo(pNum);
+                  playSound('coin');
+                  await triggerHitstop(140);
+                  triggerScreenShake();
+                  triggerVibrate([80, 50, 120]);
+                  spawnFloatingText(pBox, `+${totalWin} 🎰`, 'loot');
+                  spawnFloatingText(rBox, `-${totalWin} 🎰`, 'dmg');
+                  spawnParticles(pBox, 'loot');
+                }
             } else {
                 let actualLoss = Math.min(3, p.tokens);
                 p.tokens -= actualLoss;
