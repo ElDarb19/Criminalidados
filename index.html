@@ -1480,8 +1480,12 @@
       if (funcName === 'hostStartCoreGame' && !isHost) return;
       
       const hostOnlyActions = ['networkNextGame', 'networkReturnToMenu', 'networkNextDive', 'openBlackMarket'];
+      const marketActions = ['buyMarketItem', 'sellMarketItem', 'rerollMarket', 'syncMarketStock'];
+      
       if (hostOnlyActions.includes(funcName)) {
         if (!isHost) return;
+      } else if (marketActions.includes(funcName)) {
+        // Permitir interacciones en el Mercado Negro sin validar el turno del minijuego
       } else if (funcName !== 'onStartButtonClick') {
         if (!isMyTurnNetwork()) return; 
       }
@@ -2236,9 +2240,23 @@
     }
 
     function generateMarketStock() {
+      if (gameMode === 'online' && !isHost) return; // El Host determina el stock oficial
       const shuffled = [...MARKET_CATALOG].sort(() => Math.random() - 0.5);
-      party.currentMarketStock = shuffled.slice(0, 4);
+      const stock = shuffled.slice(0, 4);
+      party.currentMarketStock = stock;
+      if (gameMode === 'online' && isHost && roomPath) {
+        const itemIds = stock.map(i => i.id);
+        dispatchAction('syncMarketStock', itemIds);
+      }
     }
+
+    window.syncMarketStock = function(itemIds) {
+      party.currentMarketStock = itemIds.map(id => MARKET_CATALOG.find(i => i.id === id)).filter(Boolean);
+      const marketModal = document.getElementById('modal-market');
+      if (marketModal && !marketModal.classList.contains('hidden')) {
+        renderBlackMarket();
+      }
+    };
 
     function handleMiniGameEnd(winnerCode, scoreText) { 
       stopHeartbeat();
@@ -2555,10 +2573,23 @@
         playSound('heal');
         triggerScreenShake();
       }
+
       else if (consumable === 'item_whisky') {
         cLog(`🥃 ¡${pName} bebe WHISKY! Daño/Botín x2 este turno, pero pierde 2 HP/COB.`);
-        if (party.currentGame === 'rpg') pStateRPG.hp = Math.max(0, pStateRPG.hp - 2);
-        if (party.currentGame === 'exp') pStateEXP.hp = Math.max(0, pStateEXP.hp - 2);
+        if (party.currentGame === 'rpg') {
+          pStateRPG.hp = Math.max(0, pStateRPG.hp - 2);
+          if (pStateRPG.hp === 0) {
+            updateDeckHUD(); updateUI_RPG();
+            return endRPG(playerNum === 1 ? 'p2' : 'p1');
+          }
+        }
+        if (party.currentGame === 'exp') {
+          pStateEXP.hp = Math.max(0, pStateEXP.hp - 2);
+          if (pStateEXP.hp === 0 && !pStateEXP.surfaced) {
+            pStateEXP.temp = 0; pStateEXP.surfaced = true;
+            cLog(`🚨 ¡${pName} colapsa por el Whisky! Cobertura destruida.`);
+          }
+        }
         if (playerNum === 1) party.p1Combo = (party.p1Combo || 1) * 2;
         else party.p2Combo = (party.p2Combo || 1) * 2;
         playSound('hit');
@@ -3260,25 +3291,17 @@
           }
         }
 
-        if (def.hp <= 0 || att.hp <= 0) return;
-
-        for (let playerKey of ['p1', 'p2']) {
-          const targetPlayer = rpg[playerKey];
-          const targetName = playerKey === 'p1' ? party.p1Name : party.p2Name;
-          const targetBar = playerKey === 'p1' ? 'rpg-p1-bar-container' : 'rpg-p2-bar-container';
-          const targetBox = playerKey === 'p1' ? 'rpg-m1-box' : 'rpg-m2-box';
-
-          if (targetPlayer.poison > 0 && targetPlayer.hp > 0) {
-            targetPlayer.hp -= 1;
-            targetPlayer.poison--;
-            cLog(`🧪 ¡El soplón filtra información vital de ${targetName}! (-1 SALUD). Rondas restantes: ${targetPlayer.poison}`);
-            playSound('hit');
-            spawnFloatingText(targetBox, `-1 SALUD`, 'status');
-            spawnParticles(targetBox, 'poison'); 
-            await triggerAnimation(targetBar, 'anim-bar-poison');
-            if (targetPlayer.hp <= 0) { 
-              targetPlayer.hp = 0; updateUI_RPG(); return endRPG(playerKey === 'p1' ? 'p2' : 'p1'); 
-            }
+        // DoT de Soplón: Se procesa al inicio del turno del atacante antes de resolver su acción
+        if (att.poison > 0 && att.hp > 0) {
+          att.hp -= 1;
+          att.poison--;
+          cLog(`🧪 ¡El soplón filtra información de ${attName} antes de atacar! (-1 SALUD). Quedan ${att.poison} rd.`);
+          playSound('hit');
+          spawnFloatingText(attBox, `-1 SALUD`, 'status');
+          spawnParticles(attBox, 'poison');
+          await triggerAnimation(attBar, 'anim-bar-poison');
+          if (att.hp <= 0) {
+            att.hp = 0; updateUI_RPG(); return endRPG(pNum === 1 ? 'p2' : 'p1');
           }
         }
         
@@ -3299,8 +3322,10 @@
       if (pNum === 2 && party.cityEvent === 'carnicero') totalDmg += 1; // Evento: Jefe Carnicero
       
       if (totalDmg > def.hp) {
-        cLog(`🛡️ Disparo fallido (Daño ${totalDmg} > ${def.hp} Salud Restante).`); 
+        cLog(`🛡️ Disparo anulado por sobredaño (${totalDmg} > ${def.hp} HP restante).`); 
         resetCombo(pNum);
+        playSound('hit');
+        spawnFloatingText(defBox, `🛡️ ANULADO`, 'status');
       } else {
         def.hp -= totalDmg; 
         cLog(`💥 ${attName} acierta e inflige ${totalDmg} de daño a ${defName}. (Mult: x${comboMult.toFixed(1)})`);
@@ -3765,17 +3790,15 @@
         
         cLog(logStr);
         
-        [maf.p1, maf.p2].forEach((p, idx) => {
-          const name = idx === 0 ? party.p1Name : party.p2Name;
-          for(let i=1; i<=6; i++){
-            if(p.sabotages[i] > 0){
-              p.sabotages[i]--;
-              if(p.sabotages[i] === 0){
-                cLog(`🏢 El Distrito [${i}] de ${name} vuelve a operar tras la redada.`);
-              }
+        // Reducción de Redadas: Se aplican exclusivamente al jugador activo en su turno
+        for (let i = 1; i <= 6; i++) {
+          if (act.sabotages[i] > 0) {
+            act.sabotages[i]--;
+            if (act.sabotages[i] === 0) {
+              cLog(`🏢 El Distrito [${i}] de ${actName} reabre sus puertas tras la redada.`);
             }
           }
-        });
+        }
         
         maf.phase = 'action'; 
         document.getElementById('maf-egoist-check').checked = false;
