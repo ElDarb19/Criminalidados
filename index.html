@@ -2334,7 +2334,15 @@
     }
 
     // LÓGICA DE MERCADO NEGRO (FASE 1, 2, 3)
+    let localMarketBuyer = 1;
+
+    window.toggleLocalBuyer = function() {
+      localMarketBuyer = localMarketBuyer === 1 ? 2 : 1;
+      renderBlackMarket();
+    };
+
     window.openBlackMarket = function() {
+      localMarketBuyer = 1;
       document.getElementById('win-overlay').classList.add('hidden');
       renderBlackMarket();
       document.getElementById('modal-market').classList.remove('hidden');
@@ -2354,8 +2362,21 @@
       const container = document.getElementById('market-grid-container');
       container.innerHTML = '';
 
-      const myPlayerNum = (gameMode === 'online' && !isHost) ? 2 : 1;
+      const isLocal = gameMode === 'local';
+      const myPlayerNum = (gameMode === 'online' && !isHost) ? 2 : (isLocal ? localMarketBuyer : 1);
       const myCoins = myPlayerNum === 1 ? party.p1Coins : party.p2Coins;
+      const buyerName = myPlayerNum === 1 ? party.p1Name : party.p2Name;
+
+      // Botón Alternador para Modo Local
+      if (isLocal) {
+        const toggleDiv = document.createElement('div');
+        toggleDiv.style.gridColumn = '1 / -1';
+        toggleDiv.innerHTML = `
+           <button class="btn-action btn-gold" style="width: 100%; font-size: 0.8rem; padding: 8px;" onclick="dispatchAction('toggleLocalBuyer')">
+             🛒 COMPRANDO PARA: ${buyerName} 🔄
+           </button>`;
+        container.appendChild(toggleDiv);
+      }
 
       party.currentMarketStock.forEach(item => {
         const card = document.createElement('div');
@@ -2460,7 +2481,7 @@
       const myTurn = isMyTurnNetwork();
       if (gameMode !== 'local' && gameMode !== 'solo' && !myTurn) return;
       
-      const myPlayerNum = (gameMode === 'online' && !isHost) ? 2 : 1;
+      const myPlayerNum = (gameMode === 'online' && !isHost) ? 2 : (gameMode === 'local' ? localMarketBuyer : 1);
       const currentCoins = myPlayerNum === 1 ? party.p1Coins : party.p2Coins;
       const cost = party.rerollCost || 50;
 
@@ -2744,8 +2765,10 @@
       const currentContacts = isP1 ? (party.p1Contacts || []) : (party.p2Contacts || []);
       const boxId = isP1 ? (party.currentGame === 'exp' ? 'exp-m1-box' : 'rpg-m1-box') : (party.currentGame === 'exp' ? 'exp-m2-box' : 'rpg-m2-box');
       
+      // Armero Clandestino (Solo afecta a D20, topado para evitar bugs lógicos)
       if (sides === 20 && currentContacts.includes('contact_armero')) {
-        val += 2; spawnFloatingText(boxId, `+2 ARMERO`, 'crit');
+        val = Math.min(20, val + 2); 
+        spawnFloatingText(boxId, `+2 ARMERO`, 'crit');
       }
       if (sides === 6 && currentContacts.includes('contact_tallador') && val === 1) {
         val = 2; spawnFloatingText(boxId, `TALLADOR (1->2)`, 'crit');
@@ -3375,7 +3398,6 @@
         def.hp -= totalDmg; 
         cLog(`💥 ${attName} acierta e inflige ${totalDmg} de daño a ${defName}. (Mult: x${comboMult.toFixed(1)})`);
         addCombo(pNum);
-        resetCombo(pNum === 1 ? 2 : 1);
 
         if (type === 'strong' || totalDmg >= 8 || def.hp === 0) {
           playSound('crit');
@@ -3566,7 +3588,6 @@
           r.hp = Math.max(0, r.hp - dmg);
           cLog(`💣 ¡SABOTAJE! ${pName} lanza una granada causando ${dmg} daños a la huida rival.`);
           addCombo(pNum);
-          resetCombo(pNum === 1 ? 2 : 1);
           playSound('crit');
           await triggerHitstop(140);
           triggerScreenShake();
@@ -3951,7 +3972,6 @@ let options = [];
           rvl.sabotages[val] = turns;
           cLog(`🚨 ¡SOPLO! ${actName} envía una redada policial al Distrito [${val}] rival por ${turns} rondas.`);
           addCombo(pNum);
-          resetCombo(pNum === 1 ? 2 : 1);
           playSound('crit');
           await triggerHitstop(140);
           triggerScreenShake();
@@ -4141,7 +4161,6 @@ let options = [];
                 r.tokens -= stolen;
                 cLog(`✅ ¡Acierto! ${pName} gana ${stolen} ficha(s) directamente del alijo de ${rName}.`);
                 addCombo(pNum);
-                resetCombo(pNum === 1 ? 2 : 1);
                 playSound('coin');
                 spawnFloatingText(pBox, `+${stolen} 🎰`, 'loot');
                 spawnFloatingText(rBox, `-${stolen} 🎰`, 'dmg');
@@ -4175,7 +4194,6 @@ let options = [];
 
                 cLog(`🎉 ¡JACKPOT! ${pName} arrasa la mesa y le roba ${actualSteal} fichas a ${rName}.`);
                 addCombo(pNum);
-                resetCombo(pNum === 1 ? 2 : 1);
                 playSound('coin');
                 await triggerHitstop(140);
                 triggerScreenShake();
