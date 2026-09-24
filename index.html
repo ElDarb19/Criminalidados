@@ -249,6 +249,59 @@
       border-color: #666;
     }
 
+    /* TOOLTIPS & NEW ITEMS HUD */
+    .item-badge-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+    .item-tooltip {
+      visibility: hidden;
+      width: 200px;
+      background-color: rgba(10, 10, 10, 0.95);
+      color: #fff;
+      text-align: center;
+      border-radius: 8px;
+      padding: 10px;
+      position: absolute;
+      z-index: 1000;
+      bottom: 130%; 
+      left: 50%;
+      margin-left: -100px;
+      border: 1px solid var(--accent-gold);
+      font-size: 0.75rem;
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+      white-space: normal;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+    .item-badge-wrapper:hover .item-tooltip {
+      visibility: visible;
+      opacity: 1;
+    }
+    .item-incompatible {
+      filter: grayscale(100%);
+      opacity: 0.4;
+      border-color: var(--accent-red) !important;
+    }
+    .money-badge {
+      font-family: 'Cinzel', serif;
+      font-weight: 900;
+      color: var(--accent-gold);
+      font-size: 0.95rem;
+      text-shadow: 0 0 6px rgba(241, 196, 15, 0.4);
+      margin-left: auto;
+    }
+    .items-hud-slots {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    @media (max-width: 420px) {
+      .item-name-text { display: none; }
+    }
+
     /* --- BARRAS --- */
     .hp-bar-container { background: #000; height: 16px; border-radius: 8px; overflow: hidden; margin: 8px 0; position: relative; width: 100%; transition: 0.1s ease; }
     .hp-bar { height: 100%; background: var(--theme-accent); transition: width 0.3s cubic-bezier(0.25, 1, 0.5, 1); }
@@ -779,9 +832,8 @@
         
         <!-- HUD DECK-BUILDING P1 -->
         <div class="player-deck-hud">
-          <div id="p1-contacts-hud" class="contacts-hud-slots"></div>
-          <div id="p1-combo-hud" class="combo-badge">🔥 x1.0</div>
-          <button id="p1-consumable-btn" class="btn-use-consumable" onclick="dispatchAction('useConsumable', 1)" disabled>🚬 PURO</button>
+          <div id="rpg-p1-items-hud" class="items-hud-slots"></div>
+          <div id="rpg-p1-money-hud" class="money-badge">🪙 0</div>
         </div>
       </div>
 
@@ -795,9 +847,8 @@
 
         <!-- HUD DECK-BUILDING P2 -->
         <div class="player-deck-hud">
-          <div id="p2-contacts-hud" class="contacts-hud-slots"></div>
-          <div id="p2-combo-hud" class="combo-badge">🔥 x1.0</div>
-          <button id="p2-consumable-btn" class="btn-use-consumable" onclick="dispatchAction('useConsumable', 2)" disabled>🚬 PURO</button>
+          <div id="rpg-p2-items-hud" class="items-hud-slots"></div>
+          <div id="rpg-p2-money-hud" class="money-badge">🪙 0</div>
         </div>
       </div>
 
@@ -832,10 +883,12 @@
         <div id="exp-p1-bar-container" class="hp-bar-container"><div id="exp-p1-bar" class="hp-bar"></div></div>
         <div class="loot-label"><span>Botín en bolsas:</span><span id="exp-p1-temp-loot">💰 0</span></div>
         <div id="exp-p1-status" style="margin-top: 4px; font-size: 0.8rem; font-weight: bold;"></div>
+
+        <!-- HUD DECK-BUILDING P1 -->
         <div class="player-deck-hud">
-          <div id="exp-p1-contacts-hud" class="contacts-hud-slots"></div>
-          <div id="exp-p1-combo-hud" class="combo-badge">🔥 x1.0</div>
-          <button id="exp-p1-consumable-btn" class="btn-use-consumable" onclick="dispatchAction('useConsumable', 1)" disabled>🚬 PURO</button>
+          <div id="exp-p1-items-hud" class="items-hud-slots"></div>
+          <div id="exp-p1-money-hud" class="money-badge">🪙 0</div>
+        </div>id="exp-p1-consumable-btn" class="btn-use-consumable" onclick="dispatchAction('useConsumable', 1)" disabled>🚬 PURO</button>
         </div>
       </div>
 
@@ -847,10 +900,11 @@
         <div id="exp-p2-bar-container" class="hp-bar-container"><div id="exp-p2-bar" class="hp-bar"></div></div>
         <div class="loot-label"><span>Botín en bolsas:</span><span id="exp-p2-temp-loot">💰 0</span></div>
         <div id="exp-p2-status" style="margin-top: 4px; font-size: 0.8rem; font-weight: bold;"></div>
+
+        <!-- HUD DECK-BUILDING P2 -->
         <div class="player-deck-hud">
-          <div id="exp-p2-contacts-hud" class="contacts-hud-slots"></div>
-          <div id="exp-p2-combo-hud" class="combo-badge">🔥 x1.0</div>
-          <button id="exp-p2-consumable-btn" class="btn-use-consumable" onclick="dispatchAction('useConsumable', 2)" disabled>🚬 PURO</button>
+          <div id="exp-p2-items-hud" class="items-hud-slots"></div>
+          <div id="exp-p2-money-hud" class="money-badge">🪙 0</div>
         </div>
       </div>
 
@@ -884,10 +938,11 @@
           <b style="color:var(--accent-coin); font-size:1rem;">💵 <span id="maf-p1-coins">0</span> Efectivo</b>
         </div>
         <div class="parcel-grid" id="maf-p1-parcels"></div>
+
+        <!-- HUD DECK-BUILDING P1 -->
         <div class="player-deck-hud">
-          <div id="maf-p1-contacts-hud" class="contacts-hud-slots"></div>
-          <div id="maf-p1-combo-hud" class="combo-badge">🔥 x1.0</div>
-          <button id="maf-p1-consumable-btn" class="btn-use-consumable" onclick="dispatchAction('useConsumable', 1)" disabled>🚬 PURO</button>
+          <div id="maf-p1-items-hud" class="items-hud-slots"></div>
+          <div id="maf-p1-money-hud" class="money-badge">🪙 0</div>
         </div>
       </div>
 
@@ -902,10 +957,11 @@
           <b style="color:var(--accent-coin); font-size:1rem;">💵 <span id="maf-p2-coins">0</span> Efectivo</b>
         </div>
         <div class="parcel-grid" id="maf-p2-parcels"></div>
+
+        <!-- HUD DECK-BUILDING P2 -->
         <div class="player-deck-hud">
-          <div id="maf-p2-contacts-hud" class="contacts-hud-slots"></div>
-          <div id="maf-p2-combo-hud" class="combo-badge">🔥 x1.0</div>
-          <button id="maf-p2-consumable-btn" class="btn-use-consumable" onclick="dispatchAction('useConsumable', 2)" disabled>🚬 PURO</button>
+          <div id="maf-p2-items-hud" class="items-hud-slots"></div>
+          <div id="maf-p2-money-hud" class="money-badge">🪙 0</div>
         </div>
       </div>
 
@@ -942,10 +998,11 @@
         <div style="display:flex; justify-content:center; margin-top:10px; align-items: center; background:rgba(0,0,0,0.3); border-radius:8px; padding:8px;">
           <b style="color:var(--accent-loot); font-size:1.4rem; font-family:'Cinzel';">🎰 <span id="pok-p1-tokens">12</span> FICHAS</b>
         </div>
+
+        <!-- HUD DECK-BUILDING P1 -->
         <div class="player-deck-hud">
-          <div id="pok-p1-contacts-hud" class="contacts-hud-slots"></div>
-          <div id="pok-p1-combo-hud" class="combo-badge">🔥 x1.0</div>
-          <button id="pok-p1-consumable-btn" class="btn-use-consumable" onclick="dispatchAction('useConsumable', 1)" disabled>🚬 PURO</button>
+          <div id="pok-p1-items-hud" class="items-hud-slots"></div>
+          <div id="pok-p1-money-hud" class="money-badge">🪙 0</div>
         </div>
       </div>
 
@@ -956,10 +1013,11 @@
         <div style="display:flex; justify-content:center; margin-top:10px; align-items: center; background:rgba(0,0,0,0.3); border-radius:8px; padding:8px;">
           <b style="color:var(--accent-loot); font-size:1.4rem; font-family:'Cinzel';">🎰 <span id="pok-p2-tokens">12</span> FICHAS</b>
         </div>
+
+        <!-- HUD DECK-BUILDING P2 -->
         <div class="player-deck-hud">
-          <div id="pok-p2-contacts-hud" class="contacts-hud-slots"></div>
-          <div id="pok-p2-combo-hud" class="combo-badge">🔥 x1.0</div>
-          <button id="pok-p2-consumable-btn" class="btn-use-consumable" onclick="dispatchAction('useConsumable', 2)" disabled>🚬 PURO</button>
+          <div id="pok-p2-items-hud" class="items-hud-slots"></div>
+          <div id="pok-p2-money-hud" class="money-badge">🪙 0</div>
         </div>
       </div>
 
@@ -1191,31 +1249,31 @@
     // ==========================================
     const MARKET_CATALOG = [
       // CONTACTOS (PASIVAS - 18 TOTAL)
-      { id: 'contact_armero', name: 'Armero Clandestino', icon: '🔫', cost: 150, desc: '+2 a tiradas d20 (máximo 20).', type: 'contact' },
-      { id: 'contact_tahur', name: 'El Tahúr Tullido', icon: '🃏', cost: 120, desc: 'Si sacas 1 en d6, ganas +10🪙 / +10 Fichas de la banca.', type: 'contact' },
-      { id: 'contact_crupier', name: 'Crupier de Esquina', icon: '🎰', cost: 220, desc: 'Resultados pares en d6 suman +1 extra.', type: 'contact' },
-      { id: 'contact_tallador', name: 'Tallador de Dados', icon: '🎲', cost: 320, desc: 'Anula el 1 en d6 (lo transforma en valor seguro).', type: 'contact' },
-      { id: 'contact_matematico', name: 'Matemático del Sindicato', icon: '🧮', cost: 240, desc: 'Sacar el máximo en cualquier dado otorga +100🪙.', type: 'contact' },
-      { id: 'contact_matasanos', name: 'Médico Matasanos', icon: '🩺', cost: 200, desc: '+50% a toda curación recibida.', type: 'contact' },
-      { id: 'contact_desguace', name: 'Dueño del Desguace', icon: '🏭', cost: 140, desc: 'Vender artículos te devuelve el 75% de su valor.', type: 'contact' },
-      { id: 'contact_policia', name: 'Policía Sobornada', icon: '🚓', cost: 250, desc: 'Inmunidad a la pérdida de distritos por Redada.', type: 'contact' },
-      { id: 'contact_dinamita', name: 'Contrabandista Dinamita', icon: '🧨', cost: 350, desc: 'Trampas en el banco causan 3 de daño a la cobertura rival.', type: 'contact' },
-      { id: 'contact_contador', name: 'Contador de la Mafia', icon: '📊', cost: 500, desc: 'Multiplica x1.5 la recompensa final si conservas HP > 50%.', type: 'contact' },
-      { id: 'contact_usurero', name: 'Inversionista Usurero', icon: '📈', cost: 250, desc: 'Al salir de la tienda, +10% de interés sobre tu dinero (Max 200).', type: 'contact' },
-      { id: 'contact_prestamista', name: 'Prestamista Siniestro', icon: '🩸', cost: 300, desc: '+150🪙 al inicio de minijuego, pero -2 HP/COB máxima.', type: 'contact' },
-      { id: 'contact_extorsionador', name: 'Extorsionador de Barrio', icon: '💼', cost: 130, desc: 'Ganas +10🪙 por cada turno finalizado sin recibir daño.', type: 'contact' },
-      { id: 'contact_maton', name: 'Matón a Sueldo', icon: '🥊', cost: 160, desc: 'Tu primer ataque en cualquier minijuego inflige +2 daño.', type: 'contact' },
-      { id: 'contact_chofer', name: 'Chófer de Huida', icon: '🚗', cost: 210, desc: 'Si tu HP/COB cae del 25%, obtienes +3 de reducción de daño.', type: 'contact' },
-      { id: 'contact_quimico', name: 'Químico Chiflado', icon: '🧪', cost: 310, desc: 'Impactos críticos o d20=20 aplican Veneno por 3 rondas.', type: 'contact' },
-      { id: 'contact_arquitecto', name: 'Arquitecto de Búnkeres', icon: '🏛️', cost: 340, desc: 'Distritos producen +25% ingresos y bloquean la 1ª Redada.', type: 'contact' },
-      { id: 'contact_soplon', name: 'Soplón Infiltrado', icon: '🕵️', cost: 170, desc: 'Revela la táctica o estado estratégico del rival.', type: 'contact' },
+      { id: 'contact_armero', name: 'Armero Clandestino', icon: '🔫', cost: 150, desc: '+2 a tiradas d20 (máximo 20).', type: 'contact', incompatible: [] },
+      { id: 'contact_tahur', name: 'El Tahúr Tullido', icon: '🃏', cost: 120, desc: 'Si sacas 1 en d6, ganas +10🪙 / +10 Fichas de la banca.', type: 'contact', incompatible: [] },
+      { id: 'contact_crupier', name: 'Crupier de Esquina', icon: '🎰', cost: 220, desc: 'Resultados pares en d6 suman +1 extra.', type: 'contact', incompatible: [] },
+      { id: 'contact_tallador', name: 'Tallador de Dados', icon: '🎲', cost: 320, desc: 'Anula el 1 en d6 (lo transforma en valor seguro).', type: 'contact', incompatible: [] },
+      { id: 'contact_matematico', name: 'Matemático del Sindicato', icon: '🧮', cost: 240, desc: 'Sacar el máximo en cualquier dado otorga +100🪙.', type: 'contact', incompatible: [] },
+      { id: 'contact_matasanos', name: 'Médico Matasanos', icon: '🩺', cost: 200, desc: '+50% a toda curación recibida.', type: 'contact', incompatible: ['maf', 'pok'] },
+      { id: 'contact_desguace', name: 'Dueño del Desguace', icon: '🏭', cost: 140, desc: 'Vender artículos te devuelve el 75% de su valor.', type: 'contact', incompatible: [] },
+      { id: 'contact_policia', name: 'Policía Sobornada', icon: '🚓', cost: 250, desc: 'Inmunidad a la pérdida de distritos por Redada.', type: 'contact', incompatible: ['rpg', 'exp', 'pok'] },
+      { id: 'contact_dinamita', name: 'Contrabandista Dinamita', icon: '🧨', cost: 350, desc: 'Trampas en el banco causan 3 de daño a la cobertura rival.', type: 'contact', incompatible: ['rpg', 'maf', 'pok'] },
+      { id: 'contact_contador', name: 'Contador de la Mafia', icon: '📊', cost: 500, desc: 'Multiplica x1.5 la recompensa final si conservas HP > 50%.', type: 'contact', incompatible: ['maf', 'pok'] },
+      { id: 'contact_usurero', name: 'Inversionista Usurero', icon: '📈', cost: 250, desc: 'Al salir de la tienda, +10% de interés sobre tu dinero (Max 200).', type: 'contact', incompatible: [] },
+      { id: 'contact_prestamista', name: 'Prestamista Siniestro', icon: '🩸', cost: 300, desc: '+150🪙 al inicio de minijuego, pero -2 HP/COB máxima.', type: 'contact', incompatible: ['maf', 'pok'] },
+      { id: 'contact_extorsionador', name: 'Extorsionador de Barrio', icon: '💼', cost: 130, desc: 'Ganas +10🪙 por cada turno finalizado sin recibir daño.', type: 'contact', incompatible: [] },
+      { id: 'contact_maton', name: 'Matón a Sueldo', icon: '🥊', cost: 160, desc: 'Tu primer ataque en cualquier minijuego inflige +2 daño.', type: 'contact', incompatible: ['maf', 'pok'] },
+      { id: 'contact_chofer', name: 'Chófer de Huida', icon: '🚗', cost: 210, desc: 'Si tu HP/COB cae del 25%, obtienes +3 de reducción de daño.', type: 'contact', incompatible: ['maf', 'pok'] },
+      { id: 'contact_quimico', name: 'Químico Chiflado', icon: '🧪', cost: 310, desc: 'Impactos críticos o d20=20 aplican Veneno por 3 rondas.', type: 'contact', incompatible: ['exp', 'maf', 'pok'] },
+      { id: 'contact_arquitecto', name: 'Arquitecto de Búnkeres', icon: '🏛️', cost: 340, desc: 'Distritos producen +25% ingresos y bloquean la 1ª Redada.', type: 'contact', incompatible: ['rpg', 'exp', 'pok'] },
+      { id: 'contact_soplon', name: 'Soplón Infiltrado', icon: '🕵️', cost: 170, desc: 'Revela la táctica o estado estratégico del rival.', type: 'contact', incompatible: [] },
       
       // CONSUMIBLES
-      { id: 'item_puro', name: 'Puro del Capo', icon: '🚬', cost: 80, desc: 'Repite la última tirada de dado.', type: 'consumable' },
-      { id: 'item_whisky', name: 'Whisky Clandestino', icon: '🥃', cost: 100, desc: 'Duplica el daño/botín, pero resta 2 HP/Cobertura.', type: 'consumable' },
-      { id: 'item_soborno', name: 'Soborno Relámpago', icon: '🤝', cost: 150, desc: 'Fuerza un 6 en tu próximo d6.', type: 'consumable' },
-      { id: 'item_adrenalina', name: 'Inyección Adrenalina', icon: '💉', cost: 90, desc: 'Cura +4 HP/Cobertura al instante.', type: 'consumable' },
-      { id: 'item_falsa_alarma', name: 'Llamada Falsa Alarma', icon: '📞', cost: 120, desc: 'Cancela los efectos o estados negativos del turno rival previo.', type: 'consumable' }
+      { id: 'item_puro', name: 'Puro del Capo', icon: '🚬', cost: 80, desc: 'Repite la última tirada de dado.', type: 'consumable', incompatible: [] },
+      { id: 'item_whisky', name: 'Whisky Clandestino', icon: '🥃', cost: 100, desc: 'Duplica el daño/botín, pero resta 2 HP/Cobertura.', type: 'consumable', incompatible: ['maf', 'pok'] },
+      { id: 'item_soborno', name: 'Soborno Relámpago', icon: '🤝', cost: 150, desc: 'Fuerza un 6 en tu próximo d6.', type: 'consumable', incompatible: [] },
+      { id: 'item_adrenalina', name: 'Inyección Adrenalina', icon: '💉', cost: 90, desc: 'Cura +4 HP/Cobertura al instante.', type: 'consumable', incompatible: ['maf', 'pok'] },
+      { id: 'item_falsa_alarma', name: 'Llamada Falsa Alarma', icon: '📞', cost: 120, desc: 'Cancela los efectos o estados negativos del turno rival previo.', type: 'consumable', incompatible: [] }
     ];
 
     // ==========================================
@@ -2611,6 +2669,39 @@ let party = {
     }
 
     // ACTUALIZACIÓN DE HUD Y MECÁNICAS DE COMBOS Y CONSUMIBLES (FASE 2, 3, 4)
+    function createItemBadge(item, playerNum, isConsumable = false) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'item-badge-wrapper';
+
+      const incompatibleGames = item.incompatible || [];
+      const isCompat = !incompatibleGames.includes(party.currentGame);
+
+      if (isConsumable) {
+        const btn = document.createElement('button');
+        btn.className = `btn-use-consumable ${isCompat ? '' : 'item-incompatible'}`;
+        const currentTurn = getCurrentTurnPlayerNum();
+        const needsRollData = item.id === 'item_puro';
+        const canUse = isCompat && (playerNum === currentTurn) && (!needsRollData || party.lastRollData) && !party.isWaiting && isMyTurnNetwork();
+        
+        btn.disabled = !canUse;
+        btn.onclick = () => dispatchAction('useConsumable', playerNum);
+        btn.innerHTML = `${item.icon} <span class="item-name-text">${item.name}</span>${isCompat ? '' : ' ⚠️'}`;
+        wrapper.appendChild(btn);
+      } else {
+        const badge = document.createElement('div');
+        badge.className = `contact-slot-badge ${isCompat ? '' : 'item-incompatible'}`;
+        badge.innerHTML = `${item.icon} <span class="item-name-text" style="font-size:0.6rem;">${item.name}</span>${isCompat ? '' : ' ⚠️'}`;
+        wrapper.appendChild(badge);
+      }
+
+      const tooltip = document.createElement('div');
+      tooltip.className = 'item-tooltip';
+      tooltip.innerHTML = `<b>${item.name}</b><br>${item.desc}${isCompat ? '' : '<br><span style="color:var(--accent-red); font-weight:bold;">⚠️ Incompatible en ' + party.currentGame.toUpperCase() + '</span>'}`;
+      wrapper.appendChild(tooltip);
+
+      return wrapper;
+    }
+
     function updateDeckHUD() {
       const showHud = party.isRoguelike !== false;
       document.querySelectorAll('.player-deck-hud').forEach(el => el.style.display = showHud ? 'flex' : 'none');
@@ -2618,85 +2709,56 @@ let party = {
 
       const prefixes = ['rpg', 'exp', 'maf', 'pok'];
       prefixes.forEach(pfx => {
-        updatePlayerHUD(1, `${pfx}-p1-contacts-hud`, `${pfx}-p1-combo-hud`, `${pfx}-p1-consumable-btn`);
-        updatePlayerHUD(2, `${pfx}-p2-contacts-hud`, `${pfx}-p2-combo-hud`, `${pfx}-p2-consumable-btn`);
+        updatePlayerHUD(1, `${pfx}-p1-items-hud`, `${pfx}-p1-money-hud`);
+        updatePlayerHUD(2, `${pfx}-p2-items-hud`, `${pfx}-p2-money-hud`);
       });
-      // Fallback para elementos de Guerra de Bandas sin prefijo
-      updatePlayerHUD(1, 'p1-contacts-hud', 'p1-combo-hud', 'p1-consumable-btn');
-      updatePlayerHUD(2, 'p2-contacts-hud', 'p2-combo-hud', 'p2-consumable-btn');
     }
 
-    function updatePlayerHUD(playerNum, contactsHudId, comboHudId, consumableBtnId) {
+    function updatePlayerHUD(playerNum, itemsHudId, moneyHudId) {
       const contacts = playerNum === 1 ? (party.p1Contacts || []) : (party.p2Contacts || []);
       const consumable = playerNum === 1 ? party.p1Consumable : party.p2Consumable;
-      const combo = playerNum === 1 ? (party.p1Combo || 1.0) : (party.p2Combo || 1.0);
+      const money = playerNum === 1 ? (party.p1Coins || 0) : (party.p2Coins || 0);
 
-      const contactsContainer = document.getElementById(contactsHudId);
-      if (contactsContainer) {
-        contactsContainer.innerHTML = '';
+      const itemsContainer = document.getElementById(itemsHudId);
+      if (itemsContainer) {
+        itemsContainer.innerHTML = '';
+        
         contacts.forEach(cId => {
           const item = MARKET_CATALOG.find(i => i.id === cId);
           if (item) {
-            const badge = document.createElement('div');
-            badge.className = 'contact-slot-badge';
-            badge.innerHTML = `${item.icon} <span style="font-size:0.6rem;">${item.name}</span>`;
-            contactsContainer.appendChild(badge);
+            itemsContainer.appendChild(createItemBadge(item, playerNum));
           }
         });
-      }
 
-      const comboContainer = document.getElementById(comboHudId);
-      if (comboContainer) {
-        comboContainer.innerText = `🔥 x${combo.toFixed(1)}`;
-      }
-
-      const consumableBtn = document.getElementById(consumableBtnId);
-      if (consumableBtn) {
         if (consumable) {
           const item = MARKET_CATALOG.find(i => i.id === consumable);
-          consumableBtn.innerText = `${item ? item.icon : '🚬'} ${item ? item.name : 'PURO'}`;
-          const currentTurn = getCurrentTurnPlayerNum();
-          const needsRollData = consumable === 'item_puro';
-          consumableBtn.disabled = (playerNum !== currentTurn) || (needsRollData && !party.lastRollData) || party.isWaiting || !isMyTurnNetwork();
+          if (item) {
+            itemsContainer.appendChild(createItemBadge(item, playerNum, true));
+          }
         } else {
-          consumableBtn.innerText = '🚬 VACÍO';
-          consumableBtn.disabled = true;
+          const emptyBtn = document.createElement('button');
+          emptyBtn.className = 'btn-use-consumable';
+          emptyBtn.style.opacity = '0.5';
+          emptyBtn.disabled = true;
+          emptyBtn.innerHTML = `🚬 <span class="item-name-text">VACÍO</span>`;
+          itemsContainer.appendChild(emptyBtn);
         }
+      }
+
+      const moneyContainer = document.getElementById(moneyHudId);
+      if (moneyContainer) {
+        moneyContainer.innerText = `🪙 ${money}`;
       }
     }
 
     function addCombo(playerNum) {
-      if (!party.isRoguelike) return;
-      const isP1 = (playerNum === 1);
-      let combo = isP1 ? (party.p1Combo || 1.0) : (party.p2Combo || 1.0);
-      combo = Math.min(3.0, combo + 0.5);
-      
-      if (isP1) party.p1Combo = combo; else party.p2Combo = combo;
-      
-      // Escalado de Feedback Visual (Dopamina Engine)
-      const comboHudId = isP1 ? 'p1-combo-hud' : 'p2-combo-hud';
-      const comboEl = document.getElementById(comboHudId);
-      
-      if (comboEl) {
-        if (combo >= 3.0) {
-          comboEl.style.color = '#f1c40f'; // Dorado
-          comboEl.style.textShadow = '0 0 15px rgba(241, 196, 15, 0.8)';
-          triggerScreenShake();
-        } else if (combo >= 2.0) {
-          comboEl.style.color = '#e67e22'; // Naranja
-          comboEl.style.textShadow = '0 0 10px rgba(230, 126, 34, 0.8)';
-        } else {
-          comboEl.style.color = '#ffffff';
-          comboEl.style.textShadow = 'none';
-        }
-      }
-      updateDeckHUD();
+      if (playerNum === 1) party.p1Combo = 1.0;
+      else party.p2Combo = 1.0;
     }
 
     function resetCombo(playerNum) {
       if (playerNum === 1) party.p1Combo = 1.0;
       else party.p2Combo = 1.0;
-      updateDeckHUD();
     }
 
     window.useConsumable = function(playerNum) {
