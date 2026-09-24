@@ -888,7 +888,6 @@
         <div class="player-deck-hud">
           <div id="exp-p1-items-hud" class="items-hud-slots"></div>
           <div id="exp-p1-money-hud" class="money-badge">🪙 0</div>
-        </div>id="exp-p1-consumable-btn" class="btn-use-consumable" onclick="dispatchAction('useConsumable', 1)" disabled>🚬 PURO</button>
         </div>
       </div>
 
@@ -3521,11 +3520,13 @@ let party = {
                   + await roll(6, "Salud Inicial "+party.p1Name, party.p1Color, 'idle', 'anim-bounce') 
                   + await roll(6, "Salud Inicial "+party.p1Name, party.p1Color, 'idle', 'anim-bounce') + 10;
         rpg.p1.max = rpg.p1.hp;
+        updateUI_RPG();
 
         rpg.p2.hp = await roll(6, "Salud Inicial "+party.p2Name, party.p2Color, 'idle', 'anim-bounce') 
                   + await roll(6, "Salud Inicial "+party.p2Name, party.p2Color, 'idle', 'anim-bounce') 
                   + await roll(6, "Salud Inicial "+party.p2Name, party.p2Color, 'idle', 'anim-bounce') + 10;
         rpg.p2.max = rpg.p2.hp;
+        updateUI_RPG();
 
         if (party.cityEvent === 'carnicero') {
           if (party.carniceroBoss === 1) { rpg.p1.hp += 10; rpg.p1.max = rpg.p1.hp; }
