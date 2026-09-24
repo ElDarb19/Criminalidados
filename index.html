@@ -192,8 +192,34 @@
     }
 
     .monster-box { background: var(--theme-card); border: 2px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 12px; width: 100%; transition: 0.3s; position: relative; overflow: visible; margin-bottom: 10px;}
-    .monster-box.active-turn { border-color: var(--theme-accent); box-shadow: 0 0 15px rgba(255,255,255,0.1); }
+
+    .monster-box.active-turn { 
+      outline: 3px solid var(--accent-gold) !important; 
+      outline-offset: 2px; 
+      box-shadow: 0 0 20px rgba(241, 196, 15, 0.6) !important; 
+    }
     .monster-box.surfaced { opacity: 0.5; filter: grayscale(50%); border-color: var(--accent-loot); }
+
+    .turn-indicator-tag {
+      display: none;
+      background: var(--accent-gold);
+      color: #000;
+      font-size: 0.65rem;
+      font-weight: 900;
+      padding: 2px 8px;
+      border-radius: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      box-shadow: 0 0 8px rgba(241, 196, 15, 0.8);
+      animation: pulseActiveTurn 1.2s infinite alternate;
+    }
+    @keyframes pulseActiveTurn {
+      0% { transform: scale(1); }
+      100% { transform: scale(1.08); }
+    }
+    .monster-box.active-turn .turn-indicator-tag {
+      display: inline-block;
+    }
     
     .hp-main-label { font-weight: 700; font-size: 1rem; color: var(--theme-accent); }
     .loot-label { font-weight: 700; font-size: 0.9rem; color: var(--accent-loot); margin-top: 4px; display: flex; justify-content: space-between;}
@@ -824,7 +850,10 @@
     <div id="rpg-container" class="hidden">
       <div id="rpg-m1-box" class="monster-box">
         <div style="display:flex; justify-content:space-between; align-items: center;">
-          <b class="p1-display-name" style="font-family:'Cinzel'; font-size:1rem;">P1</b>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <b class="p1-display-name" style="font-family:'Cinzel'; font-size:1rem;">P1</b>
+            <span class="turn-indicator-tag">▶ TURNO</span>
+          </div>
           <span id="rpg-p1-hp-label" class="hp-main-label">0/0 SALUD</span>
         </div>
         <div id="rpg-p1-bar-container" class="hp-bar-container"><div id="rpg-p1-bar" class="hp-bar"></div></div>
@@ -839,11 +868,16 @@
 
       <div id="rpg-m2-box" class="monster-box">
         <div style="display:flex; justify-content:space-between; align-items: center;">
-          <b class="p2-display-name" style="font-family:'Cinzel'; font-size:1rem;">P2</b>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <b class="p2-display-name" style="font-family:'Cinzel'; font-size:1rem;">P2</b>
+            <span class="turn-indicator-tag">▶ TURNO</span>
+          </div>
           <span id="rpg-p2-hp-label" class="hp-main-label">0/0 SALUD</span>
         </div>
         <div id="rpg-p2-bar-container" class="hp-bar-container"><div id="rpg-p2-bar" class="hp-bar"></div></div>
         <div id="rpg-p2-status" style="font-size: 0.8rem; font-weight: bold; margin-top:4px;"></div>
+
+      
 
         <!-- HUD DECK-BUILDING P2 -->
         <div class="player-deck-hud">
@@ -877,7 +911,10 @@
 
       <div id="exp-m1-box" class="monster-box">
         <div style="display:flex; justify-content:space-between; align-items: center;">
-          <b class="p1-display-name" style="font-family:'Cinzel'; font-size:1rem;">P1</b>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <b class="p1-display-name" style="font-family:'Cinzel'; font-size:1rem;">P1</b>
+            <span class="turn-indicator-tag">▶ TURNO</span>
+          </div>
           <span id="exp-p1-hp-label" class="hp-main-label">20/20 COB</span>
         </div>
         <div id="exp-p1-bar-container" class="hp-bar-container"><div id="exp-p1-bar" class="hp-bar"></div></div>
@@ -893,9 +930,13 @@
 
       <div id="exp-m2-box" class="monster-box">
         <div style="display:flex; justify-content:space-between; align-items: center;">
-          <b class="p2-display-name" style="font-family:'Cinzel'; font-size:1rem;">P2</b>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <b class="p2-display-name" style="font-family:'Cinzel'; font-size:1rem;">P2</b>
+            <span class="turn-indicator-tag">▶ TURNO</span>
+          </div>
           <span id="exp-p2-hp-label" class="hp-main-label">20/20 COB</span>
-        </div>
+        </div>          
+
         <div id="exp-p2-bar-container" class="hp-bar-container"><div id="exp-p2-bar" class="hp-bar"></div></div>
         <div class="loot-label"><span>Botín en bolsas:</span><span id="exp-p2-temp-loot">💰 0</span></div>
         <div id="exp-p2-status" style="margin-top: 4px; font-size: 0.8rem; font-weight: bold;"></div>
@@ -928,9 +969,13 @@
     <div id="maf-container" class="hidden">
       <div id="maf-m1-box" class="monster-box active-turn">
         <div style="display:flex; justify-content:space-between; align-items: center;">
-          <b class="p1-display-name" style="font-family:'Cinzel'; font-size:1rem;">P1</b>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <b class="p1-display-name" style="font-family:'Cinzel'; font-size:1rem;">P1</b>
+            <span class="turn-indicator-tag">▶ TURNO</span>
+          </div>
           <span id="maf-p1-prestige" class="hp-main-label">0/15 INFLUENCIA</span>
         </div>
+
         <div id="maf-p1-bar-container" class="hp-bar-container"><div id="maf-p1-bar" class="hp-bar" style="width: 0%;"></div></div>
         
         <div style="display:flex; justify-content:space-between; margin-top:4px; align-items: center;">
@@ -947,9 +992,13 @@
 
       <div id="maf-m2-box" class="monster-box">
         <div style="display:flex; justify-content:space-between; align-items: center;">
-          <b class="p2-display-name" style="font-family:'Cinzel'; font-size:1rem;">P2</b>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <b class="p2-display-name" style="font-family:'Cinzel'; font-size:1rem;">P2</b>
+            <span class="turn-indicator-tag">▶ TURNO</span>
+          </div>
           <span id="maf-p2-prestige" class="hp-main-label">0/15 INFLUENCIA</span>
         </div>
+        
         <div id="maf-p2-bar-container" class="hp-bar-container"><div id="maf-p2-bar" class="hp-bar" style="width: 0%;"></div></div>
         
         <div style="display:flex; justify-content:space-between; margin-top:4px; align-items: center;">
@@ -990,9 +1039,12 @@
         <div style="text-align:center; font-weight:bold; color:var(--accent-loot); font-size:0.85rem; margin-bottom: 6px; letter-spacing: 1px;">MESA DE APUESTAS (SUMA CERO / P2P)</div>
       </div>
 
-            <div id="pok-m1-box" class="monster-box active-turn">
+      <div id="pok-m1-box" class="monster-box active-turn">
         <div style="display:flex; justify-content:space-between; align-items: center;">
-          <b class="p1-display-name" style="font-family:'Cinzel'; font-size:1rem;">P1</b>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <b class="p1-display-name" style="font-family:'Cinzel'; font-size:1rem;">P1</b>
+            <span class="turn-indicator-tag">▶ TURNO</span>
+          </div>
           <b style="color:var(--accent-loot); font-size:1.1rem; font-family:'Cinzel';">🎰 <span id="pok-p1-tokens">12</span> FICHAS</b>
         </div>
         
@@ -1014,7 +1066,10 @@
 
       <div id="pok-m2-box" class="monster-box">
         <div style="display:flex; justify-content:space-between; align-items: center;">
-          <b class="p2-display-name" style="font-family:'Cinzel'; font-size:1rem;">P2</b>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <b class="p2-display-name" style="font-family:'Cinzel'; font-size:1rem;">P2</b>
+            <span class="turn-indicator-tag">▶ TURNO</span>
+          </div>
           <b style="color:var(--accent-loot); font-size:1.1rem; font-family:'Cinzel';">🎰 <span id="pok-p2-tokens">12</span> FICHAS</b>
         </div>
 
@@ -1315,10 +1370,24 @@
       document.getElementById('m-online').classList.toggle('selected', mode === 'online');
       document.getElementById('network-panel').classList.toggle('hidden', mode !== 'online');
 
+      // Limpieza de campos de texto bloqueados por el modo Solo vs IA
+      const p2Input = document.getElementById('p2-name-input');
+      if (p2Input && p2Input.value === "La Sombra (IA)") {
+        p2Input.value = "";
+      }
+
       if (mode === 'local') {
         unlockAllSetupInputs();
       } else if (mode === 'solo') {
         unlockSoloSetupInputs();
+      } else if (mode === 'online') {
+        enableInput('p1-name-input');
+        enableInput('p1-color-input');
+        enableInput('p2-name-input');
+        enableInput('p2-color-input');
+        enableSetupSection('setup-card-game');
+        enableSetupSection('setup-card-dice');
+        applyOnlinePermissions();
       }
     }
 
@@ -1500,6 +1569,8 @@
       db.ref(roomPath + '/actions').on('child_added', (snap) => {
         const data = snap.val();
         if (window[data.func]) {
+            // Al recibir una acción remota vía Firebase, liberamos temporalmente el candado de espera local
+            party.isWaiting = false;
             window[data.func].apply(null, data.args);
         }
       });
@@ -2367,19 +2438,24 @@ let party = {
       party.currentGame = party.playlist[party.matchesPlayed];
       document.body.className = `theme-${party.currentGame}`;
       
-      // FASE 5: Sistema de Eventos Globales (Bucle Roguelike) Sincronizado
+      // FASE 5: Sistema de Eventos Globales Filtrados por Compatibilidad con el Minijuego
       if (gameMode === 'local' || gameMode === 'solo' || isHost) {
         let newEvent = null;
         if (party.isRoguelike) {
-          const randEvent = Math.random();
-          if (randEvent < 0.20) newEvent = 'purga';
-          else if (randEvent < 0.40) newEvent = 'ley_seca';
-          else if (randEvent < 0.55) newEvent = 'inspectores';
-          else if (randEvent < 0.65) {
-            newEvent = 'carnicero';
-            party.carniceroBoss = (gameMode === 'solo') ? 2 : (Math.random() < 0.5 ? 1 : 2);
+          const EVENT_COMPATIBILITY = {
+            rpg: ['purga', 'ley_seca', 'carnicero'],
+            exp: ['purga', 'ley_seca', 'carnicero', 'comisionado'],
+            maf: ['ley_seca', 'inspectores', 'comisionado'],
+            pok: ['ley_seca', 'comisionado']
+          };
+
+          const validEvents = EVENT_COMPATIBILITY[party.currentGame] || ['ley_seca'];
+          if (Math.random() < 0.65) { // 65% de probabilidad de que ocurra un evento
+            newEvent = validEvents[Math.floor(Math.random() * validEvents.length)];
+            if (newEvent === 'carnicero') {
+              party.carniceroBoss = (gameMode === 'solo') ? 2 : (Math.random() < 0.5 ? 1 : 2);
+            }
           }
-          else if (randEvent < 0.75) newEvent = 'comisionado';
         }
         if (gameMode === 'online' && roomPath) {
           db.ref(roomPath + '/currentEvent').set({ code: newEvent, boss: party.carniceroBoss || null });
@@ -2985,11 +3061,22 @@ let party = {
         cLog("🤝 ¡Soborno aplicado! d6 forzado a 6.");
       }
 
+      // Si aplica Ley Seca, forzamos la reducción previa al renderizado del dado
+      let leySecaApplied = false;
+      if (party.cityEvent === 'ley_seca' && sides === 6 && forcedVal === null) {
+        leySecaApplied = true;
+      }
+
       if (party.diceMode === 'virtual') val = await virtualRoll(sides, desc, signal, overrideColor, actionImg, actionAnim, soundName, forcedVal);
       else val = await manualRoll(sides, desc, signal, overrideColor, actionImg, actionAnim, soundName, forcedVal);
 
-      // FASE 5: Modificador Ley Seca (-1 a dados d6)
-      if (party.cityEvent === 'ley_seca' && sides === 6) val = Math.max(1, val - 1);
+      if (leySecaApplied) {
+        const rawVal = val;
+        val = Math.max(1, val - 1);
+        const boxId = isP1 ? (party.currentGame === 'exp' ? 'exp-m1-box' : 'rpg-m1-box') : (party.currentGame === 'exp' ? 'exp-m2-box' : 'rpg-m2-box');
+        cLog(`🍷 Ley Seca Clandestina: Tirada d6 de ${rawVal} ajustada a ${val}.`);
+        spawnFloatingText(boxId, `-1 LEY SECA`, 'status');
+      }
 
       // Modificadores de Contactos Pasivos
       const currentContacts = isP1 ? (party.p1Contacts || []) : (party.p2Contacts || []);
@@ -3388,27 +3475,38 @@ let party = {
         const maxTorpedos = party.isParty ? 1 : 3;
         const canRepair = !party.isParty ? (ai.repairUses < 1) : (ai.repairCooldown === 0);
 
+        const humanTotal = human.secured + (human.surfaced ? 0 : human.temp);
+        const aiTotal = ai.secured + ai.temp;
+        const isBehind = aiTotal <= humanTotal;
+
         if (party.isRoguelike && (party.p1Contacts || []).includes('contact_soplon')) {
           let planned = "Saquear Cajas";
-          if (ai.hp <= 6 && ai.temp > 0) planned = "Huir en Coche de Escape";
-          else if (!human.surfaced && ai.torpedoUses < maxTorpedos) planned = "Sabotaje con Granada";
-          else if (ai.hp <= 14 && canRepair) planned = "Reforzar Cobertura";
-          else planned = "Forzar Bóveda";
+          if (!human.surfaced && human.temp >= 2 && ai.torpedoUses < maxTorpedos) planned = "Sabotaje con Granada";
+          else if (ai.hp <= 4 && !canRepair && ai.temp > 0 && !isBehind) planned = "Huir en Coche de Escape";
+          else if (isBehind || ai.hp > 6) planned = "Forzar Bóveda";
+          else if (ai.hp <= 10 && canRepair) planned = "Reforzar Cobertura";
           cLog(`🕵️ Soplón Infiltrado revela: La IA planea en el Atraco: ${planned}.`);
         }
 
-        if (ai.hp <= 6 && ai.temp > 0) {
-          expAction('surface');
-        } else if (ai.temp >= 5) {
-          expAction('surface');
-        } else if (!human.surfaced && ai.torpedoUses < maxTorpedos && Math.random() < 0.35) {
+        // 1. Sabotaje Prioritario: Destruye el coche del jugador si lleva botín en bolsas
+        if (!human.surfaced && human.temp >= 2 && ai.torpedoUses < maxTorpedos && Math.random() < 0.75) {
           expAction('sabotage');
-        } else if (ai.hp <= 14 && canRepair && Math.random() < 0.4) {
+        }
+        // 2. Cobertura Crítica: Se atrincherará si su vida es <= 6 y tiene reparación disponible
+        else if (ai.hp <= 6 && canRepair) {
           expAction('repair');
-        } else if (Math.random() < 0.5) {
-          expAction('explore');
-        } else {
+        }
+        // 3. Arriesgar al Máximo (Forzar Bóveda): Si va perdiendo, jamás huirá e intentará la bóveda
+        else if (isBehind && ai.hp > 4) {
           expAction('deep');
+        }
+        // 4. Huida Únicamente Vantajosa: Huir si va ganando y su botín temporal es sustancial
+        else if (ai.temp >= 5 && !isBehind) {
+          expAction('surface');
+        }
+        // 5. Saquear Cajas (Acción por defecto)
+        else {
+          expAction('explore');
         }
       } else if (party.currentGame === 'maf') {
         const ai = maf.p2;
@@ -4188,8 +4286,8 @@ let party = {
 
         let anySuccess = false;
 
-        // Guerra de Inspectores: 50% de riesgo de inspección en Recaudación Segura (res > 3)
-        if (sides === 6 && party.cityEvent === 'inspectores' && res > 3) {
+        // Guerra de Inspectores: 50% de riesgo de inspección sobre cualquier distrito en Recaudación Segura
+        if (sides === 6 && party.cityEvent === 'inspectores' && Math.random() < 0.50) {
           logStr += `&nbsp;&nbsp;🚓 ¡INSPECTORES! Redada sorpresiva en el Distrito [${res}]. Nadie cobra.<br>`;
           playSound('hit');
           resetCombo(pNum);
