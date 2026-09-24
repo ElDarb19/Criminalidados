@@ -190,8 +190,39 @@
     }
 
     .monster-box { background: var(--theme-card); border: 2px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 12px; width: 100%; transition: 0.3s; position: relative; overflow: visible; margin-bottom: 10px;}
-    .monster-box.active-turn { border-color: var(--theme-accent); box-shadow: 0 0 15px rgba(255,255,255,0.1); }
+    .monster-box.active-turn { 
+      border-color: var(--accent-coin) !important; 
+      box-shadow: 0 0 20px rgba(46, 204, 113, 0.6), inset 0 0 10px rgba(46, 204, 113, 0.2) !important; 
+    }
     .monster-box.surfaced { opacity: 0.5; filter: grayscale(50%); border-color: var(--accent-loot); }
+
+    /* INSIGNIAS DE TURNO E IMPACTO VISUAL UNÍVOCO */
+    .turn-badge {
+      font-size: 0.68rem;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all 0.3s ease;
+      display: inline-block;
+    }
+    .turn-badge.active {
+      background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+      color: #000;
+      box-shadow: 0 0 10px rgba(46, 204, 113, 0.7);
+      animation: pulseTurnBadge 1.1s infinite alternate;
+    }
+    .turn-badge.waiting {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-light);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    @keyframes pulseTurnBadge {
+      0% { transform: scale(1); box-shadow: 0 0 8px rgba(46, 204, 113, 0.5); }
+      100% { transform: scale(1.05); box-shadow: 0 0 16px rgba(46, 204, 113, 0.95); }
+    }
+    
     
     .hp-main-label { font-weight: 700; font-size: 1rem; color: var(--theme-accent); }
     .loot-label { font-weight: 700; font-size: 0.9rem; color: var(--accent-loot); margin-top: 4px; display: flex; justify-content: space-between;}
@@ -288,8 +319,40 @@
       50% { filter: drop-shadow(0 0 22px #8e44ad) hue-rotate(280deg) saturate(3.5); }
     }
     .status-poisoned {
-      animation: poisonFlicker 1.4s infinite alternate !important;
-      border-color: var(--accent-purple) !important;
+      animation: poisonFlicker 1.4s infinite alternate;
+    }
+
+    .monster-box { background: var(--theme-card); border: 2px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 12px; width: 100%; transition: 0.3s; position: relative; overflow: visible; margin-bottom: 10px;}
+    .monster-box.active-turn { 
+      border-color: var(--accent-coin) !important; 
+      box-shadow: 0 0 20px rgba(46, 204, 113, 0.6), inset 0 0 10px rgba(46, 204, 113, 0.2) !important; 
+    }
+
+    /* INSIGNIAS DE TURNO E IMPACTO VISUAL UNÍVOCO */
+    .turn-badge {
+      font-size: 0.68rem;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all 0.3s ease;
+      display: inline-block;
+    }
+    .turn-badge.active {
+      background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+      color: #000;
+      box-shadow: 0 0 10px rgba(46, 204, 113, 0.7);
+      animation: pulseTurnBadge 1.1s infinite alternate;
+    }
+    .turn-badge.waiting {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-light);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    @keyframes pulseTurnBadge {
+      0% { transform: scale(1); box-shadow: 0 0 8px rgba(46, 204, 113, 0.5); }
+      100% { transform: scale(1.05); box-shadow: 0 0 16px rgba(46, 204, 113, 0.95); }
     }
     
     /* --- DISTRITOS (MAFIA GRID) --- */
@@ -791,7 +854,10 @@
     <div id="rpg-container" class="hidden">
       <div id="rpg-m1-box" class="monster-box">
         <div style="display:flex; justify-content:space-between; align-items: center;">
-          <b class="p1-display-name" style="font-family:'Cinzel'; font-size:1rem;">P1</b>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <b class="p1-display-name" style="font-family:'Cinzel'; font-size:1rem;">P1</b>
+            <span id="rpg-p1-turn-badge" class="turn-badge waiting">⏳ ESPERANDO</span>
+          </div>
           <span id="rpg-p1-hp-label" class="hp-main-label">0/0 SALUD</span>
         </div>
         <div id="rpg-p1-bar-container" class="hp-bar-container"><div id="rpg-p1-bar" class="hp-bar"></div></div>
@@ -806,9 +872,13 @@
 
       <div id="rpg-m2-box" class="monster-box">
         <div style="display:flex; justify-content:space-between; align-items: center;">
-          <b class="p2-display-name" style="font-family:'Cinzel'; font-size:1rem;">P2</b>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <b class="p2-display-name" style="font-family:'Cinzel'; font-size:1rem;">P2</b>
+            <span id="rpg-p2-turn-badge" class="turn-badge waiting">⏳ ESPERANDO</span>
+          </div>
           <span id="rpg-p2-hp-label" class="hp-main-label">0/0 SALUD</span>
         </div>
+        
         <div id="rpg-p2-bar-container" class="hp-bar-container"><div id="rpg-p2-bar" class="hp-bar"></div></div>
         <div id="rpg-p2-status" style="font-size: 0.8rem; font-weight: bold; margin-top:4px;"></div>
 
@@ -842,9 +912,12 @@
         </div>
       </div>
 
-      <div id="exp-m1-box" class="monster-box">
+    <div id="exp-m1-box" class="monster-box">
         <div style="display:flex; justify-content:space-between; align-items: center;">
-          <b class="p1-display-name" style="font-family:'Cinzel'; font-size:1rem;">P1</b>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <b class="p1-display-name" style="font-family:'Cinzel'; font-size:1rem;">P1</b>
+            <span id="exp-p1-turn-badge" class="turn-badge waiting">⏳ ESPERANDO</span>
+          </div>
           <span id="exp-p1-hp-label" class="hp-main-label">20/20 COB</span>
         </div>
         <div id="exp-p1-bar-container" class="hp-bar-container"><div id="exp-p1-bar" class="hp-bar"></div></div>
@@ -860,9 +933,13 @@
 
       <div id="exp-m2-box" class="monster-box">
         <div style="display:flex; justify-content:space-between; align-items: center;">
-          <b class="p2-display-name" style="font-family:'Cinzel'; font-size:1rem;">P2</b>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <b class="p2-display-name" style="font-family:'Cinzel'; font-size:1rem;">P2</b>
+            <span id="exp-p2-turn-badge" class="turn-badge waiting">⏳ ESPERANDO</span>
+          </div>
           <span id="exp-p2-hp-label" class="hp-main-label">20/20 COB</span>
         </div>
+        
         <div id="exp-p2-bar-container" class="hp-bar-container"><div id="exp-p2-bar" class="hp-bar"></div></div>
         <div class="loot-label"><span>Botín en bolsas:</span><span id="exp-p2-temp-loot">💰 0</span></div>
         <div id="exp-p2-status" style="margin-top: 4px; font-size: 0.8rem; font-weight: bold;"></div>
@@ -894,7 +971,10 @@
     <div id="maf-container" class="hidden">
       <div id="maf-m1-box" class="monster-box active-turn">
         <div style="display:flex; justify-content:space-between; align-items: center;">
-          <b class="p1-display-name" style="font-family:'Cinzel'; font-size:1rem;">P1</b>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <b class="p1-display-name" style="font-family:'Cinzel'; font-size:1rem;">P1</b>
+            <span id="maf-p1-turn-badge" class="turn-badge waiting">⏳ ESPERANDO</span>
+          </div>
           <span id="maf-p1-prestige" class="hp-main-label">0/15 INFLUENCIA</span>
         </div>
         <div id="maf-p1-bar-container" class="hp-bar-container"><div id="maf-p1-bar" class="hp-bar" style="width: 0%;"></div></div>
@@ -913,9 +993,14 @@
 
       <div id="maf-m2-box" class="monster-box">
         <div style="display:flex; justify-content:space-between; align-items: center;">
-          <b class="p2-display-name" style="font-family:'Cinzel'; font-size:1rem;">P2</b>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <b class="p2-display-name" style="font-family:'Cinzel'; font-size:1rem;">P2</b>
+            <span id="maf-p2-turn-badge" class="turn-badge waiting">⏳ ESPERANDO</span>
+          </div>
           <span id="maf-p2-prestige" class="hp-main-label">0/15 INFLUENCIA</span>
         </div>
+        
+        
         <div id="maf-p2-bar-container" class="hp-bar-container"><div id="maf-p2-bar" class="hp-bar" style="width: 0%;"></div></div>
         
         <div style="display:flex; justify-content:space-between; margin-top:4px; align-items: center;">
@@ -955,9 +1040,12 @@
         <div style="text-align:center; font-weight:bold; color:var(--accent-loot); font-size:0.85rem; margin-bottom: 6px; letter-spacing: 1px;">MESA DE APUESTAS (SUMA CERO / P2P)</div>
       </div>
 
-      <div id="pok-m1-box" class="monster-box active-turn">
+    <div id="pok-m1-box" class="monster-box active-turn">
         <div style="display:flex; justify-content:space-between; align-items: center;">
-          <b class="p1-display-name" style="font-family:'Cinzel'; font-size:1rem;">P1</b>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <b class="p1-display-name" style="font-family:'Cinzel'; font-size:1rem;">P1</b>
+            <span id="pok-p1-turn-badge" class="turn-badge waiting">⏳ ESPERANDO</span>
+          </div>
         </div>
         <div style="display:flex; justify-content:center; margin-top:10px; align-items: center; background:rgba(0,0,0,0.3); border-radius:8px; padding:8px;">
           <b style="color:var(--accent-loot); font-size:1.4rem; font-family:'Cinzel';">🎰 <span id="pok-p1-tokens">12</span> FICHAS</b>
@@ -972,8 +1060,12 @@
 
       <div id="pok-m2-box" class="monster-box">
         <div style="display:flex; justify-content:space-between; align-items: center;">
-          <b class="p2-display-name" style="font-family:'Cinzel'; font-size:1rem;">P2</b>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <b class="p2-display-name" style="font-family:'Cinzel'; font-size:1rem;">P2</b>
+            <span id="pok-p2-turn-badge" class="turn-badge waiting">⏳ ESPERANDO</span>
+          </div>
         </div>
+        
         <div style="display:flex; justify-content:center; margin-top:10px; align-items: center; background:rgba(0,0,0,0.3); border-radius:8px; padding:8px;">
           <b style="color:var(--accent-loot); font-size:1.4rem; font-family:'Cinzel';">🎰 <span id="pok-p2-tokens">12</span> FICHAS</b>
         </div>
@@ -3743,6 +3835,54 @@ let party = {
       handleMiniGameEnd(winnerCode, "Capo Eliminado");
     }
 
+    // GESTIÓN DINÁMICA Y UNÍVOCA DE INSIGNIAS DE TURNO
+    function updateTurnBadges(pfx, turnPNum) {
+      const isOnline = (gameMode === 'online');
+      const myPNum = isOnline ? (isHost ? 1 : 2) : (gameMode === 'solo' ? 1 : turnPNum);
+
+      [1, 2].forEach(pNum => {
+        const badge = document.getElementById(`${pfx}-p${pNum}-turn-badge`);
+        if (!badge) return;
+
+        const isTurn = (pNum === turnPNum);
+        badge.className = `turn-badge ${isTurn ? 'active' : 'waiting'}`;
+
+        if (isTurn) {
+          if (isOnline) {
+            badge.innerText = (pNum === myPNum) ? "⚡ TU TURNO" : "🎯 TURNO RIVAL";
+          } else {
+            badge.innerText = "⚡ EN TURNO";
+          }
+        } else {
+          badge.innerText = (isOnline && pNum !== myPNum) ? "⏳ ESPERANDO..." : "⏳ EN ESPERA";
+        }
+      });
+    }
+
+    // GESTIÓN DINÁMICA Y UNÍVOCA DE INSIGNIAS DE TURNO
+    function updateTurnBadges(pfx, turnPNum) {
+      const isOnline = (gameMode === 'online');
+      const myPNum = isOnline ? (isHost ? 1 : 2) : (gameMode === 'solo' ? 1 : turnPNum);
+
+      [1, 2].forEach(pNum => {
+        const badge = document.getElementById(`${pfx}-p${pNum}-turn-badge`);
+        if (!badge) return;
+
+        const isTurn = (pNum === turnPNum);
+        badge.className = `turn-badge ${isTurn ? 'active' : 'waiting'}`;
+
+        if (isTurn) {
+          if (isOnline) {
+            badge.innerText = (pNum === myPNum) ? "⚡ TU TURNO" : "🎯 TURNO RIVAL";
+          } else {
+            badge.innerText = "⚡ EN TURNO";
+          }
+        } else {
+          badge.innerText = (isOnline && pNum !== myPNum) ? "⏳ ESPERANDO..." : "⏳ EN ESPERA";
+        }
+      });
+    }
+
     function updateUI_RPG() {
       document.getElementById('round-indicator').innerText = `RONDA ${rpg.round} (GUERRA DE BANDAS)`;
       
@@ -3751,6 +3891,11 @@ let party = {
 
       m1Box.classList.toggle('active-turn', rpg.turn === 1);
       m2Box.classList.toggle('active-turn', rpg.turn === 2);
+
+      updateTurnBadges('rpg', rpg.turn);
+      
+
+      updateTurnBadges('rpg', rpg.turn);
 
       m1Box.classList.toggle('status-poisoned', rpg.p1.poison > 0);
       m2Box.classList.toggle('status-poisoned', rpg.p2.poison > 0);
@@ -4087,6 +4232,10 @@ let party = {
 
       m1Box.classList.toggle('active-turn', exp.turn === 1 && !exp.p1.surfaced);
       m2Box.classList.toggle('active-turn', exp.turn === 2 && !exp.p2.surfaced);
+
+      updateTurnBadges('exp', exp.turn);
+      
+      
       m1Box.classList.toggle('surfaced', exp.p1.surfaced);
       m2Box.classList.toggle('surfaced', exp.p2.surfaced);
 
@@ -4452,6 +4601,7 @@ let options = [];
       handleMiniGameEnd(winnerCode, "Dominio Total (Influencia)");
     }
 
+    // NUEVO BLOQUE A AGREGAR
     function updateUI_MAF() {
       document.getElementById('round-indicator').innerText = `RONDA ${maf.round} (IMPERIO CRIMINAL)`;
       
@@ -4460,6 +4610,9 @@ let options = [];
 
       document.getElementById('maf-m1-box').classList.toggle('active-turn', maf.turn === 1);
       document.getElementById('maf-m2-box').classList.toggle('active-turn', maf.turn === 2);
+
+      updateTurnBadges('maf', maf.turn);
+      
 
       document.getElementById('maf-p1-prestige').innerText = `${maf.p1.prestige}/${maf.winScore} INFLUENCIA`;
       document.getElementById('maf-p2-prestige').innerText = `${maf.p2.prestige}/${maf.winScore} INFLUENCIA`;
@@ -4706,6 +4859,7 @@ let options = [];
        handleMiniGameEnd(winnerCode, `Poker: ${reason} (${pok.p1.tokens} vs ${pok.p2.tokens} Fichas)`);
     }
 
+
     function updateUI_POK() {
       document.getElementById('round-indicator').innerText = `RONDA ${pok.round}/${pok.maxRounds} (APUESTAS CLANDESTINAS)`;
       
@@ -4714,6 +4868,9 @@ let options = [];
 
       m1Box.classList.toggle('active-turn', pok.turn === 1);
       m2Box.classList.toggle('active-turn', pok.turn === 2);
+
+      updateTurnBadges('pok', pok.turn);
+      
 
       m1Box.classList.toggle('low-hp-warning', pok.p1.tokens <= 2);
       m2Box.classList.toggle('low-hp-warning', pok.p2.tokens <= 2);
