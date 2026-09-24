@@ -17,6 +17,8 @@
       --bg-pok: #0f231a;  
       
       --bg-card-rpg: #1e1515;
+      --bg-card-exp: #142131;
+      --bg-card-maf: #2c251e; 
       --bg-card-pok: #153326;
       
       --accent-gold: #c5a059;
@@ -190,98 +192,45 @@
     }
 
     .monster-box { background: var(--theme-card); border: 2px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 12px; width: 100%; transition: 0.3s; position: relative; overflow: visible; margin-bottom: 10px;}
-    .monster-box.active-turn { 
-      border-color: var(--accent-coin) !important; 
-      box-shadow: 0 0 20px rgba(46, 204, 113, 0.6), inset 0 0 10px rgba(46, 204, 113, 0.2) !important; 
-    }
+    .monster-box.active-turn { border-color: var(--theme-accent); box-shadow: 0 0 15px rgba(255,255,255,0.1); }
     .monster-box.surfaced { opacity: 0.5; filter: grayscale(50%); border-color: var(--accent-loot); }
-
-    /* INSIGNIAS DE TURNO E IMPACTO VISUAL UNÍVOCO */
-    .turn-badge {
-      font-size: 0.68rem;
-      font-weight: 800;
-      padding: 3px 8px;
-      border-radius: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      transition: all 0.3s ease;
-      display: inline-block;
-    }
-    .turn-badge.active {
-      background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
-      color: #000;
-      box-shadow: 0 0 10px rgba(46, 204, 113, 0.7);
-      animation: pulseTurnBadge 1.1s infinite alternate;
-    }
-    .turn-badge.waiting {
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--text-light);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-    }
-    @keyframes pulseTurnBadge {
-      0% { transform: scale(1); box-shadow: 0 0 8px rgba(46, 204, 113, 0.5); }
-      100% { transform: scale(1.05); box-shadow: 0 0 16px rgba(46, 204, 113, 0.95); }
-    }
-    
     
     .hp-main-label { font-weight: 700; font-size: 1rem; color: var(--theme-accent); }
     .loot-label { font-weight: 700; font-size: 0.9rem; color: var(--accent-loot); margin-top: 4px; display: flex; justify-content: space-between;}
 
-    /* HUD DE SLOTS DE DECK-BUILDING Y OBJETOS */
+    /* HUD DE SLOTS DE DECK-BUILDING EN PARTIDA (FASE 2, 3, 4) */
     .player-deck-hud {
       display: flex;
       justify-content: space-between;
       align-items: center;
       background: rgba(0,0,0,0.4);
       border-radius: 8px;
-      padding: 6px 8px;
+      padding: 4px 8px;
       margin-top: 6px;
       border: 1px solid rgba(255,255,255,0.08);
-      gap: 6px;
-      flex-wrap: wrap;
     }
     .contacts-hud-slots {
       display: flex;
       gap: 4px;
       align-items: center;
-      flex-wrap: wrap;
     }
     .contact-slot-badge {
       background: rgba(255,255,255,0.08);
       border: 1px solid var(--accent-gold);
       border-radius: 6px;
-      padding: 3px 6px;
+      padding: 2px 6px;
       font-size: 0.7rem;
       display: flex;
       align-items: center;
       gap: 3px;
-      cursor: help;
-      position: relative;
     }
-    .contact-slot-badge.incompatible {
-      opacity: 0.45;
-      filter: grayscale(80%);
-      border-color: #666;
-    }
-    .coins-hud-badge {
+    .combo-badge {
       font-family: 'Cinzel', serif;
-      font-weight: 800;
-      color: var(--accent-gold);
-      font-size: 0.8rem;
-      display: flex;
-      align-items: center;
-      gap: 2px;
-      background: rgba(197, 160, 89, 0.15);
-      padding: 2px 6px;
-      border-radius: 6px;
-      border: 1px solid rgba(197, 160, 89, 0.3);
+      font-weight: 900;
+      color: var(--accent-orange);
+      font-size: 0.85rem;
+      text-shadow: 0 0 6px rgba(230, 126, 34, 0.6);
     }
-    @media (max-width: 420px) {
-      .contact-slot-badge .contact-name-text {
-        display: none;
-      }
-    }
-    
     .btn-use-consumable {
       background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
       color: #fff;
@@ -319,40 +268,8 @@
       50% { filter: drop-shadow(0 0 22px #8e44ad) hue-rotate(280deg) saturate(3.5); }
     }
     .status-poisoned {
-      animation: poisonFlicker 1.4s infinite alternate;
-    }
-
-    .monster-box { background: var(--theme-card); border: 2px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 12px; width: 100%; transition: 0.3s; position: relative; overflow: visible; margin-bottom: 10px;}
-    .monster-box.active-turn { 
-      border-color: var(--accent-coin) !important; 
-      box-shadow: 0 0 20px rgba(46, 204, 113, 0.6), inset 0 0 10px rgba(46, 204, 113, 0.2) !important; 
-    }
-
-    /* INSIGNIAS DE TURNO E IMPACTO VISUAL UNÍVOCO */
-    .turn-badge {
-      font-size: 0.68rem;
-      font-weight: 800;
-      padding: 3px 8px;
-      border-radius: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      transition: all 0.3s ease;
-      display: inline-block;
-    }
-    .turn-badge.active {
-      background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
-      color: #000;
-      box-shadow: 0 0 10px rgba(46, 204, 113, 0.7);
-      animation: pulseTurnBadge 1.1s infinite alternate;
-    }
-    .turn-badge.waiting {
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--text-light);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-    }
-    @keyframes pulseTurnBadge {
-      0% { transform: scale(1); box-shadow: 0 0 8px rgba(46, 204, 113, 0.5); }
-      100% { transform: scale(1.05); box-shadow: 0 0 16px rgba(46, 204, 113, 0.95); }
+      animation: poisonFlicker 1.4s infinite alternate !important;
+      border-color: var(--accent-purple) !important;
     }
     
     /* --- DISTRITOS (MAFIA GRID) --- */
@@ -788,7 +705,7 @@
 
       <div id="party-settings" class="hidden" style="margin-top:12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1)">
         <h2>Total de contratos (Playlist)</h2>
-        <input type="number" id="total-matches" value="5" min="1" oninput="updatePartyText(); syncHostSetupToFirebase();" onblur="validateTotalMatches(); syncHostSetupToFirebase();" style="margin-bottom: 10px;">
+        <input type="number" id="total-matches" value="5" min="1" oninput="updatePartyText(); syncHostSetupToFirebase();" style="margin-bottom: 10px;">
         
         <h2>Actividades a incluir</h2>
         <div class="checkbox-group">
@@ -854,40 +771,35 @@
     <div id="rpg-container" class="hidden">
       <div id="rpg-m1-box" class="monster-box">
         <div style="display:flex; justify-content:space-between; align-items: center;">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <b class="p1-display-name" style="font-family:'Cinzel'; font-size:1rem;">P1</b>
-            <span id="rpg-p1-turn-badge" class="turn-badge waiting">⏳ ESPERANDO</span>
-          </div>
+          <b class="p1-display-name" style="font-family:'Cinzel'; font-size:1rem;">P1</b>
           <span id="rpg-p1-hp-label" class="hp-main-label">0/0 SALUD</span>
         </div>
         <div id="rpg-p1-bar-container" class="hp-bar-container"><div id="rpg-p1-bar" class="hp-bar"></div></div>
         <div id="rpg-p1-status" style="font-size: 0.8rem; font-weight: bold; margin-top:4px;"></div>
         
-        <!-- HUD OBJETOS Y MONEDAS P1 -->
+        <!-- HUD DECK-BUILDING P1 -->
         <div class="player-deck-hud">
-          <div id="rpg-p1-contacts-hud" class="contacts-hud-slots"></div>
-          <div id="rpg-p1-coins-hud" class="coins-hud-badge">🪙 0</div>
-          <button id="rpg-p1-consumable-btn" class="btn-use-consumable" onclick="dispatchAction('useConsumable', 1)" disabled>🚬 VACÍO</button>
+          <div id="p1-contacts-hud" class="contacts-hud-slots"></div>
+          <div id="p1-combo-hud" class="combo-badge">🔥 x1.0</div>
+          <button id="p1-consumable-btn" class="btn-use-consumable" onclick="dispatchAction('useConsumable', 1)" disabled>🚬 PURO</button>
         </div>
+      </div>
 
       <div id="rpg-m2-box" class="monster-box">
         <div style="display:flex; justify-content:space-between; align-items: center;">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <b class="p2-display-name" style="font-family:'Cinzel'; font-size:1rem;">P2</b>
-            <span id="rpg-p2-turn-badge" class="turn-badge waiting">⏳ ESPERANDO</span>
-          </div>
+          <b class="p2-display-name" style="font-family:'Cinzel'; font-size:1rem;">P2</b>
           <span id="rpg-p2-hp-label" class="hp-main-label">0/0 SALUD</span>
         </div>
-        
         <div id="rpg-p2-bar-container" class="hp-bar-container"><div id="rpg-p2-bar" class="hp-bar"></div></div>
         <div id="rpg-p2-status" style="font-size: 0.8rem; font-weight: bold; margin-top:4px;"></div>
 
-        <!-- HUD OBJETOS Y MONEDAS P2 -->
+        <!-- HUD DECK-BUILDING P2 -->
         <div class="player-deck-hud">
-          <div id="rpg-p2-contacts-hud" class="contacts-hud-slots"></div>
-          <div id="rpg-p2-coins-hud" class="coins-hud-badge">🪙 0</div>
-          <button id="rpg-p2-consumable-btn" class="btn-use-consumable" onclick="dispatchAction('useConsumable', 2)" disabled>🚬 VACÍO</button>
+          <div id="p2-contacts-hud" class="contacts-hud-slots"></div>
+          <div id="p2-combo-hud" class="combo-badge">🔥 x1.0</div>
+          <button id="p2-consumable-btn" class="btn-use-consumable" onclick="dispatchAction('useConsumable', 2)" disabled>🚬 PURO</button>
         </div>
+      </div>
 
       <div class="log-box" id="rpg-log-box"></div>
 
@@ -912,41 +824,33 @@
         </div>
       </div>
 
-    <div id="exp-m1-box" class="monster-box">
+      <div id="exp-m1-box" class="monster-box">
         <div style="display:flex; justify-content:space-between; align-items: center;">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <b class="p1-display-name" style="font-family:'Cinzel'; font-size:1rem;">P1</b>
-            <span id="exp-p1-turn-badge" class="turn-badge waiting">⏳ ESPERANDO</span>
-          </div>
+          <b class="p1-display-name" style="font-family:'Cinzel'; font-size:1rem;">P1</b>
           <span id="exp-p1-hp-label" class="hp-main-label">20/20 COB</span>
         </div>
         <div id="exp-p1-bar-container" class="hp-bar-container"><div id="exp-p1-bar" class="hp-bar"></div></div>
         <div class="loot-label"><span>Botín en bolsas:</span><span id="exp-p1-temp-loot">💰 0</span></div>
         <div id="exp-p1-status" style="margin-top: 4px; font-size: 0.8rem; font-weight: bold;"></div>
-
         <div class="player-deck-hud">
           <div id="exp-p1-contacts-hud" class="contacts-hud-slots"></div>
-          <div id="exp-p1-coins-hud" class="coins-hud-badge">🪙 0</div>
-          <button id="exp-p1-consumable-btn" class="btn-use-consumable" onclick="dispatchAction('useConsumable', 1)" disabled>🚬 VACÍO</button>
+          <div id="exp-p1-combo-hud" class="combo-badge">🔥 x1.0</div>
+          <button id="exp-p1-consumable-btn" class="btn-use-consumable" onclick="dispatchAction('useConsumable', 1)" disabled>🚬 PURO</button>
         </div>
       </div>
 
       <div id="exp-m2-box" class="monster-box">
         <div style="display:flex; justify-content:space-between; align-items: center;">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <b class="p2-display-name" style="font-family:'Cinzel'; font-size:1rem;">P2</b>
-            <span id="exp-p2-turn-badge" class="turn-badge waiting">⏳ ESPERANDO</span>
-          </div>
+          <b class="p2-display-name" style="font-family:'Cinzel'; font-size:1rem;">P2</b>
           <span id="exp-p2-hp-label" class="hp-main-label">20/20 COB</span>
         </div>
-        
         <div id="exp-p2-bar-container" class="hp-bar-container"><div id="exp-p2-bar" class="hp-bar"></div></div>
         <div class="loot-label"><span>Botín en bolsas:</span><span id="exp-p2-temp-loot">💰 0</span></div>
         <div id="exp-p2-status" style="margin-top: 4px; font-size: 0.8rem; font-weight: bold;"></div>
         <div class="player-deck-hud">
           <div id="exp-p2-contacts-hud" class="contacts-hud-slots"></div>
-          <div id="exp-p2-coins-hud" class="coins-hud-badge">🪙 0</div>
-          <button id="exp-p2-consumable-btn" class="btn-use-consumable" onclick="dispatchAction('useConsumable', 2)" disabled>🚬 VACÍO</button>
+          <div id="exp-p2-combo-hud" class="combo-badge">🔥 x1.0</div>
+          <button id="exp-p2-consumable-btn" class="btn-use-consumable" onclick="dispatchAction('useConsumable', 2)" disabled>🚬 PURO</button>
         </div>
       </div>
 
@@ -971,10 +875,7 @@
     <div id="maf-container" class="hidden">
       <div id="maf-m1-box" class="monster-box active-turn">
         <div style="display:flex; justify-content:space-between; align-items: center;">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <b class="p1-display-name" style="font-family:'Cinzel'; font-size:1rem;">P1</b>
-            <span id="maf-p1-turn-badge" class="turn-badge waiting">⏳ ESPERANDO</span>
-          </div>
+          <b class="p1-display-name" style="font-family:'Cinzel'; font-size:1rem;">P1</b>
           <span id="maf-p1-prestige" class="hp-main-label">0/15 INFLUENCIA</span>
         </div>
         <div id="maf-p1-bar-container" class="hp-bar-container"><div id="maf-p1-bar" class="hp-bar" style="width: 0%;"></div></div>
@@ -983,24 +884,18 @@
           <b style="color:var(--accent-coin); font-size:1rem;">💵 <span id="maf-p1-coins">0</span> Efectivo</b>
         </div>
         <div class="parcel-grid" id="maf-p1-parcels"></div>
-
         <div class="player-deck-hud">
           <div id="maf-p1-contacts-hud" class="contacts-hud-slots"></div>
-          <div id="maf-p1-coins-hud" class="coins-hud-badge">🪙 0</div>
-          <button id="maf-p1-consumable-btn" class="btn-use-consumable" onclick="dispatchAction('useConsumable', 1)" disabled>🚬 VACÍO</button>
+          <div id="maf-p1-combo-hud" class="combo-badge">🔥 x1.0</div>
+          <button id="maf-p1-consumable-btn" class="btn-use-consumable" onclick="dispatchAction('useConsumable', 1)" disabled>🚬 PURO</button>
         </div>
       </div>
 
       <div id="maf-m2-box" class="monster-box">
         <div style="display:flex; justify-content:space-between; align-items: center;">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <b class="p2-display-name" style="font-family:'Cinzel'; font-size:1rem;">P2</b>
-            <span id="maf-p2-turn-badge" class="turn-badge waiting">⏳ ESPERANDO</span>
-          </div>
+          <b class="p2-display-name" style="font-family:'Cinzel'; font-size:1rem;">P2</b>
           <span id="maf-p2-prestige" class="hp-main-label">0/15 INFLUENCIA</span>
         </div>
-        
-        
         <div id="maf-p2-bar-container" class="hp-bar-container"><div id="maf-p2-bar" class="hp-bar" style="width: 0%;"></div></div>
         
         <div style="display:flex; justify-content:space-between; margin-top:4px; align-items: center;">
@@ -1009,8 +904,8 @@
         <div class="parcel-grid" id="maf-p2-parcels"></div>
         <div class="player-deck-hud">
           <div id="maf-p2-contacts-hud" class="contacts-hud-slots"></div>
-          <div id="maf-p2-coins-hud" class="coins-hud-badge">🪙 0</div>
-          <button id="maf-p2-consumable-btn" class="btn-use-consumable" onclick="dispatchAction('useConsumable', 2)" disabled>🚬 VACÍO</button>
+          <div id="maf-p2-combo-hud" class="combo-badge">🔥 x1.0</div>
+          <button id="maf-p2-consumable-btn" class="btn-use-consumable" onclick="dispatchAction('useConsumable', 2)" disabled>🚬 PURO</button>
         </div>
       </div>
 
@@ -1040,39 +935,31 @@
         <div style="text-align:center; font-weight:bold; color:var(--accent-loot); font-size:0.85rem; margin-bottom: 6px; letter-spacing: 1px;">MESA DE APUESTAS (SUMA CERO / P2P)</div>
       </div>
 
-    <div id="pok-m1-box" class="monster-box active-turn">
+      <div id="pok-m1-box" class="monster-box active-turn">
         <div style="display:flex; justify-content:space-between; align-items: center;">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <b class="p1-display-name" style="font-family:'Cinzel'; font-size:1rem;">P1</b>
-            <span id="pok-p1-turn-badge" class="turn-badge waiting">⏳ ESPERANDO</span>
-          </div>
+          <b class="p1-display-name" style="font-family:'Cinzel'; font-size:1rem;">P1</b>
         </div>
         <div style="display:flex; justify-content:center; margin-top:10px; align-items: center; background:rgba(0,0,0,0.3); border-radius:8px; padding:8px;">
           <b style="color:var(--accent-loot); font-size:1.4rem; font-family:'Cinzel';">🎰 <span id="pok-p1-tokens">12</span> FICHAS</b>
         </div>
-
         <div class="player-deck-hud">
           <div id="pok-p1-contacts-hud" class="contacts-hud-slots"></div>
-          <div id="pok-p1-coins-hud" class="coins-hud-badge">🪙 0</div>
-          <button id="pok-p1-consumable-btn" class="btn-use-consumable" onclick="dispatchAction('useConsumable', 1)" disabled>🚬 VACÍO</button>
+          <div id="pok-p1-combo-hud" class="combo-badge">🔥 x1.0</div>
+          <button id="pok-p1-consumable-btn" class="btn-use-consumable" onclick="dispatchAction('useConsumable', 1)" disabled>🚬 PURO</button>
         </div>
       </div>
 
       <div id="pok-m2-box" class="monster-box">
         <div style="display:flex; justify-content:space-between; align-items: center;">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <b class="p2-display-name" style="font-family:'Cinzel'; font-size:1rem;">P2</b>
-            <span id="pok-p2-turn-badge" class="turn-badge waiting">⏳ ESPERANDO</span>
-          </div>
+          <b class="p2-display-name" style="font-family:'Cinzel'; font-size:1rem;">P2</b>
         </div>
-        
         <div style="display:flex; justify-content:center; margin-top:10px; align-items: center; background:rgba(0,0,0,0.3); border-radius:8px; padding:8px;">
           <b style="color:var(--accent-loot); font-size:1.4rem; font-family:'Cinzel';">🎰 <span id="pok-p2-tokens">12</span> FICHAS</b>
         </div>
         <div class="player-deck-hud">
           <div id="pok-p2-contacts-hud" class="contacts-hud-slots"></div>
-          <div id="pok-p2-coins-hud" class="coins-hud-badge">🪙 0</div>
-          <button id="pok-p2-consumable-btn" class="btn-use-consumable" onclick="dispatchAction('useConsumable', 2)" disabled>🚬 VACÍO</button>
+          <div id="pok-p2-combo-hud" class="combo-badge">🔥 x1.0</div>
+          <button id="pok-p2-consumable-btn" class="btn-use-consumable" onclick="dispatchAction('useConsumable', 2)" disabled>🚬 PURO</button>
         </div>
       </div>
 
@@ -2151,44 +2038,16 @@ let party = {
         minMatches = selectedCount + 1; 
       }
 
-      if (totalInput) {
+      if (selectedCount > 0 && totalInput) {
         totalInput.min = minMatches;
+        if (parseInt(totalInput.value, 10) < minMatches) {
+          totalInput.value = minMatches;
+        }
       }
 
-      const typedVal = totalInput ? parseInt(totalInput.value, 10) : NaN;
-      const num = (!isNaN(typedVal) && typedVal >= minMatches) ? typedVal : minMatches;
+      const num = parseInt(totalInput.value, 10) || minMatches || 3;
       const winsNeeded = Math.floor(num / 2) + 1;
-      const descEl = document.getElementById('party-desc-text');
-      if (descEl) {
-        descEl.innerText = `El primero en ganar ${winsNeeded} victorias dominará la ciudad.`;
-      }
-    }
-
-    function validateTotalMatches() {
-      const totalInput = document.getElementById('total-matches');
-      if (!totalInput) return;
-
-      const cbRpg = document.getElementById('party-cb-rpg');
-      const cbExp = document.getElementById('party-cb-exp');
-      const cbMaf = document.getElementById('party-cb-maf');
-      const cbPok = document.getElementById('party-cb-pok');
-      
-      let selectedCount = 0;
-      if (cbRpg && cbRpg.checked) selectedCount++;
-      if (cbExp && cbExp.checked) selectedCount++;
-      if (cbMaf && cbMaf.checked) selectedCount++;
-      if (cbPok && cbPok.checked) selectedCount++;
-
-      let minMatches = selectedCount;
-      if (selectedCount % 2 === 0 && selectedCount > 0) {
-        minMatches = selectedCount + 1; 
-      }
-
-      let val = parseInt(totalInput.value, 10);
-      if (isNaN(val) || val < minMatches) {
-        totalInput.value = minMatches;
-      }
-      updatePartyText();
+      document.getElementById('party-desc-text').innerText = `El primero en ganar ${winsNeeded} victorias dominará la ciudad.`;
     }
 
     function validateCheckboxes() {
@@ -2215,12 +2074,9 @@ let party = {
       }
 
       const totalInput = document.getElementById('total-matches');
-      if (totalInput) {
-        totalInput.min = minMatches;
-        let val = parseInt(totalInput.value, 10);
-        if (isNaN(val) || val < minMatches) {
-          totalInput.value = minMatches;
-        }
+      totalInput.min = minMatches;
+      if (parseInt(totalInput.value, 10) < minMatches) {
+        totalInput.value = minMatches;
       }
       updatePartyText();
     }
@@ -2754,18 +2610,7 @@ let party = {
       });
     }
 
-    // MATRIZ DE COMPATIBILIDAD DE PASIVAS POR MINIJUEGO
-    function isContactCompatible(contactId, minigame) {
-      if (contactId === 'contact_dinamita' && minigame !== 'exp') return false;
-      if ((contactId === 'contact_policia' || contactId === 'contact_arquitecto') && minigame !== 'maf') return false;
-      if (contactId === 'contact_maton' && minigame !== 'rpg' && minigame !== 'exp') return false;
-      return true;
-    }
-
-    function showItemTooltip(name, desc) {
-      alert(`ℹ️ ${name}\n\n${desc}`);
-    }
-
+    // ACTUALIZACIÓN DE HUD Y MECÁNICAS DE COMBOS Y CONSUMIBLES (FASE 2, 3, 4)
     function updateDeckHUD() {
       const showHud = party.isRoguelike !== false;
       document.querySelectorAll('.player-deck-hud').forEach(el => el.style.display = showHud ? 'flex' : 'none');
@@ -2773,15 +2618,18 @@ let party = {
 
       const prefixes = ['rpg', 'exp', 'maf', 'pok'];
       prefixes.forEach(pfx => {
-        updatePlayerHUD(1, `${pfx}-p1-contacts-hud`, `${pfx}-p1-coins-hud`, `${pfx}-p1-consumable-btn`);
-        updatePlayerHUD(2, `${pfx}-p2-contacts-hud`, `${pfx}-p2-coins-hud`, `${pfx}-p2-consumable-btn`);
+        updatePlayerHUD(1, `${pfx}-p1-contacts-hud`, `${pfx}-p1-combo-hud`, `${pfx}-p1-consumable-btn`);
+        updatePlayerHUD(2, `${pfx}-p2-contacts-hud`, `${pfx}-p2-combo-hud`, `${pfx}-p2-consumable-btn`);
       });
+      // Fallback para elementos de Guerra de Bandas sin prefijo
+      updatePlayerHUD(1, 'p1-contacts-hud', 'p1-combo-hud', 'p1-consumable-btn');
+      updatePlayerHUD(2, 'p2-contacts-hud', 'p2-combo-hud', 'p2-consumable-btn');
     }
 
-    function updatePlayerHUD(playerNum, contactsHudId, coinsHudId, consumableBtnId) {
+    function updatePlayerHUD(playerNum, contactsHudId, comboHudId, consumableBtnId) {
       const contacts = playerNum === 1 ? (party.p1Contacts || []) : (party.p2Contacts || []);
       const consumable = playerNum === 1 ? party.p1Consumable : party.p2Consumable;
-      const coins = playerNum === 1 ? (party.p1Coins || 0) : (party.p2Coins || 0);
+      const combo = playerNum === 1 ? (party.p1Combo || 1.0) : (party.p2Combo || 1.0);
 
       const contactsContainer = document.getElementById(contactsHudId);
       if (contactsContainer) {
@@ -2789,20 +2637,17 @@ let party = {
         contacts.forEach(cId => {
           const item = MARKET_CATALOG.find(i => i.id === cId);
           if (item) {
-            const compatible = isContactCompatible(cId, party.currentGame);
             const badge = document.createElement('div');
-            badge.className = `contact-slot-badge ${compatible ? '' : 'incompatible'}`;
-            badge.title = `${item.name}: ${item.desc}`;
-            badge.onclick = (e) => { e.stopPropagation(); showItemTooltip(item.name, item.desc + (compatible ? '' : '\n\n⚠️ [NO ACTIVO EN ESTE CONTRATO]')); };
-            badge.innerHTML = `${item.icon} <span class="contact-name-text" style="font-size:0.6rem;">${item.name}${compatible ? '' : ' ⚠️'}</span>`;
+            badge.className = 'contact-slot-badge';
+            badge.innerHTML = `${item.icon} <span style="font-size:0.6rem;">${item.name}</span>`;
             contactsContainer.appendChild(badge);
           }
         });
       }
 
-      const coinsContainer = document.getElementById(coinsHudId);
-      if (coinsContainer) {
-        coinsContainer.innerText = `🪙 ${coins}`;
+      const comboContainer = document.getElementById(comboHudId);
+      if (comboContainer) {
+        comboContainer.innerText = `🔥 x${combo.toFixed(1)}`;
       }
 
       const consumableBtn = document.getElementById(consumableBtnId);
@@ -2810,7 +2655,6 @@ let party = {
         if (consumable) {
           const item = MARKET_CATALOG.find(i => i.id === consumable);
           consumableBtn.innerText = `${item ? item.icon : '🚬'} ${item ? item.name : 'PURO'}`;
-          consumableBtn.title = item ? `${item.name}: ${item.desc}` : '';
           const currentTurn = getCurrentTurnPlayerNum();
           const needsRollData = consumable === 'item_puro';
           consumableBtn.disabled = (playerNum !== currentTurn) || (needsRollData && !party.lastRollData) || party.isWaiting || !isMyTurnNetwork();
@@ -2821,39 +2665,39 @@ let party = {
       }
     }
 
-    //function addCombo(playerNum) {
-      //if (!party.isRoguelike) return;
-      //const isP1 = (playerNum === 1);
-      //let combo = isP1 ? (party.p1Combo || 1.0) : (party.p2Combo || 1.0);
-      //combo = Math.min(3.0, combo + 0.5);
+    function addCombo(playerNum) {
+      if (!party.isRoguelike) return;
+      const isP1 = (playerNum === 1);
+      let combo = isP1 ? (party.p1Combo || 1.0) : (party.p2Combo || 1.0);
+      combo = Math.min(3.0, combo + 0.5);
       
-      //if (isP1) party.p1Combo = combo; else party.p2Combo = combo;
+      if (isP1) party.p1Combo = combo; else party.p2Combo = combo;
       
       // Escalado de Feedback Visual (Dopamina Engine)
-      //const comboHudId = isP1 ? 'p1-combo-hud' : 'p2-combo-hud';
-      //const comboEl = document.getElementById(comboHudId);
+      const comboHudId = isP1 ? 'p1-combo-hud' : 'p2-combo-hud';
+      const comboEl = document.getElementById(comboHudId);
       
-      //if (comboEl) {
-        //if (combo >= 3.0) {
-          //comboEl.style.color = '#f1c40f'; // Dorado
-          //comboEl.style.textShadow = '0 0 15px rgba(241, 196, 15, 0.8)';
-          //triggerScreenShake();
-        //} else if (combo >= 2.0) {
-          //comboEl.style.color = '#e67e22'; // Naranja
-          //comboEl.style.textShadow = '0 0 10px rgba(230, 126, 34, 0.8)';
-        //} else {
-          //comboEl.style.color = '#ffffff';
-          //comboEl.style.textShadow = 'none';
-        //}
-      //}
-      //updateDeckHUD();
-    //}
+      if (comboEl) {
+        if (combo >= 3.0) {
+          comboEl.style.color = '#f1c40f'; // Dorado
+          comboEl.style.textShadow = '0 0 15px rgba(241, 196, 15, 0.8)';
+          triggerScreenShake();
+        } else if (combo >= 2.0) {
+          comboEl.style.color = '#e67e22'; // Naranja
+          comboEl.style.textShadow = '0 0 10px rgba(230, 126, 34, 0.8)';
+        } else {
+          comboEl.style.color = '#ffffff';
+          comboEl.style.textShadow = 'none';
+        }
+      }
+      updateDeckHUD();
+    }
 
-    //function resetCombo(playerNum) {
-      //if (playerNum === 1) party.p1Combo = 1.0;
-      //else party.p2Combo = 1.0;
-      //updateDeckHUD();
-    //}
+    function resetCombo(playerNum) {
+      if (playerNum === 1) party.p1Combo = 1.0;
+      else party.p2Combo = 1.0;
+      updateDeckHUD();
+    }
 
     window.useConsumable = function(playerNum) {
       const consumable = playerNum === 1 ? party.p1Consumable : party.p2Consumable;
@@ -3460,7 +3304,6 @@ let party = {
         } else {
           rpgAction('quick');
         }
-
       } else if (party.currentGame === 'exp') {
         const ai = exp.p2;
         const human = exp.p1;
@@ -3469,56 +3312,27 @@ let party = {
         const maxTorpedos = party.isParty ? 1 : 3;
         const canRepair = !party.isParty ? (ai.repairUses < 1) : (ai.repairCooldown === 0);
 
-        const aiTotalLoot = ai.secured + ai.temp;
-        const humanTotalLoot = human.secured + human.temp;
-        const needsMoreLoot = aiTotalLoot <= humanTotalLoot;
-
-        // Evaluación de riesgo: si el daño de una falla crítica de bóveda (6 HP) o trampa (3 HP) me destruiría
-        const riskOfDying = ai.hp <= 6;
-
-        // Decisión de Sabotaje táctico para molestar al jugador si sigue en el banco
-        if (!human.surfaced && ai.torpedoUses < maxTorpedos && Math.random() < 0.40) {
-          if (party.isRoguelike && (party.p1Contacts || []).includes('contact_soplon')) {
-            cLog(`🕵️ Soplón Infiltrado revela: La IA lanzará un Sabotaje con Granada.`);
-          }
-          return expAction('sabotage');
+        if (party.isRoguelike && (party.p1Contacts || []).includes('contact_soplon')) {
+          let planned = "Saquear Cajas";
+          if (ai.hp <= 6 && ai.temp > 0) planned = "Huir en Coche de Escape";
+          else if (!human.surfaced && ai.torpedoUses < maxTorpedos) planned = "Sabotaje con Granada";
+          else if (ai.hp <= 14 && canRepair) planned = "Reforzar Cobertura";
+          else planned = "Forzar Bóveda";
+          cLog(`🕵️ Soplón Infiltrado revela: La IA planea en el Atraco: ${planned}.`);
         }
 
-        // Si la IA corre peligro inminente de morir y tiene botín que asegurar, escapa
-        if (riskOfDying && ai.temp > 0) {
-          if (party.isRoguelike && (party.p1Contacts || []).includes('contact_soplon')) {
-            cLog(`🕵️ Soplón Infiltrado revela: La IA huirá en Coche de Escape.`);
-          }
-          return expAction('surface');
-        }
-
-        // Si la cobertura está resentida pero la IA aún no supera al jugador, intenta reparar si está disponible
-        if (ai.hp <= 12 && canRepair && Math.random() < 0.55) {
-          if (party.isRoguelike && (party.p1Contacts || []).includes('contact_soplon')) {
-            cLog(`🕵️ Soplón Infiltrado revela: La IA va a Reforzar Cobertura.`);
-          }
-          return expAction('repair');
-        }
-
-        // Si la IA ya supera al jugador holgadamente o si el jugador ya huyó con menos botín, asegura y escapa
-        if (!needsMoreLoot && ai.temp >= 4 && (human.surfaced || Math.random() < 0.35)) {
-          if (party.isRoguelike && (party.p1Contacts || []).includes('contact_soplon')) {
-            cLog(`🕵️ Soplón Infiltrado revela: La IA asegura su botín y escapa.`);
-          }
-          return expAction('surface');
-        }
-
-        // De lo contrario, la IA arriesga al máximo para superar al jugador (prioriza Forzar Bóveda si tiene buena vida)
-        if (needsMoreLoot && ai.hp > 8 && Math.random() < 0.60) {
-          if (party.isRoguelike && (party.p1Contacts || []).includes('contact_soplon')) {
-            cLog(`🕵️ Soplón Infiltrado revela: La IA arriesgará forzando la Bóveda.`);
-          }
-          return expAction('deep');
+        if (ai.hp <= 6 && ai.temp > 0) {
+          expAction('surface');
+        } else if (ai.temp >= 5) {
+          expAction('surface');
+        } else if (!human.surfaced && ai.torpedoUses < maxTorpedos && Math.random() < 0.35) {
+          expAction('sabotage');
+        } else if (ai.hp <= 14 && canRepair && Math.random() < 0.4) {
+          expAction('repair');
+        } else if (Math.random() < 0.5) {
+          expAction('explore');
         } else {
-          if (party.isRoguelike && (party.p1Contacts || []).includes('contact_soplon')) {
-            cLog(`🕵️ Soplón Infiltrado revela: La IA saqueará Cajas Fuertes.`);
-          }
-          return expAction('explore');
+          expAction('deep');
         }
       } else if (party.currentGame === 'maf') {
         const ai = maf.p2;
@@ -3835,54 +3649,6 @@ let party = {
       handleMiniGameEnd(winnerCode, "Capo Eliminado");
     }
 
-    // GESTIÓN DINÁMICA Y UNÍVOCA DE INSIGNIAS DE TURNO
-    function updateTurnBadges(pfx, turnPNum) {
-      const isOnline = (gameMode === 'online');
-      const myPNum = isOnline ? (isHost ? 1 : 2) : (gameMode === 'solo' ? 1 : turnPNum);
-
-      [1, 2].forEach(pNum => {
-        const badge = document.getElementById(`${pfx}-p${pNum}-turn-badge`);
-        if (!badge) return;
-
-        const isTurn = (pNum === turnPNum);
-        badge.className = `turn-badge ${isTurn ? 'active' : 'waiting'}`;
-
-        if (isTurn) {
-          if (isOnline) {
-            badge.innerText = (pNum === myPNum) ? "⚡ TU TURNO" : "🎯 TURNO RIVAL";
-          } else {
-            badge.innerText = "⚡ EN TURNO";
-          }
-        } else {
-          badge.innerText = (isOnline && pNum !== myPNum) ? "⏳ ESPERANDO..." : "⏳ EN ESPERA";
-        }
-      });
-    }
-
-    // GESTIÓN DINÁMICA Y UNÍVOCA DE INSIGNIAS DE TURNO
-    function updateTurnBadges(pfx, turnPNum) {
-      const isOnline = (gameMode === 'online');
-      const myPNum = isOnline ? (isHost ? 1 : 2) : (gameMode === 'solo' ? 1 : turnPNum);
-
-      [1, 2].forEach(pNum => {
-        const badge = document.getElementById(`${pfx}-p${pNum}-turn-badge`);
-        if (!badge) return;
-
-        const isTurn = (pNum === turnPNum);
-        badge.className = `turn-badge ${isTurn ? 'active' : 'waiting'}`;
-
-        if (isTurn) {
-          if (isOnline) {
-            badge.innerText = (pNum === myPNum) ? "⚡ TU TURNO" : "🎯 TURNO RIVAL";
-          } else {
-            badge.innerText = "⚡ EN TURNO";
-          }
-        } else {
-          badge.innerText = (isOnline && pNum !== myPNum) ? "⏳ ESPERANDO..." : "⏳ EN ESPERA";
-        }
-      });
-    }
-
     function updateUI_RPG() {
       document.getElementById('round-indicator').innerText = `RONDA ${rpg.round} (GUERRA DE BANDAS)`;
       
@@ -3891,11 +3657,6 @@ let party = {
 
       m1Box.classList.toggle('active-turn', rpg.turn === 1);
       m2Box.classList.toggle('active-turn', rpg.turn === 2);
-
-      updateTurnBadges('rpg', rpg.turn);
-      
-
-      updateTurnBadges('rpg', rpg.turn);
 
       m1Box.classList.toggle('status-poisoned', rpg.p1.poison > 0);
       m2Box.classList.toggle('status-poisoned', rpg.p2.poison > 0);
@@ -4232,10 +3993,6 @@ let party = {
 
       m1Box.classList.toggle('active-turn', exp.turn === 1 && !exp.p1.surfaced);
       m2Box.classList.toggle('active-turn', exp.turn === 2 && !exp.p2.surfaced);
-
-      updateTurnBadges('exp', exp.turn);
-      
-      
       m1Box.classList.toggle('surfaced', exp.p1.surfaced);
       m2Box.classList.toggle('surfaced', exp.p2.surfaced);
 
@@ -4352,12 +4109,11 @@ let party = {
 
         let anySuccess = false;
 
-        // Guerra de Inspectores: Moneda al aire (50% probabilidad) de sufrir Redada en un distrito al azar
-        const inspectoresRaid = (party.cityEvent === 'inspectores' && Math.random() < 0.50);
-        if (inspectoresRaid) {
-          const targetDistrict = Math.floor(Math.random() * 6) + 1;
-          logStr += `&nbsp;&nbsp;🚓 ¡INSPECTORES SOTOTERRA! Redada sorpresiva clausura el Distrito [${targetDistrict}]. Nadie cobra.<br>`;
+        // Guerra de Inspectores: 50% de riesgo de inspección en Recaudación Segura (res > 3)
+        if (sides === 6 && party.cityEvent === 'inspectores' && res > 3) {
+          logStr += `&nbsp;&nbsp;🚓 ¡INSPECTORES! Redada sorpresiva en el Distrito [${res}]. Nadie cobra.<br>`;
           playSound('hit');
+          resetCombo(pNum);
         } else {
           playersToHarvest.forEach((p) => {
             const pName = p === maf.p1 ? party.p1Name : party.p2Name;
@@ -4601,7 +4357,6 @@ let options = [];
       handleMiniGameEnd(winnerCode, "Dominio Total (Influencia)");
     }
 
-    // NUEVO BLOQUE A AGREGAR
     function updateUI_MAF() {
       document.getElementById('round-indicator').innerText = `RONDA ${maf.round} (IMPERIO CRIMINAL)`;
       
@@ -4610,9 +4365,6 @@ let options = [];
 
       document.getElementById('maf-m1-box').classList.toggle('active-turn', maf.turn === 1);
       document.getElementById('maf-m2-box').classList.toggle('active-turn', maf.turn === 2);
-
-      updateTurnBadges('maf', maf.turn);
-      
 
       document.getElementById('maf-p1-prestige').innerText = `${maf.p1.prestige}/${maf.winScore} INFLUENCIA`;
       document.getElementById('maf-p2-prestige').innerText = `${maf.p2.prestige}/${maf.winScore} INFLUENCIA`;
@@ -4776,6 +4528,7 @@ let options = [];
             } else {
                 let actualLoss = Math.min(3, p.tokens);
                 p.tokens -= actualLoss;
+                r.tokens += actualLoss;
 
                 cLog(`💀 Las cosas salen mal. ${rName} gana las ${actualLoss} fichas del riesgo.`);
                 resetCombo(pNum);
@@ -4859,7 +4612,6 @@ let options = [];
        handleMiniGameEnd(winnerCode, `Poker: ${reason} (${pok.p1.tokens} vs ${pok.p2.tokens} Fichas)`);
     }
 
-
     function updateUI_POK() {
       document.getElementById('round-indicator').innerText = `RONDA ${pok.round}/${pok.maxRounds} (APUESTAS CLANDESTINAS)`;
       
@@ -4868,9 +4620,6 @@ let options = [];
 
       m1Box.classList.toggle('active-turn', pok.turn === 1);
       m2Box.classList.toggle('active-turn', pok.turn === 2);
-
-      updateTurnBadges('pok', pok.turn);
-      
 
       m1Box.classList.toggle('low-hp-warning', pok.p1.tokens <= 2);
       m2Box.classList.toggle('low-hp-warning', pok.p2.tokens <= 2);
