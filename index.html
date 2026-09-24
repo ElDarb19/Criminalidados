@@ -17,8 +17,6 @@
       --bg-pok: #0f231a;  
       
       --bg-card-rpg: #1e1515;
-      --bg-card-exp: #142131;
-      --bg-card-maf: #2c251e; 
       --bg-card-pok: #153326;
       
       --accent-gold: #c5a059;
@@ -727,7 +725,7 @@
 
       <div id="party-settings" class="hidden" style="margin-top:12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1)">
         <h2>Total de contratos (Playlist)</h2>
-        <input type="number" id="total-matches" value="5" min="1" oninput="updatePartyText(); syncHostSetupToFirebase();" style="margin-bottom: 10px;">
+        <input type="number" id="total-matches" value="5" min="1" oninput="updatePartyText(); syncHostSetupToFirebase();" onblur="validateTotalMatches(); syncHostSetupToFirebase();" style="margin-bottom: 10px;">
         
         <h2>Actividades a incluir</h2>
         <div class="checkbox-group">
@@ -2061,16 +2059,44 @@ let party = {
         minMatches = selectedCount + 1; 
       }
 
-      if (selectedCount > 0 && totalInput) {
+      if (totalInput) {
         totalInput.min = minMatches;
-        if (parseInt(totalInput.value, 10) < minMatches) {
-          totalInput.value = minMatches;
-        }
       }
 
-      const num = parseInt(totalInput.value, 10) || minMatches || 3;
+      const typedVal = totalInput ? parseInt(totalInput.value, 10) : NaN;
+      const num = (!isNaN(typedVal) && typedVal >= minMatches) ? typedVal : minMatches;
       const winsNeeded = Math.floor(num / 2) + 1;
-      document.getElementById('party-desc-text').innerText = `El primero en ganar ${winsNeeded} victorias dominará la ciudad.`;
+      const descEl = document.getElementById('party-desc-text');
+      if (descEl) {
+        descEl.innerText = `El primero en ganar ${winsNeeded} victorias dominará la ciudad.`;
+      }
+    }
+
+    function validateTotalMatches() {
+      const totalInput = document.getElementById('total-matches');
+      if (!totalInput) return;
+
+      const cbRpg = document.getElementById('party-cb-rpg');
+      const cbExp = document.getElementById('party-cb-exp');
+      const cbMaf = document.getElementById('party-cb-maf');
+      const cbPok = document.getElementById('party-cb-pok');
+      
+      let selectedCount = 0;
+      if (cbRpg && cbRpg.checked) selectedCount++;
+      if (cbExp && cbExp.checked) selectedCount++;
+      if (cbMaf && cbMaf.checked) selectedCount++;
+      if (cbPok && cbPok.checked) selectedCount++;
+
+      let minMatches = selectedCount;
+      if (selectedCount % 2 === 0 && selectedCount > 0) {
+        minMatches = selectedCount + 1; 
+      }
+
+      let val = parseInt(totalInput.value, 10);
+      if (isNaN(val) || val < minMatches) {
+        totalInput.value = minMatches;
+      }
+      updatePartyText();
     }
 
     function validateCheckboxes() {
@@ -2097,9 +2123,12 @@ let party = {
       }
 
       const totalInput = document.getElementById('total-matches');
-      totalInput.min = minMatches;
-      if (parseInt(totalInput.value, 10) < minMatches) {
-        totalInput.value = minMatches;
+      if (totalInput) {
+        totalInput.min = minMatches;
+        let val = parseInt(totalInput.value, 10);
+        if (isNaN(val) || val < minMatches) {
+          totalInput.value = minMatches;
+        }
       }
       updatePartyText();
     }
@@ -4594,7 +4623,6 @@ let options = [];
             } else {
                 let actualLoss = Math.min(3, p.tokens);
                 p.tokens -= actualLoss;
-                r.tokens += actualLoss;
 
                 cLog(`💀 Las cosas salen mal. ${rName} gana las ${actualLoss} fichas del riesgo.`);
                 resetCombo(pNum);
