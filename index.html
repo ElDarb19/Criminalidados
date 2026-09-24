@@ -198,61 +198,39 @@
     .hp-main-label { font-weight: 700; font-size: 1rem; color: var(--theme-accent); }
     .loot-label { font-weight: 700; font-size: 0.9rem; color: var(--accent-loot); margin-top: 4px; display: flex; justify-content: space-between;}
 
-    /* HUD DE SLOTS DE DECK-BUILDING Y OBJETOS */
+    /* HUD DE SLOTS DE DECK-BUILDING EN PARTIDA (FASE 2, 3, 4) */
     .player-deck-hud {
       display: flex;
       justify-content: space-between;
       align-items: center;
       background: rgba(0,0,0,0.4);
       border-radius: 8px;
-      padding: 6px 8px;
+      padding: 4px 8px;
       margin-top: 6px;
       border: 1px solid rgba(255,255,255,0.08);
-      gap: 6px;
-      flex-wrap: wrap;
     }
     .contacts-hud-slots {
       display: flex;
       gap: 4px;
       align-items: center;
-      flex-wrap: wrap;
     }
     .contact-slot-badge {
       background: rgba(255,255,255,0.08);
       border: 1px solid var(--accent-gold);
       border-radius: 6px;
-      padding: 3px 6px;
+      padding: 2px 6px;
       font-size: 0.7rem;
       display: flex;
       align-items: center;
       gap: 3px;
-      cursor: help;
-      position: relative;
     }
-    .contact-slot-badge.incompatible {
-      opacity: 0.45;
-      filter: grayscale(80%);
-      border-color: #666;
-    }
-    .coins-hud-badge {
+    .combo-badge {
       font-family: 'Cinzel', serif;
-      font-weight: 800;
-      color: var(--accent-gold);
-      font-size: 0.8rem;
-      display: flex;
-      align-items: center;
-      gap: 2px;
-      background: rgba(197, 160, 89, 0.15);
-      padding: 2px 6px;
-      border-radius: 6px;
-      border: 1px solid rgba(197, 160, 89, 0.3);
+      font-weight: 900;
+      color: var(--accent-orange);
+      font-size: 0.85rem;
+      text-shadow: 0 0 6px rgba(230, 126, 34, 0.6);
     }
-    @media (max-width: 420px) {
-      .contact-slot-badge .contact-name-text {
-        display: none;
-      }
-    }
-    
     .btn-use-consumable {
       background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
       color: #fff;
@@ -799,12 +777,13 @@
         <div id="rpg-p1-bar-container" class="hp-bar-container"><div id="rpg-p1-bar" class="hp-bar"></div></div>
         <div id="rpg-p1-status" style="font-size: 0.8rem; font-weight: bold; margin-top:4px;"></div>
         
-        <!-- HUD OBJETOS Y MONEDAS P1 -->
+        <!-- HUD DECK-BUILDING P1 -->
         <div class="player-deck-hud">
-          <div id="rpg-p1-contacts-hud" class="contacts-hud-slots"></div>
-          <div id="rpg-p1-coins-hud" class="coins-hud-badge">🪙 0</div>
-          <button id="rpg-p1-consumable-btn" class="btn-use-consumable" onclick="dispatchAction('useConsumable', 1)" disabled>🚬 VACÍO</button>
+          <div id="p1-contacts-hud" class="contacts-hud-slots"></div>
+          <div id="p1-combo-hud" class="combo-badge">🔥 x1.0</div>
+          <button id="p1-consumable-btn" class="btn-use-consumable" onclick="dispatchAction('useConsumable', 1)" disabled>🚬 PURO</button>
         </div>
+      </div>
 
       <div id="rpg-m2-box" class="monster-box">
         <div style="display:flex; justify-content:space-between; align-items: center;">
@@ -2631,18 +2610,7 @@ let party = {
       });
     }
 
-    // MATRIZ DE COMPATIBILIDAD DE PASIVAS POR MINIJUEGO
-    function isContactCompatible(contactId, minigame) {
-      if (contactId === 'contact_dinamita' && minigame !== 'exp') return false;
-      if ((contactId === 'contact_policia' || contactId === 'contact_arquitecto') && minigame !== 'maf') return false;
-      if (contactId === 'contact_maton' && minigame !== 'rpg' && minigame !== 'exp') return false;
-      return true;
-    }
-
-    function showItemTooltip(name, desc) {
-      alert(`ℹ️ ${name}\n\n${desc}`);
-    }
-
+    // ACTUALIZACIÓN DE HUD Y MECÁNICAS DE COMBOS Y CONSUMIBLES (FASE 2, 3, 4)
     function updateDeckHUD() {
       const showHud = party.isRoguelike !== false;
       document.querySelectorAll('.player-deck-hud').forEach(el => el.style.display = showHud ? 'flex' : 'none');
@@ -2650,15 +2618,18 @@ let party = {
 
       const prefixes = ['rpg', 'exp', 'maf', 'pok'];
       prefixes.forEach(pfx => {
-        updatePlayerHUD(1, `${pfx}-p1-contacts-hud`, `${pfx}-p1-coins-hud`, `${pfx}-p1-consumable-btn`);
-        updatePlayerHUD(2, `${pfx}-p2-contacts-hud`, `${pfx}-p2-coins-hud`, `${pfx}-p2-consumable-btn`);
+        updatePlayerHUD(1, `${pfx}-p1-contacts-hud`, `${pfx}-p1-combo-hud`, `${pfx}-p1-consumable-btn`);
+        updatePlayerHUD(2, `${pfx}-p2-contacts-hud`, `${pfx}-p2-combo-hud`, `${pfx}-p2-consumable-btn`);
       });
+      // Fallback para elementos de Guerra de Bandas sin prefijo
+      updatePlayerHUD(1, 'p1-contacts-hud', 'p1-combo-hud', 'p1-consumable-btn');
+      updatePlayerHUD(2, 'p2-contacts-hud', 'p2-combo-hud', 'p2-consumable-btn');
     }
 
-    function updatePlayerHUD(playerNum, contactsHudId, coinsHudId, consumableBtnId) {
+    function updatePlayerHUD(playerNum, contactsHudId, comboHudId, consumableBtnId) {
       const contacts = playerNum === 1 ? (party.p1Contacts || []) : (party.p2Contacts || []);
       const consumable = playerNum === 1 ? party.p1Consumable : party.p2Consumable;
-      const coins = playerNum === 1 ? (party.p1Coins || 0) : (party.p2Coins || 0);
+      const combo = playerNum === 1 ? (party.p1Combo || 1.0) : (party.p2Combo || 1.0);
 
       const contactsContainer = document.getElementById(contactsHudId);
       if (contactsContainer) {
@@ -2666,20 +2637,17 @@ let party = {
         contacts.forEach(cId => {
           const item = MARKET_CATALOG.find(i => i.id === cId);
           if (item) {
-            const compatible = isContactCompatible(cId, party.currentGame);
             const badge = document.createElement('div');
-            badge.className = `contact-slot-badge ${compatible ? '' : 'incompatible'}`;
-            badge.title = `${item.name}: ${item.desc}`;
-            badge.onclick = (e) => { e.stopPropagation(); showItemTooltip(item.name, item.desc + (compatible ? '' : '\n\n⚠️ [NO ACTIVO EN ESTE CONTRATO]')); };
-            badge.innerHTML = `${item.icon} <span class="contact-name-text" style="font-size:0.6rem;">${item.name}${compatible ? '' : ' ⚠️'}</span>`;
+            badge.className = 'contact-slot-badge';
+            badge.innerHTML = `${item.icon} <span style="font-size:0.6rem;">${item.name}</span>`;
             contactsContainer.appendChild(badge);
           }
         });
       }
 
-      const coinsContainer = document.getElementById(coinsHudId);
-      if (coinsContainer) {
-        coinsContainer.innerText = `🪙 ${coins}`;
+      const comboContainer = document.getElementById(comboHudId);
+      if (comboContainer) {
+        comboContainer.innerText = `🔥 x${combo.toFixed(1)}`;
       }
 
       const consumableBtn = document.getElementById(consumableBtnId);
@@ -2687,7 +2655,6 @@ let party = {
         if (consumable) {
           const item = MARKET_CATALOG.find(i => i.id === consumable);
           consumableBtn.innerText = `${item ? item.icon : '🚬'} ${item ? item.name : 'PURO'}`;
-          consumableBtn.title = item ? `${item.name}: ${item.desc}` : '';
           const currentTurn = getCurrentTurnPlayerNum();
           const needsRollData = consumable === 'item_puro';
           consumableBtn.disabled = (playerNum !== currentTurn) || (needsRollData && !party.lastRollData) || party.isWaiting || !isMyTurnNetwork();
@@ -2698,39 +2665,39 @@ let party = {
       }
     }
 
-    //function addCombo(playerNum) {
-      //if (!party.isRoguelike) return;
-      //const isP1 = (playerNum === 1);
-      //let combo = isP1 ? (party.p1Combo || 1.0) : (party.p2Combo || 1.0);
-      //combo = Math.min(3.0, combo + 0.5);
+    function addCombo(playerNum) {
+      if (!party.isRoguelike) return;
+      const isP1 = (playerNum === 1);
+      let combo = isP1 ? (party.p1Combo || 1.0) : (party.p2Combo || 1.0);
+      combo = Math.min(3.0, combo + 0.5);
       
-      //if (isP1) party.p1Combo = combo; else party.p2Combo = combo;
+      if (isP1) party.p1Combo = combo; else party.p2Combo = combo;
       
       // Escalado de Feedback Visual (Dopamina Engine)
-      //const comboHudId = isP1 ? 'p1-combo-hud' : 'p2-combo-hud';
-      //const comboEl = document.getElementById(comboHudId);
+      const comboHudId = isP1 ? 'p1-combo-hud' : 'p2-combo-hud';
+      const comboEl = document.getElementById(comboHudId);
       
-      //if (comboEl) {
-        //if (combo >= 3.0) {
-          //comboEl.style.color = '#f1c40f'; // Dorado
-          //comboEl.style.textShadow = '0 0 15px rgba(241, 196, 15, 0.8)';
-          //triggerScreenShake();
-        //} else if (combo >= 2.0) {
-          //comboEl.style.color = '#e67e22'; // Naranja
-          //comboEl.style.textShadow = '0 0 10px rgba(230, 126, 34, 0.8)';
-        //} else {
-          //comboEl.style.color = '#ffffff';
-          //comboEl.style.textShadow = 'none';
-        //}
-      //}
-      //updateDeckHUD();
-    //}
+      if (comboEl) {
+        if (combo >= 3.0) {
+          comboEl.style.color = '#f1c40f'; // Dorado
+          comboEl.style.textShadow = '0 0 15px rgba(241, 196, 15, 0.8)';
+          triggerScreenShake();
+        } else if (combo >= 2.0) {
+          comboEl.style.color = '#e67e22'; // Naranja
+          comboEl.style.textShadow = '0 0 10px rgba(230, 126, 34, 0.8)';
+        } else {
+          comboEl.style.color = '#ffffff';
+          comboEl.style.textShadow = 'none';
+        }
+      }
+      updateDeckHUD();
+    }
 
-    //function resetCombo(playerNum) {
-      //if (playerNum === 1) party.p1Combo = 1.0;
-      //else party.p2Combo = 1.0;
-      //updateDeckHUD();
-    //}
+    function resetCombo(playerNum) {
+      if (playerNum === 1) party.p1Combo = 1.0;
+      else party.p2Combo = 1.0;
+      updateDeckHUD();
+    }
 
     window.useConsumable = function(playerNum) {
       const consumable = playerNum === 1 ? party.p1Consumable : party.p2Consumable;
@@ -3337,7 +3304,6 @@ let party = {
         } else {
           rpgAction('quick');
         }
-
       } else if (party.currentGame === 'exp') {
         const ai = exp.p2;
         const human = exp.p1;
@@ -3346,56 +3312,27 @@ let party = {
         const maxTorpedos = party.isParty ? 1 : 3;
         const canRepair = !party.isParty ? (ai.repairUses < 1) : (ai.repairCooldown === 0);
 
-        const aiTotalLoot = ai.secured + ai.temp;
-        const humanTotalLoot = human.secured + human.temp;
-        const needsMoreLoot = aiTotalLoot <= humanTotalLoot;
-
-        // Evaluación de riesgo: si el daño de una falla crítica de bóveda (6 HP) o trampa (3 HP) me destruiría
-        const riskOfDying = ai.hp <= 6;
-
-        // Decisión de Sabotaje táctico para molestar al jugador si sigue en el banco
-        if (!human.surfaced && ai.torpedoUses < maxTorpedos && Math.random() < 0.40) {
-          if (party.isRoguelike && (party.p1Contacts || []).includes('contact_soplon')) {
-            cLog(`🕵️ Soplón Infiltrado revela: La IA lanzará un Sabotaje con Granada.`);
-          }
-          return expAction('sabotage');
+        if (party.isRoguelike && (party.p1Contacts || []).includes('contact_soplon')) {
+          let planned = "Saquear Cajas";
+          if (ai.hp <= 6 && ai.temp > 0) planned = "Huir en Coche de Escape";
+          else if (!human.surfaced && ai.torpedoUses < maxTorpedos) planned = "Sabotaje con Granada";
+          else if (ai.hp <= 14 && canRepair) planned = "Reforzar Cobertura";
+          else planned = "Forzar Bóveda";
+          cLog(`🕵️ Soplón Infiltrado revela: La IA planea en el Atraco: ${planned}.`);
         }
 
-        // Si la IA corre peligro inminente de morir y tiene botín que asegurar, escapa
-        if (riskOfDying && ai.temp > 0) {
-          if (party.isRoguelike && (party.p1Contacts || []).includes('contact_soplon')) {
-            cLog(`🕵️ Soplón Infiltrado revela: La IA huirá en Coche de Escape.`);
-          }
-          return expAction('surface');
-        }
-
-        // Si la cobertura está resentida pero la IA aún no supera al jugador, intenta reparar si está disponible
-        if (ai.hp <= 12 && canRepair && Math.random() < 0.55) {
-          if (party.isRoguelike && (party.p1Contacts || []).includes('contact_soplon')) {
-            cLog(`🕵️ Soplón Infiltrado revela: La IA va a Reforzar Cobertura.`);
-          }
-          return expAction('repair');
-        }
-
-        // Si la IA ya supera al jugador holgadamente o si el jugador ya huyó con menos botín, asegura y escapa
-        if (!needsMoreLoot && ai.temp >= 4 && (human.surfaced || Math.random() < 0.35)) {
-          if (party.isRoguelike && (party.p1Contacts || []).includes('contact_soplon')) {
-            cLog(`🕵️ Soplón Infiltrado revela: La IA asegura su botín y escapa.`);
-          }
-          return expAction('surface');
-        }
-
-        // De lo contrario, la IA arriesga al máximo para superar al jugador (prioriza Forzar Bóveda si tiene buena vida)
-        if (needsMoreLoot && ai.hp > 8 && Math.random() < 0.60) {
-          if (party.isRoguelike && (party.p1Contacts || []).includes('contact_soplon')) {
-            cLog(`🕵️ Soplón Infiltrado revela: La IA arriesgará forzando la Bóveda.`);
-          }
-          return expAction('deep');
+        if (ai.hp <= 6 && ai.temp > 0) {
+          expAction('surface');
+        } else if (ai.temp >= 5) {
+          expAction('surface');
+        } else if (!human.surfaced && ai.torpedoUses < maxTorpedos && Math.random() < 0.35) {
+          expAction('sabotage');
+        } else if (ai.hp <= 14 && canRepair && Math.random() < 0.4) {
+          expAction('repair');
+        } else if (Math.random() < 0.5) {
+          expAction('explore');
         } else {
-          if (party.isRoguelike && (party.p1Contacts || []).includes('contact_soplon')) {
-            cLog(`🕵️ Soplón Infiltrado revela: La IA saqueará Cajas Fuertes.`);
-          }
-          return expAction('explore');
+          expAction('deep');
         }
       } else if (party.currentGame === 'maf') {
         const ai = maf.p2;
@@ -4172,12 +4109,11 @@ let party = {
 
         let anySuccess = false;
 
-        // Guerra de Inspectores: Moneda al aire (50% probabilidad) de sufrir Redada en un distrito al azar
-        const inspectoresRaid = (party.cityEvent === 'inspectores' && Math.random() < 0.50);
-        if (inspectoresRaid) {
-          const targetDistrict = Math.floor(Math.random() * 6) + 1;
-          logStr += `&nbsp;&nbsp;🚓 ¡INSPECTORES SOTOTERRA! Redada sorpresiva clausura el Distrito [${targetDistrict}]. Nadie cobra.<br>`;
+        // Guerra de Inspectores: 50% de riesgo de inspección en Recaudación Segura (res > 3)
+        if (sides === 6 && party.cityEvent === 'inspectores' && res > 3) {
+          logStr += `&nbsp;&nbsp;🚓 ¡INSPECTORES! Redada sorpresiva en el Distrito [${res}]. Nadie cobra.<br>`;
           playSound('hit');
+          resetCombo(pNum);
         } else {
           playersToHarvest.forEach((p) => {
             const pName = p === maf.p1 ? party.p1Name : party.p2Name;
