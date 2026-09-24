@@ -833,7 +833,7 @@
         <!-- HUD DECK-BUILDING P1 -->
         <div class="player-deck-hud">
           <div id="rpg-p1-items-hud" class="items-hud-slots"></div>
-          <div id="rpg-p1-money-hud" class="money-badge">🪙 0</div>
+          <div id="rpg-p1-money-hud" class="money-badge">💲 0</div>
         </div>
       </div>
 
@@ -848,7 +848,7 @@
         <!-- HUD DECK-BUILDING P2 -->
         <div class="player-deck-hud">
           <div id="rpg-p2-items-hud" class="items-hud-slots"></div>
-          <div id="rpg-p2-money-hud" class="money-badge">🪙 0</div>
+          <div id="rpg-p2-money-hud" class="money-badge">💲 0</div>
         </div>
       </div>
 
@@ -887,7 +887,7 @@
         <!-- HUD DECK-BUILDING P1 -->
         <div class="player-deck-hud">
           <div id="exp-p1-items-hud" class="items-hud-slots"></div>
-          <div id="exp-p1-money-hud" class="money-badge">🪙 0</div>
+          <div id="exp-p1-money-hud" class="money-badge">💲 0</div>
         </div>
       </div>
 
@@ -903,7 +903,7 @@
         <!-- HUD DECK-BUILDING P2 -->
         <div class="player-deck-hud">
           <div id="exp-p2-items-hud" class="items-hud-slots"></div>
-          <div id="exp-p2-money-hud" class="money-badge">🪙 0</div>
+          <div id="exp-p2-money-hud" class="money-badge">💲 0</div>
         </div>
       </div>
 
@@ -941,7 +941,7 @@
         <!-- HUD DECK-BUILDING P1 -->
         <div class="player-deck-hud">
           <div id="maf-p1-items-hud" class="items-hud-slots"></div>
-          <div id="maf-p1-money-hud" class="money-badge">🪙 0</div>
+          <div id="maf-p1-money-hud" class="money-badge">💲 0</div>
         </div>
       </div>
 
@@ -960,7 +960,7 @@
         <!-- HUD DECK-BUILDING P2 -->
         <div class="player-deck-hud">
           <div id="maf-p2-items-hud" class="items-hud-slots"></div>
-          <div id="maf-p2-money-hud" class="money-badge">🪙 0</div>
+          <div id="maf-p2-money-hud" class="money-badge">💲 0</div>
         </div>
       </div>
 
@@ -1008,7 +1008,7 @@
         <!-- HUD DECK-BUILDING P1 -->
         <div class="player-deck-hud">
           <div id="pok-p1-items-hud" class="items-hud-slots"></div>
-          <div id="pok-p1-money-hud" class="money-badge">🪙 0</div>
+          <div id="pok-p1-money-hud" class="money-badge">💲 0</div>
         </div>
       </div>
 
@@ -1030,7 +1030,7 @@
         <!-- HUD DECK-BUILDING P2 -->
         <div class="player-deck-hud">
           <div id="pok-p2-items-hud" class="items-hud-slots"></div>
-          <div id="pok-p2-money-hud" class="money-badge">🪙 0</div>
+          <div id="pok-p2-money-hud" class="money-badge">💲 0</div>
         </div>
       </div>
 
@@ -1097,18 +1097,18 @@
 
       <div style="text-align: right; margin-bottom: 5px;">
         <button class="btn-buy-market" style="width: auto; background: var(--accent-purple); color: white;" onclick="dispatchAction('rerollMarket')">
-          🔄 REROLL (<span id="reroll-cost-display">50</span>🪙)
+          🔄 REROLL (<span id="reroll-cost-display">50</span>💲)
         </button>
       </div>    
 
       <div class="market-balances">
         <div class="market-balance-item">
           <span class="p1-display-name">P1</span><br>
-          <span class="market-balance-val">🪙 <span id="market-p1-coins">0</span></span>
+          <span class="market-balance-val">💲 <span id="market-p1-coins">0</span></span>
         </div>
         <div class="market-balance-item">
           <span class="p2-display-name">P2</span><br>
-          <span class="market-balance-val">🪙 <span id="market-p2-coins">0</span></span>
+          <span class="market-balance-val">💲 <span id="market-p2-coins">0</span></span>
         </div>
       </div>
 
@@ -1263,18 +1263,18 @@
     const MARKET_CATALOG = [
       // CONTACTOS (PASIVAS - 18 TOTAL)
       { id: 'contact_armero', name: 'Armero Clandestino', icon: '🔫', cost: 150, desc: '+2 a tiradas d20 (máximo 20).', type: 'contact', incompatible: [] },
-      { id: 'contact_tahur', name: 'El Tahúr Tullido', icon: '🃏', cost: 120, desc: 'Si sacas 1 en d6, ganas +10🪙 / +10 Fichas de la banca.', type: 'contact', incompatible: [] },
+      { id: 'contact_tahur', name: 'El Tahúr Tullido', icon: '🃏', cost: 120, desc: 'Si sacas 1 en d6, ganas +10💲 / +10 Fichas de la banca.', type: 'contact', incompatible: [] },
       { id: 'contact_crupier', name: 'Crupier de Esquina', icon: '🎰', cost: 220, desc: 'Resultados pares en d6 suman +1 extra.', type: 'contact', incompatible: [] },
       { id: 'contact_tallador', name: 'Tallador de Dados', icon: '🎲', cost: 320, desc: 'Anula el 1 en d6 (lo transforma en valor seguro).', type: 'contact', incompatible: [] },
-      { id: 'contact_matematico', name: 'Matemático del Sindicato', icon: '🧮', cost: 240, desc: 'Sacar el máximo en cualquier dado otorga +100🪙.', type: 'contact', incompatible: [] },
+      { id: 'contact_matematico', name: 'Matemático del Sindicato', icon: '🧮', cost: 240, desc: 'Sacar el máximo en cualquier dado otorga +100💲.', type: 'contact', incompatible: [] },
       { id: 'contact_matasanos', name: 'Médico Matasanos', icon: '🩺', cost: 200, desc: '+50% a toda curación recibida.', type: 'contact', incompatible: ['maf', 'pok'] },
       { id: 'contact_desguace', name: 'Dueño del Desguace', icon: '🏭', cost: 140, desc: 'Vender artículos te devuelve el 75% de su valor.', type: 'contact', incompatible: [] },
       { id: 'contact_policia', name: 'Policía Sobornada', icon: '🚓', cost: 250, desc: 'Inmunidad a la pérdida de distritos por Redada.', type: 'contact', incompatible: ['rpg', 'exp', 'pok'] },
       { id: 'contact_dinamita', name: 'Contrabandista Dinamita', icon: '🧨', cost: 350, desc: 'Trampas en el banco causan 3 de daño a la cobertura rival.', type: 'contact', incompatible: ['rpg', 'maf', 'pok'] },
       { id: 'contact_contador', name: 'Contador de la Mafia', icon: '📊', cost: 500, desc: 'Multiplica x1.5 la recompensa final si conservas HP > 50%.', type: 'contact', incompatible: ['maf', 'pok'] },
       { id: 'contact_usurero', name: 'Inversionista Usurero', icon: '📈', cost: 250, desc: 'Al salir de la tienda, +10% de interés sobre tu dinero (Max 200).', type: 'contact', incompatible: [] },
-      { id: 'contact_prestamista', name: 'Prestamista Siniestro', icon: '🩸', cost: 300, desc: '+150🪙 al inicio de minijuego, pero -2 HP/COB máxima.', type: 'contact', incompatible: ['maf', 'pok'] },
-      { id: 'contact_extorsionador', name: 'Extorsionador de Barrio', icon: '💼', cost: 130, desc: 'Ganas +10🪙 por cada turno finalizado sin recibir daño.', type: 'contact', incompatible: [] },
+      { id: 'contact_prestamista', name: 'Prestamista Siniestro', icon: '🩸', cost: 300, desc: '+150💲 al inicio de minijuego, pero -2 HP/COB máxima.', type: 'contact', incompatible: ['maf', 'pok'] },
+      { id: 'contact_extorsionador', name: 'Extorsionador de Barrio', icon: '💼', cost: 130, desc: 'Ganas +10💲 por cada turno finalizado sin recibir daño.', type: 'contact', incompatible: [] },
       { id: 'contact_maton', name: 'Matón a Sueldo', icon: '🥊', cost: 160, desc: 'Tu primer ataque en cualquier minijuego inflige +2 daño.', type: 'contact', incompatible: ['maf', 'pok'] },
       { id: 'contact_chofer', name: 'Chófer de Huida', icon: '🚗', cost: 210, desc: 'Si tu HP/COB cae del 25%, obtienes +3 de reducción de daño.', type: 'contact', incompatible: ['maf', 'pok'] },
       { id: 'contact_quimico', name: 'Químico Chiflado', icon: '🧪', cost: 310, desc: 'Impactos críticos o d20=20 aplican Veneno por 3 rondas.', type: 'contact', incompatible: ['exp', 'maf', 'pok'] },
@@ -2344,7 +2344,7 @@ let party = {
       playerState.firstAttackDone = false; // Bandera para El Matón a Sueldo
       playerState.tookDamageThisTurn = false; // Bandera para Extorsionador de Barrio
 
-      // El Prestamista Siniestro: +150🪙 iniciales, pero -2 HP/COB Máxima
+      // El Prestamista Siniestro: +150💲 iniciales, pero -2 HP/COB Máxima
       if (contacts.includes('contact_prestamista')) {
         if (playerNum === 1) party.p1Coins = (party.p1Coins || 0) + 150;
         else party.p2Coins = (party.p2Coins || 0) + 150;
@@ -2354,7 +2354,7 @@ let party = {
           playerState.hp = Math.min(playerState.hp, playerState.max);
         }
         const boxId = playerNum === 1 ? 'rpg-m1-box' : 'rpg-m2-box';
-        cLog(`🩸 ${playerNum === 1 ? party.p1Name : party.p2Name} usa el Prestamista Siniestro (+150🪙, -2 Max HP/COB).`);
+        cLog(`🩸 ${playerNum === 1 ? party.p1Name : party.p2Name} usa el Prestamista Siniestro (+150💲, -2 Max HP/COB).`);
       }
     }
 
@@ -2453,8 +2453,8 @@ let party = {
       if (party.cityEvent === 'carnicero' && winnerCode !== 'tie') {
         const winningPNum = winnerCode === 'p1' ? 1 : 2;
         if (winningPNum !== party.carniceroBoss) {
-          if (winningPNum === 1) { p1Reward *= 2; cLog(`🏆 ¡${party.p1Name} derrotó al Carnicero y gana DOBLE BOTÍN! (+${p1Reward}🪙)`); }
-          else { p2Reward *= 2; cLog(`🏆 ¡${party.p2Name} derrotó al Carnicero y gana DOBLE BOTÍN! (+${p2Reward}🪙)`); }
+          if (winningPNum === 1) { p1Reward *= 2; cLog(`🏆 ¡${party.p1Name} derrotó al Carnicero y gana DOBLE BOTÍN! (+${p1Reward}💲)`); }
+          else { p2Reward *= 2; cLog(`🏆 ¡${party.p2Name} derrotó al Carnicero y gana DOBLE BOTÍN! (+${p2Reward}💲)`); }
         }
       }
 
@@ -2575,11 +2575,11 @@ let party = {
           <div class="market-item-icon">${item.icon}</div>
           <div class="market-item-title">${item.name}</div>
           <div class="market-item-desc">${item.desc}</div>
-          <div class="market-item-cost">🪙 ${item.cost}</div>
+          <div class="market-item-cost">💲 ${item.cost}</div>
           <button class="btn-buy-market" id="buy-btn-${item.id}" 
             ${(!isBought && (myCoins < item.cost || isContactsFull)) ? 'disabled' : ''}
             style="${isBought ? 'background: var(--accent-red); color: white;' : ''}">
-            ${isBought ? `VENDER (+${sellPrice}🪙)` : (isContactsFull && item.type === 'contact' ? 'MAX CONTACTOS' : 'COMPRAR')}
+            ${isBought ? `VENDER (+${sellPrice}💲)` : (isContactsFull && item.type === 'contact' ? 'MAX CONTACTOS' : 'COMPRAR')}
           </button>
         `;
 
@@ -2761,7 +2761,7 @@ let party = {
 
       const moneyContainer = document.getElementById(moneyHudId);
       if (moneyContainer) {
-        moneyContainer.innerText = `🪙 ${money}`;
+        moneyContainer.innerText = `💲 ${money}`;
       }
     }
 
@@ -3009,7 +3009,7 @@ let party = {
       }
       if (currentContacts.includes('contact_matematico') && val === sides) {
         if (isP1) party.p1Coins += 100; else party.p2Coins += 100;
-        spawnFloatingText(boxId, `+100🪙 MATEMÁTICO`, 'loot'); playSound('coin');
+        spawnFloatingText(boxId, `+100💲 MATEMÁTICO`, 'loot'); playSound('coin');
       }
       if (sides === 6 && currentContacts.includes('contact_tahur') && val === 1) {
         if (party.currentGame === 'pok') {
@@ -3017,7 +3017,7 @@ let party = {
           spawnFloatingText(boxId, `+10🎰 TAHÚR`, 'loot');
         } else {
           if (isP1) party.p1Coins += 10; else party.p2Coins += 10;
-          spawnFloatingText(boxId, `+10🪙 TAHÚR`, 'loot');
+          spawnFloatingText(boxId, `+10💲 TAHÚR`, 'loot');
         }
         playSound('coin');
       }
@@ -3646,13 +3646,13 @@ let party = {
           }
         }
         
-        // Pasiva: Extorsionador de Barrio (+10🪙 por turno sin recibir daño)
+        // Pasiva: Extorsionador de Barrio (+10💲 por turno sin recibir daño)
         const attContacts = pNum === 1 ? (party.p1Contacts || []) : (party.p2Contacts || []);
         if (party.isRoguelike && attContacts.includes('contact_extorsionador') && !att.tookDamageThisTurn) {
           if (pNum === 1) party.p1Coins = (party.p1Coins || 0) + 10;
           else party.p2Coins = (party.p2Coins || 0) + 10;
-          cLog(`💼 Extorsionador de Barrio: ${attName} gana +10🪙 por finalizar el turno sin recibir daño.`);
-          spawnFloatingText(attBox, `+10🪙 EXTORSIONADOR`, 'loot');
+          cLog(`💼 Extorsionador de Barrio: ${attName} gana +10💲 por finalizar el turno sin recibir daño.`);
+          spawnFloatingText(attBox, `+10💲 EXTORSIONADOR`, 'loot');
         }
         att.tookDamageThisTurn = false;
 
@@ -3991,12 +3991,12 @@ let party = {
       const pContacts = currentCode === 1 ? (party.p1Contacts || []) : (party.p2Contacts || []);
       const boxId = currentCode === 1 ? 'exp-m1-box' : 'exp-m2-box';
 
-      // Pasiva: Extorsionador de Barrio (+10🪙 por turno sin recibir daño a Cobertura)
+      // Pasiva: Extorsionador de Barrio (+10💲 por turno sin recibir daño a Cobertura)
       if (party.isRoguelike && pContacts.includes('contact_extorsionador') && !currentP.tookDamageThisTurn && !currentP.surfaced) {
         if (currentCode === 1) party.p1Coins = (party.p1Coins || 0) + 10;
         else party.p2Coins = (party.p2Coins || 0) + 10;
-        cLog(`💼 Extorsionador de Barrio: ${pName} gana +10🪙 por finalizar el turno sin recibir daño a su Cobertura.`);
-        spawnFloatingText(boxId, `+10🪙 EXTORSIONADOR`, 'loot');
+        cLog(`💼 Extorsionador de Barrio: ${pName} gana +10💲 por finalizar el turno sin recibir daño a su Cobertura.`);
+        spawnFloatingText(boxId, `+10💲 EXTORSIONADOR`, 'loot');
       }
       currentP.tookDamageThisTurn = false;
 
@@ -4415,12 +4415,12 @@ let options = [];
       const pContacts = currentCode === 1 ? (party.p1Contacts || []) : (party.p2Contacts || []);
       const boxId = currentCode === 1 ? 'maf-m1-box' : 'maf-m2-box';
 
-      // Pasiva: Extorsionador de Barrio (+10🪙 por turno finalizado sin contratiempos)
+      // Pasiva: Extorsionador de Barrio (+10💲 por turno finalizado sin contratiempos)
       if (party.isRoguelike && pContacts.includes('contact_extorsionador') && !currentP.tookDamageThisTurn) {
         if (currentCode === 1) party.p1Coins = (party.p1Coins || 0) + 10;
         else party.p2Coins = (party.p2Coins || 0) + 10;
-        cLog(`💼 Extorsionador de Barrio: ${pName} gana +10🪙 por finalizar el turno sin contratiempos.`);
-        spawnFloatingText(boxId, `+10🪙 EXTORSIONADOR`, 'loot');
+        cLog(`💼 Extorsionador de Barrio: ${pName} gana +10💲 por finalizar el turno sin contratiempos.`);
+        spawnFloatingText(boxId, `+10💲 EXTORSIONADOR`, 'loot');
       }
       currentP.tookDamageThisTurn = false;
 
@@ -4670,12 +4670,12 @@ let options = [];
       const pContacts = currentCode === 1 ? (party.p1Contacts || []) : (party.p2Contacts || []);
       const boxId = currentCode === 1 ? 'pok-m1-box' : 'pok-m2-box';
 
-      // Pasiva: Extorsionador de Barrio (+10🪙 por turno sin perder fichas)
+      // Pasiva: Extorsionador de Barrio (+10💲 por turno sin perder fichas)
       if (party.isRoguelike && pContacts.includes('contact_extorsionador') && !currentP.tookDamageThisTurn) {
         if (currentCode === 1) party.p1Coins = (party.p1Coins || 0) + 10;
         else party.p2Coins = (party.p2Coins || 0) + 10;
-        cLog(`💼 Extorsionador de Barrio: ${pName} gana +10🪙 por finalizar el turno sin perder fichas.`);
-        spawnFloatingText(boxId, `+10🪙 EXTORSIONADOR`, 'loot');
+        cLog(`💼 Extorsionador de Barrio: ${pName} gana +10💲 por finalizar el turno sin perder fichas.`);
+        spawnFloatingText(boxId, `+10💲 EXTORSIONADOR`, 'loot');
       }
       currentP.tookDamageThisTurn = false;
 
