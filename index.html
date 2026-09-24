@@ -990,12 +990,19 @@
         <div style="text-align:center; font-weight:bold; color:var(--accent-loot); font-size:0.85rem; margin-bottom: 6px; letter-spacing: 1px;">MESA DE APUESTAS (SUMA CERO / P2P)</div>
       </div>
 
-      <div id="pok-m1-box" class="monster-box active-turn">
+            <div id="pok-m1-box" class="monster-box active-turn">
         <div style="display:flex; justify-content:space-between; align-items: center;">
           <b class="p1-display-name" style="font-family:'Cinzel'; font-size:1rem;">P1</b>
+          <b style="color:var(--accent-loot); font-size:1.1rem; font-family:'Cinzel';">🎰 <span id="pok-p1-tokens">12</span> FICHAS</b>
         </div>
-        <div style="display:flex; justify-content:center; margin-top:10px; align-items: center; background:rgba(0,0,0,0.3); border-radius:8px; padding:8px;">
-          <b style="color:var(--accent-loot); font-size:1.4rem; font-family:'Cinzel';">🎰 <span id="pok-p1-tokens">12</span> FICHAS</b>
+        
+        <div style="display:flex; align-items:center; gap:12px; margin-top:6px; background:rgba(0,0,0,0.3); border-radius:8px; padding:6px 10px;">
+          <div class="preview-box" style="width:50px; height:50px; margin:0; flex-shrink:0;">
+            <img id="pok-p1-avatar-img" class="char-preview" src="assets/characters/Color_R/idle.png" alt="P1">
+          </div>
+          <div style="flex:1;">
+            <div id="pok-p1-status" style="font-size: 0.78rem; font-weight: bold; color: var(--text-bright);">En mesa de juego</div>
+          </div>
         </div>
 
         <!-- HUD DECK-BUILDING P1 -->
@@ -1008,9 +1015,16 @@
       <div id="pok-m2-box" class="monster-box">
         <div style="display:flex; justify-content:space-between; align-items: center;">
           <b class="p2-display-name" style="font-family:'Cinzel'; font-size:1rem;">P2</b>
+          <b style="color:var(--accent-loot); font-size:1.1rem; font-family:'Cinzel';">🎰 <span id="pok-p2-tokens">12</span> FICHAS</b>
         </div>
-        <div style="display:flex; justify-content:center; margin-top:10px; align-items: center; background:rgba(0,0,0,0.3); border-radius:8px; padding:8px;">
-          <b style="color:var(--accent-loot); font-size:1.4rem; font-family:'Cinzel';">🎰 <span id="pok-p2-tokens">12</span> FICHAS</b>
+
+        <div style="display:flex; align-items:center; gap:12px; margin-top:6px; background:rgba(0,0,0,0.3); border-radius:8px; padding:6px 10px;">
+          <div class="preview-box" style="width:50px; height:50px; margin:0; flex-shrink:0;">
+            <img id="pok-p2-avatar-img" class="char-preview" src="assets/characters/Color_B/idle.png" alt="P2">
+          </div>
+          <div style="flex:1;">
+            <div id="pok-p2-status" style="font-size: 0.78rem; font-weight: bold; color: var(--text-bright);">En mesa de juego</div>
+          </div>
         </div>
 
         <!-- HUD DECK-BUILDING P2 -->
@@ -2668,12 +2682,13 @@ let party = {
     }
 
     // ACTUALIZACIÓN DE HUD Y MECÁNICAS DE COMBOS Y CONSUMIBLES (FASE 2, 3, 4)
-    function createItemBadge(item, playerNum, isConsumable = false) {
+        function createItemBadge(item, playerNum, isConsumable = false) {
       const wrapper = document.createElement('div');
       wrapper.className = 'item-badge-wrapper';
 
+      const currentG = party.currentGame || 'rpg';
       const incompatibleGames = item.incompatible || [];
-      const isCompat = !incompatibleGames.includes(party.currentGame);
+      const isCompat = !incompatibleGames.includes(currentG);
 
       if (isConsumable) {
         const btn = document.createElement('button');
@@ -2695,7 +2710,7 @@ let party = {
 
       const tooltip = document.createElement('div');
       tooltip.className = 'item-tooltip';
-      tooltip.innerHTML = `<b>${item.name}</b><br>${item.desc}${isCompat ? '' : '<br><span style="color:var(--accent-red); font-weight:bold;">⚠️ Incompatible en ' + party.currentGame.toUpperCase() + '</span>'}`;
+      tooltip.innerHTML = `<b>${item.name}</b><br>${item.desc}${isCompat ? '' : '<br><span style="color:var(--accent-red); font-weight:bold;">⚠️ Incompatible en ' + currentG.toUpperCase() + '</span>'}`;
       wrapper.appendChild(tooltip);
 
       return wrapper;
@@ -3459,14 +3474,15 @@ let party = {
           cLog(`🕵️ Soplón Infiltrado revela: La IA planea en el Póker: ${planned}.`);
         }
 
-        if (ai.tokens <= 2) {
-          pokAction('apuesta');
-        } else if (canTahur && human.tokens >= 2 && Math.random() < 0.5) {
+        if (canTahur && human.tokens >= 1 && Math.random() < 0.5) {
           pokAction('tahur');
-        } else if (ai.tokens >= 5 && Math.random() < 0.4) {
+        } else if (ai.tokens >= 3 && human.tokens >= 1 && Math.random() < 0.45) {
           pokAction('golpe');
-        } else {
+        } else if (ai.tokens >= 1 && human.tokens >= 1) {
           pokAction('apuesta');
+        } else {
+          cLog(`🎰 ${party.p2Name} no tiene suficiente capital para apostar.`);
+          nextTurnPOK();
         }
       }
     }
@@ -4517,11 +4533,23 @@ let options = [];
 
     window.pokAction = async function(type) {
       if (party.isWaiting) return;
-      party.isWaiting = true; updateUI_POK();
-      
+
       const pNum = pok.turn;
       const p = pok.turn === 1 ? pok.p1 : pok.p2;
       const r = pok.turn === 1 ? pok.p2 : pok.p1;
+
+      // Guardias de seguridad para evitar bloqueos por saldo insuficiente
+      if (type === 'apuesta' && (p.tokens < 1 || r.tokens < 1)) {
+        cLog(`⚠️ Se requieren al menos 1 ficha por jugador para Apuesta Básica.`);
+        return;
+      }
+      if (type === 'golpe' && (p.tokens < 3 || r.tokens < 1)) {
+        cLog(`⚠️ Se requieren al menos 3 fichas para un Golpe a la Mesa.`);
+        return;
+      }
+
+      party.isWaiting = true; updateUI_POK();
+      
       const pName = pok.turn === 1 ? party.p1Name : party.p2Name;
       const rName = pok.turn === 1 ? party.p2Name : party.p1Name;
       const pBox = pok.turn === 1 ? 'pok-m1-box' : 'pok-m2-box';
@@ -4681,14 +4709,28 @@ let options = [];
       const m1Box = document.getElementById('pok-m1-box');
       const m2Box = document.getElementById('pok-m2-box');
 
-      m1Box.classList.toggle('active-turn', pok.turn === 1);
-      m2Box.classList.toggle('active-turn', pok.turn === 2);
+      if (m1Box) m1Box.classList.toggle('active-turn', pok.turn === 1);
+      if (m2Box) m2Box.classList.toggle('active-turn', pok.turn === 2);
 
-      m1Box.classList.toggle('low-hp-warning', pok.p1.tokens <= 2);
-      m2Box.classList.toggle('low-hp-warning', pok.p2.tokens <= 2);
+      if (m1Box) m1Box.classList.toggle('low-hp-warning', pok.p1.tokens <= 2);
+      if (m2Box) m2Box.classList.toggle('low-hp-warning', pok.p2.tokens <= 2);
 
-      document.getElementById('pok-p1-tokens').innerText = pok.p1.tokens;
-      document.getElementById('pok-p2-tokens').innerText = pok.p2.tokens;
+      // Carga dinámica de avatares pixel-art
+      const p1Img = document.getElementById('pok-p1-avatar-img');
+      const p2Img = document.getElementById('pok-p2-avatar-img');
+      if (p1Img) {
+        p1Img.src = `assets/characters/${party.p1Color || 'Color_R'}/idle.png`;
+        p1Img.onerror = () => { p1Img.src = `assets/characters/None/idle.png`; };
+      }
+      if (p2Img) {
+        p2Img.src = `assets/characters/${party.p2Color || 'Color_B'}/idle.png`;
+        p2Img.onerror = () => { p2Img.src = `assets/characters/None/idle.png`; };
+      }
+
+      const p1Tok = document.getElementById('pok-p1-tokens');
+      const p2Tok = document.getElementById('pok-p2-tokens');
+      if (p1Tok) p1Tok.innerText = pok.p1.tokens;
+      if (p2Tok) p2Tok.innerText = pok.p2.tokens;
 
       const act = pok.turn === 1 ? pok.p1 : pok.p2;
       const rvl = pok.turn === 1 ? pok.p2 : pok.p1;
