@@ -1588,7 +1588,7 @@
       });
 
       db.ref(roomPath + '/currentEvent').on('value', snap => {
-        if (snap.exists() && !isHost) {
+        if (snap.exists()) {
           const val = snap.val();
           if (typeof val === 'object' && val !== null) {
             party.carniceroBoss = val.boss;
@@ -2438,7 +2438,7 @@ let party = {
       party.currentGame = party.playlist[party.matchesPlayed];
       document.body.className = `theme-${party.currentGame}`;
       
-      // FASE 5: Sistema de Eventos Globales Filtrados por Compatibilidad con el Minijuego
+    // FASE 5: Sistema de Eventos Globales Filtrados por Compatibilidad con el Minijuego
       if (gameMode === 'local' || gameMode === 'solo' || isHost) {
         let newEvent = null;
         if (party.isRoguelike) {
@@ -2459,9 +2459,8 @@ let party = {
         }
         if (gameMode === 'online' && roomPath) {
           db.ref(roomPath + '/currentEvent').set({ code: newEvent, boss: party.carniceroBoss || null });
-        } else {
-          applyCityEvent(newEvent);
         }
+        applyCityEvent(newEvent);
       }
 
       await showMinigameSplash(gameTitles[party.currentGame]);
@@ -3070,17 +3069,18 @@ let party = {
       if (party.diceMode === 'virtual') val = await virtualRoll(sides, desc, signal, overrideColor, actionImg, actionAnim, soundName, forcedVal);
       else val = await manualRoll(sides, desc, signal, overrideColor, actionImg, actionAnim, soundName, forcedVal);
 
+      const pfx = party.currentGame || 'rpg';
+      const boxId = isP1 ? `${pfx}-m1-box` : `${pfx}-m2-box`;
+
       if (leySecaApplied) {
         const rawVal = val;
         val = Math.max(1, val - 1);
-        const boxId = isP1 ? (party.currentGame === 'exp' ? 'exp-m1-box' : 'rpg-m1-box') : (party.currentGame === 'exp' ? 'exp-m2-box' : 'rpg-m2-box');
         cLog(`🍷 Ley Seca Clandestina: Tirada d6 de ${rawVal} ajustada a ${val}.`);
         spawnFloatingText(boxId, `-1 LEY SECA`, 'status');
       }
 
       // Modificadores de Contactos Pasivos
       const currentContacts = isP1 ? (party.p1Contacts || []) : (party.p2Contacts || []);
-      const boxId = isP1 ? (party.currentGame === 'exp' ? 'exp-m1-box' : 'rpg-m1-box') : (party.currentGame === 'exp' ? 'exp-m2-box' : 'rpg-m2-box');
       
       // Armero Clandestino (Solo afecta a D20, topado para evitar bugs lógicos)
       if (sides === 20 && currentContacts.includes('contact_armero')) {
