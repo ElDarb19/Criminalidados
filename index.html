@@ -1576,57 +1576,24 @@
         }
       });
 
-      // Escucha de Estado de Verdad Host (Sincronización Multijugador Total)
+      db.ref(roomPath + '/state').off();
+
+      db.ref(roomPath + '/actions').on('child_added', (snap) => {
+        const data = snap.val();
+        if (window[data.func]) {
+            party.isWaiting = false;
+            party.actionInProgress = true;
+            window[data.func].apply(null, data.args);
+        }
+      });
+
+      // Escucha de Estado de Verdad Host (Sincronización Multijugador Protegida)
       db.ref(roomPath + '/state').on('value', (snap) => {
         if (isHost || !snap.exists()) return;
-        const data = snap.val();
-        if (!data) return;
-
-        if (data.party) {
-          party.p1Coins = data.party.p1Coins;
-          party.p2Coins = data.party.p2Coins;
-          party.p1Wins = data.party.p1Wins;
-          party.p2Wins = data.party.p2Wins;
-          party.matchesPlayed = data.party.matchesPlayed;
-          party.p1Contacts = data.party.p1Contacts || [];
-          party.p2Contacts = data.party.p2Contacts || [];
-          party.p1Consumable = data.party.p1Consumable || null;
-          party.p2Consumable = data.party.p2Consumable || null;
-          if (data.party.currentGame) party.currentGame = data.party.currentGame;
+        party.latestNetworkState = snap.val();
+        if (!party.actionInProgress) {
+          applyNetworkState();
         }
-
-        if (data.rpg) {
-          rpg.p1.hp = data.rpg.p1Hp; rpg.p1.max = data.rpg.p1Max;
-          rpg.p2.hp = data.rpg.p2Hp; rpg.p2.max = data.rpg.p2Max;
-          rpg.turn = data.rpg.turn; rpg.round = data.rpg.round;
-        }
-
-        if (data.exp) {
-          exp.p1.hp = data.exp.p1Hp; exp.p1.secured = data.exp.p1Secured; exp.p1.temp = data.exp.p1Temp; exp.p1.surfaced = data.exp.p1Surfaced;
-          exp.p2.hp = data.exp.p2Hp; exp.p2.secured = data.exp.p2Secured; exp.p2.temp = data.exp.p2Temp; exp.p2.surfaced = data.exp.p2Surfaced;
-          exp.turn = data.exp.turn; exp.round = data.exp.round; exp.dive = data.exp.dive;
-        }
-
-        if (data.maf) {
-          maf.p1.prestige = data.maf.p1Prestige; maf.p1.coins = data.maf.p1Coins; maf.p1.parcels = data.maf.p1Parcels || [];
-          maf.p2.prestige = data.maf.p2Prestige; maf.p2.coins = data.maf.p2Coins; maf.p2.parcels = data.maf.p2Parcels || [];
-          maf.turn = data.maf.turn; maf.round = data.maf.round; maf.phase = data.maf.phase;
-        }
-
-        if (data.pok) {
-          pok.p1.tokens = data.pok.p1Tokens;
-          pok.p2.tokens = data.pok.p2Tokens;
-          pok.turn = data.pok.turn;
-          pok.round = data.pok.round;
-        }
-
-        // Refresco de interfaz
-        if (party.currentGame === 'rpg') updateUI_RPG();
-        else if (party.currentGame === 'exp') updateUI_EXP();
-        else if (party.currentGame === 'maf') updateUI_MAF();
-        else if (party.currentGame === 'pok') updateUI_POK();
-
-        updateDeckHUD();
       });
 
       db.ref(roomPath + '/gameStatus').on('value', (snap) => {
@@ -1822,9 +1789,10 @@ let party = {
       cityEvent: null, // FASE 5: Modificadores globales
       p1MarketStock: [], p2MarketStock: [],
       p1RerollCost: 50, p2RerollCost: 50,
-      lastRollData: null
+      lastRollData: null,
+      actionInProgress: false,
+      latestNetworkState: null
     };
-
     const gameTitles = {
       rpg: 'GUERRA DE BANDAS',
       exp: 'EL GRAN ATRACO',
@@ -2801,6 +2769,7 @@ let party = {
       }
       playSound('coin');
       renderBlackMarket();
+      if (isHost) syncStateToNetwork();
     };
 
     window.rerollMarket = function(pNumParam) {
@@ -3935,6 +3904,300 @@ let party = {
       });
     }
 
+    function syncStateToNetwork() {
+      if (gameMode !== 'online' || !isHost || !roomPath) return;
+
+      db.ref(roomPath + '/state').set({
+        party: {
+          p1Coins: party.p1Coins || 0,
+          p2Coins: party.p2Coins || 0,
+          p1Wins: party.p1Wins || 0,
+          p2Wins: party.p2Wins || 0,
+          matchesPlayed: party.matchesPlayed || 0,
+          totalMatches: party.totalMatches || 3,
+          currentGame: party.currentGame || 'rpg',
+          p1Contacts: party.p1Contacts || [],
+          p2Contacts: party.p2Contacts || [],
+          p1Consumable: party.p1Consumable || null,
+          p2Consumable: party.p2Consumable || null
+        },
+        rpg: { p1Hp: rpg.p1.hp, p1Max: rpg.p1.max, p2Hp: rpg.p2.hp, p2Max: rpg.p2.max, turn: rpg.turn, round: rpg.round },
+        exp: { p1Hp: exp.p1.hp, p1Secured: exp.p1.secured, p1Temp: exp.p1.temp, p1Surfaced: exp.p1.surfaced, p2Hp: exp.p2.hp, p2Secured: exp.p2.secured, p2Temp: exp.p2.temp, p2Surfaced: exp.p2.surfaced, turn: exp.turn, round: exp.round, dive: exp.dive },
+        maf: { p1Prestige: maf.p1.prestige, p1Coins: maf.p1.coins, p1Parcels: maf.p1.parcels || [], p2Prestige: maf.p2.prestige, p2Coins: maf.p2.coins, p2Parcels: maf.p2.parcels || [], turn: maf.turn, round: maf.round, phase: maf.phase },
+        pok: { p1Tokens: pok.p1.tokens, p2Tokens: pok.p2.tokens, turn: pok.turn, round: pok.round }
+      });
+    }
+
+    function applyNetworkState() {
+      if (isHost || !party.latestNetworkState) return;
+      const data = party.latestNetworkState;
+      if (!data) return;
+
+      if (data.party) {
+        party.p1Coins = data.party.p1Coins;
+        party.p2Coins = data.party.p2Coins;
+        party.p1Wins = data.party.p1Wins;
+        party.p2Wins = data.party.p2Wins;
+        party.matchesPlayed = data.party.matchesPlayed;
+        party.p1Contacts = data.party.p1Contacts || [];
+        party.p2Contacts = data.party.p2Contacts || [];
+        party.p1Consumable = data.party.p1Consumable || null;
+        party.p2Consumable = data.party.p2Consumable || null;
+        if (data.party.currentGame) party.currentGame = data.party.currentGame;
+      }
+
+      if (data.rpg) {
+        rpg.p1.hp = data.rpg.p1Hp; rpg.p1.max = data.rpg.p1Max;
+        rpg.p2.hp = data.rpg.p2Hp; rpg.p2.max = data.rpg.p2Max;
+        rpg.turn = data.rpg.turn; rpg.round = data.rpg.round;
+      }
+
+      if (data.exp) {
+        exp.p1.hp = data.exp.p1Hp; exp.p1.secured = data.exp.p1Secured; exp.p1.temp = data.exp.p1Temp; exp.p1.surfaced = data.exp.p1Surfaced;
+        exp.p2.hp = data.exp.p2Hp; exp.p2.secured = data.exp.p2Secured; exp.p2.temp = data.exp.p2Temp; exp.p2.surfaced = data.exp.p2Surfaced;
+        exp.turn = data.exp.turn; exp.round = data.exp.round; exp.dive = data.exp.dive;
+      }
+
+      if (data.maf) {
+        maf.p1.prestige = data.maf.p1Prestige; maf.p1.coins = data.maf.p1Coins; maf.p1.parcels = data.maf.p1Parcels || [];
+        maf.p2.prestige = data.maf.p2Prestige; maf.p2.coins = data.maf.p2Coins; maf.p2.parcels = data.maf.p2Parcels || [];
+        maf.turn = data.maf.turn; maf.round = data.maf.round; maf.phase = data.maf.phase;
+      }
+
+      if (data.pok) {
+        pok.p1.tokens = data.pok.p1Tokens;
+        pok.p2.tokens = data.pok.p2Tokens;
+        pok.turn = data.pok.turn;
+        pok.round = data.pok.round;
+      }
+
+      const p1Val = document.getElementById('global-p1-val');
+      const p2Val = document.getElementById('global-p2-val');
+      if (p1Val) p1Val.innerText = party.p1Wins || 0;
+      if (p2Val) p2Val.innerText = party.p2Wins || 0;
+
+      if (party.currentGame === 'rpg') renderUI_RPG_Only();
+      else if (party.currentGame === 'exp') renderUI_EXP_Only();
+      else if (party.currentGame === 'maf') renderUI_MAF_Only();
+      else if (party.currentGame === 'pok') renderUI_POK_Only();
+
+      updateDeckHUD();
+    }
+
+    function renderUI_RPG_Only() {
+      const roundEl = document.getElementById('round-indicator');
+      if (roundEl) roundEl.innerText = `RONDA ${rpg.round} (GUERRA DE BANDAS)`;
+
+      const m1Box = document.getElementById('rpg-m1-box');
+      const m2Box = document.getElementById('rpg-m2-box');
+
+      if (m1Box) {
+        m1Box.classList.toggle('active-turn', rpg.turn === 1);
+        m1Box.classList.toggle('status-poisoned', rpg.p1.poison > 0);
+        m1Box.classList.toggle('low-hp-warning', rpg.p1.max > 0 && (rpg.p1.hp / rpg.p1.max < 0.25));
+      }
+      if (m2Box) {
+        m2Box.classList.toggle('active-turn', rpg.turn === 2);
+        m2Box.classList.toggle('status-poisoned', rpg.p2.poison > 0);
+        m2Box.classList.toggle('low-hp-warning', rpg.p2.max > 0 && (rpg.p2.hp / rpg.p2.max < 0.25));
+      }
+
+      const hp1 = document.getElementById('rpg-p1-hp-label');
+      const hp2 = document.getElementById('rpg-p2-hp-label');
+      if (hp1) hp1.innerText = `${rpg.p1.hp}/${rpg.p1.max} SALUD`;
+      if (hp2) hp2.innerText = `${rpg.p2.hp}/${rpg.p2.max} SALUD`;
+
+      const p1Bar = document.getElementById('rpg-p1-bar');
+      const p2Bar = document.getElementById('rpg-p2-bar');
+      if (p1Bar) p1Bar.style.width = Math.max(0, (rpg.p1.hp / Math.max(rpg.p1.max, rpg.p1.hp||1) * 100)) + '%';
+      if (p2Bar) p2Bar.style.width = Math.max(0, (rpg.p2.hp / Math.max(rpg.p2.max, rpg.p2.hp||1) * 100)) + '%';
+
+      const att = rpg.turn === 1 ? rpg.p1 : rpg.p2;
+      const badgeH = document.getElementById('rpg-badge-h');
+      if (badgeH) badgeH.innerText = `${att.heals}/3`;
+
+      const dis = party.isWaiting || !isMyTurnNetwork();
+      const btnQ = document.getElementById('rpg-btn-q');
+      const btnS = document.getElementById('rpg-btn-s');
+      const btnH = document.getElementById('rpg-btn-h');
+      const btnP = document.getElementById('rpg-btn-p');
+      const def = rpg.turn === 1 ? rpg.p2 : rpg.p1;
+      if (btnQ) btnQ.disabled = dis;
+      if (btnS) btnS.disabled = dis;
+      if (btnH) btnH.disabled = dis || rpg.round === 1 || att.blocked;
+      if (btnP) btnP.disabled = dis || def.poison > 0;
+    }
+
+    function renderUI_EXP_Only() {
+      const roundEl = document.getElementById('round-indicator');
+      if (roundEl) roundEl.innerText = `RONDA ${exp.round} (EL GRAN ATRACO)`;
+      const diveEl = document.getElementById('exp-dive-indicator');
+      if (diveEl) diveEl.innerText = party.isParty ? 'ATRACO ÚNICO' : `ATRACO ${exp.dive}/${exp.maxDives}`;
+
+      const sec1 = document.getElementById('exp-p1-secured');
+      const sec2 = document.getElementById('exp-p2-secured');
+      if (sec1) sec1.innerText = exp.p1.secured;
+      if (sec2) sec2.innerText = exp.p2.secured;
+
+      const m1Box = document.getElementById('exp-m1-box');
+      const m2Box = document.getElementById('exp-m2-box');
+      if (m1Box) {
+        m1Box.classList.toggle('active-turn', exp.turn === 1 && !exp.p1.surfaced);
+        m1Box.classList.toggle('surfaced', exp.p1.surfaced);
+        m1Box.classList.toggle('low-hp-warning', !exp.p1.surfaced && exp.p1.hp < 5);
+      }
+      if (m2Box) {
+        m2Box.classList.toggle('active-turn', exp.turn === 2 && !exp.p2.surfaced);
+        m2Box.classList.toggle('surfaced', exp.p2.surfaced);
+        m2Box.classList.toggle('low-hp-warning', !exp.p2.surfaced && exp.p2.hp < 5);
+      }
+
+      const hp1 = document.getElementById('exp-p1-hp-label');
+      const hp2 = document.getElementById('exp-p2-hp-label');
+      if (hp1) hp1.innerText = `${exp.p1.hp}/${exp.p1.max} COB`;
+      if (hp2) hp2.innerText = `${exp.p2.hp}/${exp.p2.max} COB`;
+
+      const tLoot1 = document.getElementById('exp-p1-temp-loot');
+      const tLoot2 = document.getElementById('exp-p2-temp-loot');
+      if (tLoot1) tLoot1.innerText = `💰 ${exp.p1.temp}`;
+      if (tLoot2) tLoot2.innerText = `💰 ${exp.p2.temp}`;
+
+      const p1Bar = document.getElementById('exp-p1-bar');
+      const p2Bar = document.getElementById('exp-p2-bar');
+      if (p1Bar) p1Bar.style.width = Math.max(0, (exp.p1.hp / exp.p1.max * 100)) + '%';
+      if (p2Bar) p2Bar.style.width = Math.max(0, (exp.p2.hp / exp.p2.max * 100)) + '%';
+
+      const act = exp.turn === 1 ? exp.p1 : exp.p2;
+      const rvl = exp.turn === 1 ? exp.p2 : exp.p1;
+      const dis = party.isWaiting || act.surfaced || !isMyTurnNetwork();
+
+      const btnQ = document.getElementById('exp-btn-q');
+      const btnS = document.getElementById('exp-btn-s');
+      const btnP = document.getElementById('exp-btn-p');
+      if (btnQ) btnQ.disabled = dis;
+      if (btnS) btnS.disabled = dis;
+      if (btnP) btnP.disabled = dis;
+
+      const maxTorpedos = party.isParty ? 1 : 3;
+      const sabBadge = document.getElementById('exp-badge-sab');
+      const sabBtn = document.getElementById('exp-btn-sab');
+      if (sabBadge) sabBadge.innerText = `${act.torpedoUses}/${maxTorpedos}`;
+      if (sabBtn) sabBtn.disabled = dis || rvl.surfaced || act.torpedoUses >= maxTorpedos;
+
+      const repBadge = document.getElementById('exp-badge-h');
+      const repBtn = document.getElementById('exp-btn-h');
+      if (repBadge && repBtn) {
+        if (!party.isParty) {
+          repBadge.innerText = act.repairUses >= 1 ? `Agotado` : `1/Inv`;
+          repBtn.disabled = dis || act.hp >= act.max || act.repairUses >= 1;
+        } else {
+          repBadge.innerText = act.repairCooldown > 0 ? `Espere ${act.repairCooldown} Rd` : `1/5 Rd`;
+          repBtn.disabled = dis || act.hp >= act.max || act.repairCooldown > 0;
+        }
+      }
+    }
+
+    function renderUI_MAF_Only() {
+      const roundEl = document.getElementById('round-indicator');
+      if (roundEl) roundEl.innerText = `RONDA ${maf.round} (IMPERIO CRIMINAL)`;
+
+      const m1Box = document.getElementById('maf-m1-box');
+      const m2Box = document.getElementById('maf-m2-box');
+      if (m1Box) m1Box.classList.toggle('active-turn', maf.turn === 1);
+      if (m2Box) m2Box.classList.toggle('active-turn', maf.turn === 2);
+
+      const p1P = document.getElementById('maf-p1-prestige');
+      const p2P = document.getElementById('maf-p2-prestige');
+      if (p1P) p1P.innerText = `${maf.p1.prestige}/${maf.winScore} INFLUENCIA`;
+      if (p2P) p2P.innerText = `${maf.p2.prestige}/${maf.winScore} INFLUENCIA`;
+
+      const p1C = document.getElementById('maf-p1-coins');
+      const p2C = document.getElementById('maf-p2-coins');
+      if (p1C) p1C.innerText = maf.p1.coins;
+      if (p2C) p2C.innerText = maf.p2.coins;
+
+      const p1Bar = document.getElementById('maf-p1-bar');
+      const p2Bar = document.getElementById('maf-p2-bar');
+      if (p1Bar) p1Bar.style.width = Math.max(0, (maf.p1.prestige / maf.winScore * 100)) + '%';
+      if (p2Bar) p2Bar.style.width = Math.max(0, (maf.p2.prestige / maf.winScore * 100)) + '%';
+
+      renderDistricts('maf-p1-parcels', maf.p1);
+      renderDistricts('maf-p2-parcels', maf.p2);
+
+      const isWait = party.isWaiting || !isMyTurnNetwork();
+      const isRollPhase = maf.phase === 'roll';
+      const isActionPhase = maf.phase === 'action';
+      const act = maf.turn === 1 ? maf.p1 : maf.p2;
+      const rvl = maf.turn === 1 ? maf.p2 : maf.p1;
+
+      const rollSec = document.getElementById('maf-phase-roll');
+      const actSec = document.getElementById('maf-phase-action');
+      if (rollSec) rollSec.classList.toggle('hidden', !isRollPhase);
+      if (actSec) actSec.classList.toggle('hidden', !isActionPhase);
+
+      const nextParcelCost = act.parcels.length >= 6 ? 'MAX' : act.parcels.length + 1;
+      const costBuyEl = document.getElementById('maf-cost-buy');
+      if (costBuyEl) costBuyEl.innerText = nextParcelCost === 'MAX' ? `Límite Alcanzado` : `Costo: ${nextParcelCost} Efectivo`;
+
+      const rvlActiveSabotages = Object.values(rvl.sabotages).filter(v => v > 0).length;
+
+      const btnSafe = document.getElementById('maf-btn-safe');
+      const btnExo = document.getElementById('maf-btn-exotic');
+      const btnBuy = document.getElementById('maf-btn-buy');
+      const btnBrew = document.getElementById('maf-btn-brew');
+      const btnSab = document.getElementById('maf-btn-sab');
+      const btnPass = document.getElementById('maf-btn-pass');
+
+      if (btnSafe) btnSafe.disabled = isWait;
+      if (btnExo) btnExo.disabled = isWait;
+      if (btnBuy) btnBuy.disabled = isWait || nextParcelCost === 'MAX' || act.coins < nextParcelCost;
+      if (btnBrew) btnBrew.disabled = isWait || act.coins < 5;
+      if (btnSab) btnSab.disabled = isWait || act.coins < 3 || rvlActiveSabotages >= 3;
+      if (btnPass) btnPass.disabled = isWait;
+    }
+
+    function renderUI_POK_Only() {
+      const roundEl = document.getElementById('round-indicator');
+      if (roundEl) roundEl.innerText = `RONDA ${pok.round}/${pok.maxRounds} (APUESTAS CLANDESTINAS)`;
+
+      const m1Box = document.getElementById('pok-m1-box');
+      const m2Box = document.getElementById('pok-m2-box');
+      if (m1Box) {
+        m1Box.classList.toggle('active-turn', pok.turn === 1);
+        m1Box.classList.toggle('low-hp-warning', pok.p1.tokens <= 2);
+      }
+      if (m2Box) {
+        m2Box.classList.toggle('active-turn', pok.turn === 2);
+        m2Box.classList.toggle('low-hp-warning', pok.p2.tokens <= 2);
+      }
+
+      const p1Tok = document.getElementById('pok-p1-tokens');
+      const p2Tok = document.getElementById('pok-p2-tokens');
+      if (p1Tok) p1Tok.innerText = pok.p1.tokens;
+      if (p2Tok) p2Tok.innerText = pok.p2.tokens;
+
+      const act = pok.turn === 1 ? pok.p1 : pok.p2;
+      const rvl = pok.turn === 1 ? pok.p2 : pok.p1;
+      const dis = party.isWaiting || !isMyTurnNetwork();
+
+      const btnQ = document.getElementById('pok-btn-q');
+      const btnS = document.getElementById('pok-btn-s');
+      if (btnQ) btnQ.disabled = dis || act.tokens < 1 || rvl.tokens < 1;
+      if (btnS) btnS.disabled = dis || act.tokens < 3 || rvl.tokens < 1;
+
+      const tahurBadge = document.getElementById('pok-badge-sab');
+      const tahurBtn = document.getElementById('pok-btn-sab');
+      if (tahurBadge && tahurBtn) {
+        if (party.isParty) {
+          tahurBadge.innerText = act.tahurUsos >= 1 ? `Agotado` : `1/Partida`;
+          tahurBtn.disabled = dis || act.tahurUsos >= 1 || rvl.tokens <= 0;
+        } else {
+          tahurBadge.innerText = act.tahurCD > 0 ? `Espera ${act.tahurCD} Rd` : `Activo`;
+          tahurBtn.disabled = dis || act.tahurCD > 0 || rvl.tokens <= 0;
+        }
+      }
+    }
+
     function updateUI_RPG() {
       document.getElementById('round-indicator').innerText = `RONDA ${rpg.round} (GUERRA DE BANDAS)`;
       
@@ -3978,9 +4241,12 @@ let party = {
       updateDeckHUD();
       updateHeartbeat();
       checkAiTurn();
-      if (isHost) syncStateToNetwork();
+      party.actionInProgress = false;
+      if (gameMode === 'online') {
+        if (isHost) syncStateToNetwork();
+        else if (party.latestNetworkState) applyNetworkState();
+      }
     }
-
     // ==========================================
     // EL GRAN ATRACO (EXP)
     // ==========================================
@@ -4327,7 +4593,11 @@ let party = {
       updateDeckHUD();
       updateHeartbeat();
       checkAiTurn();
-      if (isHost) syncStateToNetwork();
+      party.actionInProgress = false;
+      if (gameMode === 'online') {
+        if (isHost) syncStateToNetwork();
+        else if (party.latestNetworkState) applyNetworkState();
+      }
     }
 
     // ==========================================
@@ -4697,7 +4967,11 @@ let options = [];
       updateDeckHUD();
       updateHeartbeat();
       checkAiTurn();
-      if (isHost) syncStateToNetwork();
+      party.actionInProgress = false;
+      if (gameMode === 'online') {
+        if (isHost) syncStateToNetwork();
+        else if (party.latestNetworkState) applyNetworkState();
+      }
     }
 
     function renderDistricts(containerId, playerState) {
@@ -4963,7 +5237,11 @@ let options = [];
       updateDeckHUD();
       updateHeartbeat();
       checkAiTurn();
-      if (isHost) syncStateToNetwork();
+      party.actionInProgress = false;
+      if (gameMode === 'online') {
+        if (isHost) syncStateToNetwork();
+        else if (party.latestNetworkState) applyNetworkState();
+      }
     }
 
   </script>
