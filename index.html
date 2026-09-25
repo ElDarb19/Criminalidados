@@ -1334,8 +1334,7 @@
       { id: 'contact_chofer', name: 'Chófer de Huida', icon: '🚗', cost: 210, desc: 'Si tu HP/COB cae del 25%, obtienes +3 de reducción de daño.', type: 'contact', incompatible: ['maf', 'pok'] },
       { id: 'contact_quimico', name: 'Químico Chiflado', icon: '🧪', cost: 310, desc: 'Impactos críticos o d20=20 aplican Veneno por 3 rondas.', type: 'contact', incompatible: ['exp', 'maf', 'pok'] },
       { id: 'contact_arquitecto', name: 'Arquitecto de Búnkeres', icon: '🏛️', cost: 340, desc: 'Distritos producen +25% ingresos y bloquean la 1ª Redada.', type: 'contact', incompatible: ['rpg', 'exp', 'pok'] },
-      { id: 'contact_soplon', name: 'Soplón Infiltrado', icon: '🕵️', cost: 170, desc: 'Revela la táctica o estado estratégico del rival.', type: 'contact', incompatible: [] },
-      
+
       // CONSUMIBLES
       { id: 'item_puro', name: 'Puro del Capo', icon: '🚬', cost: 80, desc: 'Repite la última tirada de dado.', type: 'consumable', incompatible: [] },
       { id: 'item_whisky', name: 'Whisky Clandestino', icon: '🥃', cost: 100, desc: 'Duplica el daño/botín, pero resta 2 HP/Cobertura.', type: 'consumable', incompatible: ['maf', 'pok'] },
@@ -1358,8 +1357,9 @@
     function resetRollSync() {
       netRollIndex = 0;
       if (isHost && gameMode === 'online' && roomPath) {
-        db.ref(roomPath + '/rolls').remove();
-        db.ref(roomPath + '/guestManualRolls').remove();
+        const matchKey = `m${party.matchesPlayed || 0}`;
+        db.ref(roomPath + '/rolls/' + matchKey).remove();
+        db.ref(roomPath + '/guestManualRolls/' + matchKey).remove();
       }
     }
 
@@ -1706,27 +1706,28 @@
       }
       
       const rollIdx = netRollIndex++;
+      const matchKey = `m${party.matchesPlayed || 0}`;
       
       if (isHost) {
         return new Promise((resolve) => {
           const valToSet = forcedVal !== null ? forcedVal : (Math.floor(Math.random() * sides) + 1);
           if (roomPath) {
-            db.ref(roomPath + '/rolls/' + rollIdx).set(valToSet);
+            db.ref(roomPath + `/rolls/${matchKey}/` + rollIdx).set(valToSet);
           }
           resolve(valToSet);
         });
       } else {
         if (forcedVal !== null && roomPath) {
-          db.ref(roomPath + '/guestManualRolls/' + rollIdx).set(forcedVal);
+          db.ref(roomPath + `/guestManualRolls/${matchKey}/` + rollIdx).set(forcedVal);
         }
         return new Promise((resolve) => {
           if (!roomPath) {
             resolve(forcedVal !== null ? forcedVal : (Math.floor(Math.random() * sides) + 1));
             return;
           }
-          const rollRef = db.ref(roomPath + '/rolls/' + rollIdx);
+          const rollRef = db.ref(roomPath + `/rolls/${matchKey}/` + rollIdx);
           rollRef.on('value', function handler(snap) {
-            if (snap.exists()) {
+            if (snap.exists() && snap.val() !== null) {
               rollRef.off('value', handler);
               resolve(snap.val());
             }
@@ -1765,7 +1766,8 @@ let party = {
       p1Consumable: null, p2Consumable: null, // FASE 3: 1 Slot de consumible
       p1Combo: 1.0, p2Combo: 1.0, // FASE 4: Combos
       cityEvent: null, // FASE 5: Modificadores globales
-      currentMarketStock: [],
+      p1MarketStock: [], p2MarketStock: [],
+      p1RerollCost: 50, p2RerollCost: 50,
       lastRollData: null
     };
 
@@ -2482,19 +2484,29 @@ let party = {
       if (party.currentGame === 'pok') initPOK();
     }
 
-    function generateMarketStock() {
-      if (gameMode === 'online' && !isHost) return; // El Host determina el stock oficial
-      const shuffled = [...MARKET_CATALOG].sort(() => Math.random() - 0.5);
-      const stock = shuffled.slice(0, 4);
-      party.currentMarketStock = stock;
+    function generateMarketStock(forPlayer = null) {
+      const get4Random = () => [...MARKET_CATALOG].sort(() => Math.random() - 0.5).slice(0, 4);
+      
+      if (!forPlayer || forPlayer === 1) {
+        party.p1MarketStock = get4Random();
+      }
+      if (!forPlayer || forPlayer === 2) {
+        party.p2MarketStock = get4Random();
+      }
+      
       if (gameMode === 'online' && isHost && roomPath) {
-        const itemIds = stock.map(i => i.id);
-        dispatchAction('syncMarketStock', itemIds);
+        const p1Ids = (party.p1MarketStock || []).map(i => i.id);
+        const p2Ids = (party.p2MarketStock || []).map(i => i.id);
+        dispatchAction('syncMarketStock', 1, p1Ids);
+        dispatchAction('syncMarketStock', 2, p2Ids);
       }
     }
 
-    window.syncMarketStock = function(itemIds) {
-      party.currentMarketStock = itemIds.map(id => MARKET_CATALOG.find(i => i.id === id)).filter(Boolean);
+    window.syncMarketStock = function(playerNum, itemIds) {
+      const stock = itemIds.map(id => MARKET_CATALOG.find(i => i.id === id)).filter(Boolean);
+      if (playerNum === 1) party.p1MarketStock = stock;
+      else party.p2MarketStock = stock;
+
       const marketModal = document.getElementById('modal-market');
       if (marketModal && !marketModal.classList.contains('hidden')) {
         renderBlackMarket();
@@ -2535,7 +2547,8 @@ let party = {
 
       party.p1Coins = (party.p1Coins || 0) + p1Reward;
       party.p2Coins = (party.p2Coins || 0) + p2Reward;
-      party.rerollCost = 50;
+      party.p1RerollCost = 50;
+      party.p2RerollCost = 50;
       generateMarketStock();
 
       document.getElementById('global-p1-val').innerText = party.p1Wins;
@@ -2605,16 +2618,23 @@ let party = {
     function renderBlackMarket() {
       document.getElementById('market-p1-coins').innerText = party.p1Coins || 0;
       document.getElementById('market-p2-coins').innerText = party.p2Coins || 0;
-      const rerollCostEl = document.getElementById('reroll-cost-display');
-      if (rerollCostEl) rerollCostEl.innerText = party.rerollCost || 50;
-      
-      const container = document.getElementById('market-grid-container');
-      container.innerHTML = '';
 
       const isLocal = gameMode === 'local';
       const myPlayerNum = (gameMode === 'online' && !isHost) ? 2 : (isLocal ? localMarketBuyer : 1);
       const myCoins = myPlayerNum === 1 ? party.p1Coins : party.p2Coins;
       const buyerName = myPlayerNum === 1 ? party.p1Name : party.p2Name;
+      const myRerollCost = myPlayerNum === 1 ? (party.p1RerollCost || 50) : (party.p2RerollCost || 50);
+
+      const rerollCostEl = document.getElementById('reroll-cost-display');
+      if (rerollCostEl) rerollCostEl.innerText = myRerollCost;
+
+      const rerollBtn = document.querySelector('#modal-market .btn-buy-market[onclick*="rerollMarket"]');
+      if (rerollBtn) {
+        rerollBtn.onclick = () => dispatchAction('rerollMarket', myPlayerNum);
+      }
+
+      const container = document.getElementById('market-grid-container');
+      container.innerHTML = '';
 
       // Botón Alternador para Modo Local
       if (isLocal) {
@@ -2627,7 +2647,9 @@ let party = {
         container.appendChild(toggleDiv);
       }
 
-      party.currentMarketStock.forEach(item => {
+      const currentStock = myPlayerNum === 1 ? (party.p1MarketStock || []) : (party.p2MarketStock || []);
+
+      currentStock.forEach(item => {
         const card = document.createElement('div');
         card.className = 'market-item-card';
         
@@ -2726,20 +2748,27 @@ let party = {
       renderBlackMarket();
     };
 
-    window.rerollMarket = function() {
-      const myTurn = isMyTurnNetwork();
-      if (gameMode !== 'local' && gameMode !== 'solo' && !myTurn) return;
-      
-      const myPlayerNum = (gameMode === 'online' && !isHost) ? 2 : (gameMode === 'local' ? localMarketBuyer : 1);
+    window.rerollMarket = function(pNumParam) {
+      const myPlayerNum = pNumParam || ((gameMode === 'online' && !isHost) ? 2 : (gameMode === 'local' ? localMarketBuyer : 1));
       const currentCoins = myPlayerNum === 1 ? party.p1Coins : party.p2Coins;
-      const cost = party.rerollCost || 50;
+      const currentRerollCost = myPlayerNum === 1 ? (party.p1RerollCost || 50) : (party.p2RerollCost || 50);
 
-      if (currentCoins >= cost) {
-        if (myPlayerNum === 1) party.p1Coins -= cost;
-        else party.p2Coins -= cost;
-        
-        party.rerollCost = cost + 25; // Incrementa el costo
-        generateMarketStock(); // Refresca tienda
+      if (currentCoins >= currentRerollCost) {
+        if (myPlayerNum === 1) {
+          party.p1Coins -= currentRerollCost;
+          party.p1RerollCost = currentRerollCost + 25;
+          party.p1MarketStock = [...MARKET_CATALOG].sort(() => Math.random() - 0.5).slice(0, 4);
+          if (gameMode === 'online' && roomPath) {
+            dispatchAction('syncMarketStock', 1, party.p1MarketStock.map(i => i.id));
+          }
+        } else {
+          party.p2Coins -= currentRerollCost;
+          party.p2RerollCost = currentRerollCost + 25;
+          party.p2MarketStock = [...MARKET_CATALOG].sort(() => Math.random() - 0.5).slice(0, 4);
+          if (gameMode === 'online' && roomPath) {
+            dispatchAction('syncMarketStock', 2, party.p2MarketStock.map(i => i.id));
+          }
+        }
         playSound('diceLanding');
         renderBlackMarket();
       } else {
@@ -2749,7 +2778,8 @@ let party = {
 
     function executeAiMarketPurchases() {
       if (gameMode !== 'solo') return;
-      party.currentMarketStock.forEach(item => {
+      const aiStock = party.p2MarketStock || [];
+      aiStock.forEach(item => {
         if (party.p2Coins >= item.cost && Math.random() < 0.6) {
           buyMarketItem(2, item.id);
         }
@@ -4370,10 +4400,11 @@ let party = {
       }
 
       openChoiceModal("CONTROLAR DISTRITO", `El costo actual para expandir tu territorio es de ${cost}💵. Elige el Distrito a tomar:`, options, async (val) => {
-        await showActionModal(pNum, "¡DISTRITO CONTROLADO!", "maf_buy", "anim-slam", 1200);
         act.coins = Math.max(0, act.coins - cost);
         act.parcels.push(val);
         act.parcels.sort((a, b) => a - b);
+        updateUI_MAF();
+        await showActionModal(pNum, "¡DISTRITO CONTROLADO!", "maf_buy", "anim-slam", 1200);
         cLog(`🏢 ${actName} toma el control del Distrito [${val}].`);
         addCombo(pNum);
         playSound('coin');
