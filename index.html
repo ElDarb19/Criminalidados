@@ -1566,13 +1566,67 @@
         });
       }
 
+      db.ref(roomPath + '/state').off();
+
       db.ref(roomPath + '/actions').on('child_added', (snap) => {
         const data = snap.val();
         if (window[data.func]) {
-            // Al recibir una acción remota vía Firebase, liberamos temporalmente el candado de espera local
             party.isWaiting = false;
             window[data.func].apply(null, data.args);
         }
+      });
+
+      // Escucha de Estado de Verdad Host (Sincronización Multijugador Total)
+      db.ref(roomPath + '/state').on('value', (snap) => {
+        if (isHost || !snap.exists()) return;
+        const data = snap.val();
+        if (!data) return;
+
+        if (data.party) {
+          party.p1Coins = data.party.p1Coins;
+          party.p2Coins = data.party.p2Coins;
+          party.p1Wins = data.party.p1Wins;
+          party.p2Wins = data.party.p2Wins;
+          party.matchesPlayed = data.party.matchesPlayed;
+          party.p1Contacts = data.party.p1Contacts || [];
+          party.p2Contacts = data.party.p2Contacts || [];
+          party.p1Consumable = data.party.p1Consumable || null;
+          party.p2Consumable = data.party.p2Consumable || null;
+          if (data.party.currentGame) party.currentGame = data.party.currentGame;
+        }
+
+        if (data.rpg) {
+          rpg.p1.hp = data.rpg.p1Hp; rpg.p1.max = data.rpg.p1Max;
+          rpg.p2.hp = data.rpg.p2Hp; rpg.p2.max = data.rpg.p2Max;
+          rpg.turn = data.rpg.turn; rpg.round = data.rpg.round;
+        }
+
+        if (data.exp) {
+          exp.p1.hp = data.exp.p1Hp; exp.p1.secured = data.exp.p1Secured; exp.p1.temp = data.exp.p1Temp; exp.p1.surfaced = data.exp.p1Surfaced;
+          exp.p2.hp = data.exp.p2Hp; exp.p2.secured = data.exp.p2Secured; exp.p2.temp = data.exp.p2Temp; exp.p2.surfaced = data.exp.p2Surfaced;
+          exp.turn = data.exp.turn; exp.round = data.exp.round; exp.dive = data.exp.dive;
+        }
+
+        if (data.maf) {
+          maf.p1.prestige = data.maf.p1Prestige; maf.p1.coins = data.maf.p1Coins; maf.p1.parcels = data.maf.p1Parcels || [];
+          maf.p2.prestige = data.maf.p2Prestige; maf.p2.coins = data.maf.p2Coins; maf.p2.parcels = data.maf.p2Parcels || [];
+          maf.turn = data.maf.turn; maf.round = data.maf.round; maf.phase = data.maf.phase;
+        }
+
+        if (data.pok) {
+          pok.p1.tokens = data.pok.p1Tokens;
+          pok.p2.tokens = data.pok.p2Tokens;
+          pok.turn = data.pok.turn;
+          pok.round = data.pok.round;
+        }
+
+        // Refresco de interfaz
+        if (party.currentGame === 'rpg') updateUI_RPG();
+        else if (party.currentGame === 'exp') updateUI_EXP();
+        else if (party.currentGame === 'maf') updateUI_MAF();
+        else if (party.currentGame === 'pok') updateUI_POK();
+
+        updateDeckHUD();
       });
 
       db.ref(roomPath + '/gameStatus').on('value', (snap) => {
@@ -2725,6 +2779,7 @@ let party = {
       }
 
       renderBlackMarket();
+      if (isHost) syncStateToNetwork();
     };
 
     window.sellMarketItem = function(playerNum, itemId) {
@@ -3856,6 +3911,30 @@ let party = {
       handleMiniGameEnd(winnerCode, "Capo Eliminado");
     }
 
+    function syncStateToNetwork() {
+      if (gameMode !== 'online' || !isHost || !roomPath) return;
+
+      db.ref(roomPath + '/state').set({
+        party: {
+          p1Coins: party.p1Coins || 0,
+          p2Coins: party.p2Coins || 0,
+          p1Wins: party.p1Wins || 0,
+          p2Wins: party.p2Wins || 0,
+          matchesPlayed: party.matchesPlayed || 0,
+          totalMatches: party.totalMatches || 3,
+          currentGame: party.currentGame || 'rpg',
+          p1Contacts: party.p1Contacts || [],
+          p2Contacts: party.p2Contacts || [],
+          p1Consumable: party.p1Consumable || null,
+          p2Consumable: party.p2Consumable || null
+        },
+        rpg: { p1Hp: rpg.p1.hp, p1Max: rpg.p1.max, p2Hp: rpg.p2.hp, p2Max: rpg.p2.max, turn: rpg.turn, round: rpg.round },
+        exp: { p1Hp: exp.p1.hp, p1Secured: exp.p1.secured, p1Temp: exp.p1.temp, p1Surfaced: exp.p1.surfaced, p2Hp: exp.p2.hp, p2Secured: exp.p2.secured, p2Temp: exp.p2.temp, p2Surfaced: exp.p2.surfaced, turn: exp.turn, round: exp.round, dive: exp.dive },
+        maf: { p1Prestige: maf.p1.prestige, p1Coins: maf.p1.coins, p1Parcels: maf.p1.parcels || [], p2Prestige: maf.p2.prestige, p2Coins: maf.p2.coins, p2Parcels: maf.p2.parcels || [], turn: maf.turn, round: maf.round, phase: maf.phase },
+        pok: { p1Tokens: pok.p1.tokens, p2Tokens: pok.p2.tokens, turn: pok.turn, round: pok.round }
+      });
+    }
+
     function updateUI_RPG() {
       document.getElementById('round-indicator').innerText = `RONDA ${rpg.round} (GUERRA DE BANDAS)`;
       
@@ -3899,6 +3978,7 @@ let party = {
       updateDeckHUD();
       updateHeartbeat();
       checkAiTurn();
+      if (isHost) syncStateToNetwork();
     }
 
     // ==========================================
@@ -4247,6 +4327,7 @@ let party = {
       updateDeckHUD();
       updateHeartbeat();
       checkAiTurn();
+      if (isHost) syncStateToNetwork();
     }
 
     // ==========================================
@@ -4616,6 +4697,7 @@ let options = [];
       updateDeckHUD();
       updateHeartbeat();
       checkAiTurn();
+      if (isHost) syncStateToNetwork();
     }
 
     function renderDistricts(containerId, playerState) {
@@ -4881,6 +4963,7 @@ let options = [];
       updateDeckHUD();
       updateHeartbeat();
       checkAiTurn();
+      if (isHost) syncStateToNetwork();
     }
 
   </script>
