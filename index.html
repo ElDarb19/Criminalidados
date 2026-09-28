@@ -1572,16 +1572,6 @@
         const data = snap.val();
         if (window[data.func]) {
             party.isWaiting = false;
-            window[data.func].apply(null, data.args);
-        }
-      });
-
-      db.ref(roomPath + '/state').off();
-
-      db.ref(roomPath + '/actions').on('child_added', (snap) => {
-        const data = snap.val();
-        if (window[data.func]) {
-            party.isWaiting = false;
             party.actionInProgress = true;
             window[data.func].apply(null, data.args);
         }
@@ -1717,6 +1707,7 @@
         if (!isMyTurnNetwork()) return; 
       }
 
+      party.isWaiting = true;
       db.ref(roomPath + '/actions').push({ func: funcName, args: args, ts: firebase.database.ServerValue.TIMESTAMP });
     }
 
@@ -3897,34 +3888,26 @@ let party = {
           p1Consumable: party.p1Consumable || null,
           p2Consumable: party.p2Consumable || null
         },
-        rpg: { p1Hp: rpg.p1.hp, p1Max: rpg.p1.max, p2Hp: rpg.p2.hp, p2Max: rpg.p2.max, turn: rpg.turn, round: rpg.round },
-        exp: { p1Hp: exp.p1.hp, p1Secured: exp.p1.secured, p1Temp: exp.p1.temp, p1Surfaced: exp.p1.surfaced, p2Hp: exp.p2.hp, p2Secured: exp.p2.secured, p2Temp: exp.p2.temp, p2Surfaced: exp.p2.surfaced, turn: exp.turn, round: exp.round, dive: exp.dive },
-        maf: { p1Prestige: maf.p1.prestige, p1Coins: maf.p1.coins, p1Parcels: maf.p1.parcels || [], p2Prestige: maf.p2.prestige, p2Coins: maf.p2.coins, p2Parcels: maf.p2.parcels || [], turn: maf.turn, round: maf.round, phase: maf.phase },
-        pok: { p1Tokens: pok.p1.tokens, p2Tokens: pok.p2.tokens, turn: pok.turn, round: pok.round }
-      });
-    }
-
-    function syncStateToNetwork() {
-      if (gameMode !== 'online' || !isHost || !roomPath) return;
-
-      db.ref(roomPath + '/state').set({
-        party: {
-          p1Coins: party.p1Coins || 0,
-          p2Coins: party.p2Coins || 0,
-          p1Wins: party.p1Wins || 0,
-          p2Wins: party.p2Wins || 0,
-          matchesPlayed: party.matchesPlayed || 0,
-          totalMatches: party.totalMatches || 3,
-          currentGame: party.currentGame || 'rpg',
-          p1Contacts: party.p1Contacts || [],
-          p2Contacts: party.p2Contacts || [],
-          p1Consumable: party.p1Consumable || null,
-          p2Consumable: party.p2Consumable || null
+        rpg: { 
+          p1Hp: rpg.p1.hp, p1Max: rpg.p1.max, p1Poison: rpg.p1.poison || 0, p1Heals: rpg.p1.heals || 0, p1Blocked: !!rpg.p1.blocked,
+          p2Hp: rpg.p2.hp, p2Max: rpg.p2.max, p2Poison: rpg.p2.poison || 0, p2Heals: rpg.p2.heals || 0, p2Blocked: !!rpg.p2.blocked,
+          turn: rpg.turn, round: rpg.round 
         },
-        rpg: { p1Hp: rpg.p1.hp, p1Max: rpg.p1.max, p2Hp: rpg.p2.hp, p2Max: rpg.p2.max, turn: rpg.turn, round: rpg.round },
-        exp: { p1Hp: exp.p1.hp, p1Secured: exp.p1.secured, p1Temp: exp.p1.temp, p1Surfaced: exp.p1.surfaced, p2Hp: exp.p2.hp, p2Secured: exp.p2.secured, p2Temp: exp.p2.temp, p2Surfaced: exp.p2.surfaced, turn: exp.turn, round: exp.round, dive: exp.dive },
-        maf: { p1Prestige: maf.p1.prestige, p1Coins: maf.p1.coins, p1Parcels: maf.p1.parcels || [], p2Prestige: maf.p2.prestige, p2Coins: maf.p2.coins, p2Parcels: maf.p2.parcels || [], turn: maf.turn, round: maf.round, phase: maf.phase },
-        pok: { p1Tokens: pok.p1.tokens, p2Tokens: pok.p2.tokens, turn: pok.turn, round: pok.round }
+        exp: { 
+          p1Hp: exp.p1.hp, p1Max: exp.p1.max || 20, p1Secured: exp.p1.secured, p1Temp: exp.p1.temp, p1Surfaced: exp.p1.surfaced, p1RepairUses: exp.p1.repairUses || 0, p1RepairCD: exp.p1.repairCooldown || 0, p1TorpedoUses: exp.p1.torpedoUses || 0,
+          p2Hp: exp.p2.hp, p2Max: exp.p2.max || 20, p2Secured: exp.p2.secured, p2Temp: exp.p2.temp, p2Surfaced: exp.p2.surfaced, p2RepairUses: exp.p2.repairUses || 0, p2RepairCD: exp.p2.repairCooldown || 0, p2TorpedoUses: exp.p2.torpedoUses || 0,
+          turn: exp.turn, round: exp.round, dive: exp.dive 
+        },
+        maf: { 
+          p1Prestige: maf.p1.prestige, p1Coins: maf.p1.coins, p1Parcels: maf.p1.parcels || [], p1Sabotages: maf.p1.sabotages || {},
+          p2Prestige: maf.p2.prestige, p2Coins: maf.p2.coins, p2Parcels: maf.p2.parcels || [], p2Sabotages: maf.p2.sabotages || {},
+          turn: maf.turn, round: maf.round, phase: maf.phase 
+        },
+        pok: { 
+          p1Tokens: pok.p1.tokens, p1TahurCD: pok.p1.tahurCD || 0, p1TahurUsos: pok.p1.tahurUsos || 0,
+          p2Tokens: pok.p2.tokens, p2TahurCD: pok.p2.tahurCD || 0, p2TahurUsos: pok.p2.tahurUsos || 0,
+          turn: pok.turn, round: pok.round 
+        }
       });
     }
 
@@ -3947,26 +3930,26 @@ let party = {
       }
 
       if (data.rpg) {
-        rpg.p1.hp = data.rpg.p1Hp; rpg.p1.max = data.rpg.p1Max;
-        rpg.p2.hp = data.rpg.p2Hp; rpg.p2.max = data.rpg.p2Max;
+        rpg.p1.hp = data.rpg.p1Hp; rpg.p1.max = data.rpg.p1Max; rpg.p1.poison = data.rpg.p1Poison || 0; rpg.p1.heals = data.rpg.p1Heals || 0; rpg.p1.blocked = !!data.rpg.p1Blocked;
+        rpg.p2.hp = data.rpg.p2Hp; rpg.p2.max = data.rpg.p2Max; rpg.p2.poison = data.rpg.p2Poison || 0; rpg.p2.heals = data.rpg.p2Heals || 0; rpg.p2.blocked = !!data.rpg.p2Blocked;
         rpg.turn = data.rpg.turn; rpg.round = data.rpg.round;
       }
 
       if (data.exp) {
-        exp.p1.hp = data.exp.p1Hp; exp.p1.secured = data.exp.p1Secured; exp.p1.temp = data.exp.p1Temp; exp.p1.surfaced = data.exp.p1Surfaced;
-        exp.p2.hp = data.exp.p2Hp; exp.p2.secured = data.exp.p2Secured; exp.p2.temp = data.exp.p2Temp; exp.p2.surfaced = data.exp.p2Surfaced;
+        exp.p1.hp = data.exp.p1Hp; exp.p1.max = data.exp.p1Max || 20; exp.p1.secured = data.exp.p1Secured; exp.p1.temp = data.exp.p1Temp; exp.p1.surfaced = data.exp.p1Surfaced; exp.p1.repairUses = data.exp.p1RepairUses || 0; exp.p1.repairCooldown = data.exp.p1RepairCD || 0; exp.p1.torpedoUses = data.exp.p1TorpedoUses || 0;
+        exp.p2.hp = data.exp.p2Hp; exp.p2.max = data.exp.p2Max || 20; exp.p2.secured = data.exp.p2Secured; exp.p2.temp = data.exp.p2Temp; exp.p2.surfaced = data.exp.p2Surfaced; exp.p2.repairUses = data.exp.p2RepairUses || 0; exp.p2.repairCooldown = data.exp.p2RepairCD || 0; exp.p2.torpedoUses = data.exp.p2TorpedoUses || 0;
         exp.turn = data.exp.turn; exp.round = data.exp.round; exp.dive = data.exp.dive;
       }
 
       if (data.maf) {
-        maf.p1.prestige = data.maf.p1Prestige; maf.p1.coins = data.maf.p1Coins; maf.p1.parcels = data.maf.p1Parcels || [];
-        maf.p2.prestige = data.maf.p2Prestige; maf.p2.coins = data.maf.p2Coins; maf.p2.parcels = data.maf.p2Parcels || [];
+        maf.p1.prestige = data.maf.p1Prestige; maf.p1.coins = data.maf.p1Coins; maf.p1.parcels = data.maf.p1Parcels || []; maf.p1.sabotages = data.maf.p1Sabotages || {1:0, 2:0, 3:0, 4:0, 5:0, 6:0};
+        maf.p2.prestige = data.maf.p2Prestige; maf.p2.coins = data.maf.p2Coins; maf.p2.parcels = data.maf.p2Parcels || []; maf.p2.sabotages = data.maf.p2Sabotages || {1:0, 2:0, 3:0, 4:0, 5:0, 6:0};
         maf.turn = data.maf.turn; maf.round = data.maf.round; maf.phase = data.maf.phase;
       }
 
       if (data.pok) {
-        pok.p1.tokens = data.pok.p1Tokens;
-        pok.p2.tokens = data.pok.p2Tokens;
+        pok.p1.tokens = data.pok.p1Tokens; pok.p1.tahurCD = data.pok.p1TahurCD || 0; pok.p1.tahurUsos = data.pok.p1TahurUsos || 0;
+        pok.p2.tokens = data.pok.p2Tokens; pok.p2.tahurCD = data.pok.p2TahurCD || 0; pok.p2.tahurUsos = data.pok.p2TahurUsos || 0;
         pok.turn = data.pok.turn;
         pok.round = data.pok.round;
       }
