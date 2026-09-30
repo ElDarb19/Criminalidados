@@ -1357,6 +1357,7 @@
     let networkActionChain = Promise.resolve();
     let networkLastActionId = null;
     let lastAppliedActionId = null;
+    let networkInitInProgress = false;
 
     function resetRollSync() {
       netRollIndex = 0;
@@ -1590,9 +1591,20 @@
         party.latestNetworkState = data;
         networkStateReady = true;
 
-        if (!isHost && !party.actionInProgress && currentGameStatus === 'PLAYING') {
-          applyNetworkState();
-        }
+        if (isHost || currentGameStatus !== 'PLAYING') return;
+
+        // Durante la inicialización ambos clientes consumen la misma secuencia
+        // de tiradas. El estado del Host puede llegar a mitad de esa secuencia;
+        // aplicarlo en ese momento sobrescribiría la partida local de P2.
+        if (networkInitInProgress) return;
+
+        // Un estado posterior a una acción NO debe aplicarse antes de que el
+        // evento de esa acción llegue por /actions. De lo contrario P2 puede
+        // aplicar el resultado y luego saltarse la acción (o ejecutarla dos veces).
+        const incomingActionId = data.networkMeta?.lastActionId || null;
+        if (incomingActionId && incomingActionId !== lastAppliedActionId) return;
+
+        if (!party.actionInProgress) applyNetworkState();
       };
       stateRef.on('value', handleStateSnapshot);
 
@@ -2491,6 +2503,9 @@ let party = {
           party.latestNetworkState = stateSnap.val();
           networkStateReady = true;
           networkLastActionId = stateSnap.val().networkMeta?.lastActionId || null;
+          if (Number.isInteger(stateSnap.val().networkMeta?.rollIndex)) {
+            netRollIndex = stateSnap.val().networkMeta.rollIndex;
+          }
           applyNetworkState();
           return;
         }
@@ -2534,6 +2549,7 @@ let party = {
     }
 
     async function startNextMiniGame() {
+      if (gameMode === 'online') networkInitInProgress = true;
       resetRollSync();
       party.carniceroBoss = null;
       party.lastDmgToRPG = null;
@@ -2581,10 +2597,24 @@ let party = {
 
       updateDeckHUD();
 
-      if (party.currentGame === 'rpg') initRPG();
-      if (party.currentGame === 'exp') initEXP();
-      if (party.currentGame === 'maf') initMAF();
-      if (party.currentGame === 'pok') initPOK();
+      if (party.currentGame === 'rpg') await initRPG();
+      if (party.currentGame === 'exp') await initEXP();
+      if (party.currentGame === 'maf') await initMAF();
+      if (party.currentGame === 'pok') await initPOK();
+
+      if (gameMode === 'online') {
+        networkInitInProgress = false;
+
+        // Si durante nuestra inicialización llegaron estados del Host, dejamos
+        // que el último estado completo sea la autoridad al terminar. Esto ocurre
+        // después de consumir la secuencia de dados, nunca en mitad de ella.
+        if (!isHost && party.latestNetworkState) {
+          const pendingActionId = party.latestNetworkState.networkMeta?.lastActionId || null;
+          if (!pendingActionId || pendingActionId === lastAppliedActionId) {
+            applyNetworkState();
+          }
+        }
+      }
     }
 
     function generateMarketStock(forPlayer = null) {
@@ -4036,7 +4066,9 @@ let party = {
       if (data.pok) pok = data.pok;
 
       if (data.networkMeta) {
-        netRollIndex = Number.isInteger(data.networkMeta.rollIndex) ? data.networkMeta.rollIndex : netRollIndex;
+        // NO tocar netRollIndex aquí durante una partida en vivo. Ambos clientes
+        // deben conservar su cursor local de la secuencia de tiradas. El cursor
+        // solo se restaura explícitamente al recuperar una partida tras refresh.
         party.lastRollResult = data.networkMeta.lastRollResult || party.lastRollResult || null;
       }
 
