@@ -4412,11 +4412,6 @@ let party = {
       updateDeckHUD();
       updateHeartbeat();
       checkAiTurn();
-      party.actionInProgress = false;
-      if (gameMode === 'online') {
-        if (isHost) syncStateToNetwork();
-        else if (party.latestNetworkState) applyNetworkState();
-      }
     }
     // ==========================================
     // EL GRAN ATRACO (EXP)
@@ -4764,11 +4759,6 @@ let party = {
       updateDeckHUD();
       updateHeartbeat();
       checkAiTurn();
-      party.actionInProgress = false;
-      if (gameMode === 'online') {
-        if (isHost) syncStateToNetwork();
-        else if (party.latestNetworkState) applyNetworkState();
-      }
     }
 
     // ==========================================
@@ -5148,11 +5138,6 @@ let options = [];
       updateDeckHUD();
       updateHeartbeat();
       checkAiTurn();
-      party.actionInProgress = false;
-      if (gameMode === 'online') {
-        if (isHost) syncStateToNetwork();
-        else if (party.latestNetworkState) applyNetworkState();
-      }
     }
 
     function renderDistricts(containerId, playerState) {
@@ -5418,11 +5403,6 @@ let options = [];
       updateDeckHUD();
       updateHeartbeat();
       checkAiTurn();
-      party.actionInProgress = false;
-      if (gameMode === 'online') {
-        if (isHost) syncStateToNetwork();
-        else if (party.latestNetworkState) applyNetworkState();
-      }
     }
 
   </script>
