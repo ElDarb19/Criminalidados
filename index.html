@@ -1353,9 +1353,14 @@
 
     let netRollIndex = 0;
     let currentGameStatus = 'SETUP';
+    let networkStateReady = false;
+    let networkActionChain = Promise.resolve();
+    let networkLastActionId = null;
+    let lastAppliedActionId = null;
 
     function resetRollSync() {
       netRollIndex = 0;
+      party.lastRollResult = null;
       if (isHost && gameMode === 'online' && roomPath) {
         const matchKey = `m${party.matchesPlayed || 0}`;
         db.ref(roomPath + '/rolls/' + matchKey).remove();
@@ -1557,44 +1562,89 @@
       db.ref(roomPath + '/gameStatus').off();
       db.ref(roomPath + '/p2_joined').off();
       db.ref(roomPath + '/setup').off();
+      db.ref(roomPath + '/state').off();
 
+      networkStateReady = false;
+      networkActionChain = Promise.resolve();
+      networkLastActionId = null;
+      lastAppliedActionId = null;
+
+      // El invitado puede enviar tiradas manuales. La ruta correcta es:
+      // guestManualRolls/mX/indice -> rolls/mX/indice
       if (isHost) {
-        db.ref(roomPath + '/guestManualRolls').on('child_added', (snap) => {
-          const rIdx = snap.key;
-          const val = snap.val();
-          db.ref(roomPath + '/rolls/' + rIdx).set(val);
+        db.ref(roomPath + '/guestManualRolls').on('child_added', (matchSnap) => {
+          const matchKey = matchSnap.key;
+          matchSnap.ref.on('child_added', (rollSnap) => {
+            const rollIdx = rollSnap.key;
+            const val = rollSnap.val();
+            db.ref(roomPath + `/rolls/${matchKey}/${rollIdx}`).set(val);
+          });
         });
       }
 
-      db.ref(roomPath + '/state').off();
-
-      db.ref(roomPath + '/actions').on('child_added', (snap) => {
+      // Estado persistente: también lo lee el Host para poder recuperarse de un refresh.
+      const stateRef = db.ref(roomPath + '/state');
+      const handleStateSnapshot = (snap) => {
+        if (!snap.exists()) return;
         const data = snap.val();
-        if (window[data.func]) {
-            party.isWaiting = false;
-            party.actionInProgress = true;
-            window[data.func].apply(null, data.args);
-        }
-      });
+        party.latestNetworkState = data;
+        networkStateReady = true;
+        networkLastActionId = data.networkMeta?.lastActionId || null;
 
-      // Escucha de Estado de Verdad Host (Sincronización Multijugador Protegida)
-      db.ref(roomPath + '/state').on('value', (snap) => {
-        if (isHost || !snap.exists()) return;
-        party.latestNetworkState = snap.val();
-        if (!party.actionInProgress) {
+        if (!isHost && !party.actionInProgress && currentGameStatus === 'PLAYING') {
           applyNetworkState();
         }
+      };
+      stateRef.on('value', handleStateSnapshot);
+
+      // Cola única de acciones. Se conecta DESPUÉS de leer el snapshot inicial,
+      // para que un refresh nunca vuelva a ejecutar acciones ya aplicadas.
+      const attachNetworkActionListener = () => {
+        db.ref(roomPath + '/actions').on('child_added', (snap) => {
+          networkActionChain = networkActionChain.then(async () => {
+            const data = snap.val();
+            if (!data || !window[data.func]) return;
+
+            if (networkStateReady && networkLastActionId && snap.key <= networkLastActionId) return;
+            if (snap.key === lastAppliedActionId) return;
+
+            lastAppliedActionId = snap.key;
+            networkLastActionId = snap.key;
+            party.isWaiting = false;
+            party.actionInProgress = true;
+
+            try {
+              await Promise.resolve(window[data.func].apply(null, data.args || []));
+            } catch (e) {
+              console.error('Error ejecutando acción de red:', data.func, e);
+              party.isWaiting = false;
+            } finally {
+              party.actionInProgress = false;
+              if (isHost) syncStateToNetwork(snap.key);
+            }
+          });
+        });
+      };
+
+      stateRef.once('value').then((snap) => {
+        if (snap.exists()) {
+          const data = snap.val();
+          party.latestNetworkState = data;
+          networkLastActionId = data.networkMeta?.lastActionId || null;
+        }
+        networkStateReady = true;
+        attachNetworkActionListener();
       });
 
       db.ref(roomPath + '/gameStatus').on('value', (snap) => {
         const data = snap.val();
         if (!data) return;
         if (data.status === 'PLAYING' && currentGameStatus !== 'PLAYING') {
-            currentGameStatus = 'PLAYING';
-            window.networkStartGame(data.party);
+          currentGameStatus = 'PLAYING';
+          window.networkStartGame(data.party);
         } else if (data.status === 'SETUP' && currentGameStatus !== 'SETUP') {
-            currentGameStatus = 'SETUP';
-            window.networkReturnToMenu();
+          currentGameStatus = 'SETUP';
+          window.networkReturnToMenu();
         }
       });
 
@@ -1652,22 +1702,21 @@
       if (!isHost) {
         db.ref(roomPath + '/p2_joined').set(true);
         db.ref(roomPath + '/p2_joined').onDisconnect().remove();
-        
         const setupStatus = document.getElementById('network-status');
         setupStatus.innerText = "Conectado como Rival (P2). Elige tu nombre y traje mientras el Host inicia...";
         setupStatus.style.color = "var(--accent-green)";
       } else {
         db.ref(roomPath + '/p2_joined').on('value', snap => {
-            const statusEl = document.getElementById('network-status');
-            if (statusEl) {
-                if (snap.val()) {
-                    statusEl.innerText = "¡Rival conectado! Listo para comenzar.";
-                    statusEl.style.color = "var(--accent-green)";
-                } else {
-                    statusEl.innerText = "Esperando a que el rival se conecte...";
-                    statusEl.style.color = "var(--accent-gold)";
-                }
+          const statusEl = document.getElementById('network-status');
+          if (statusEl) {
+            if (snap.val()) {
+              statusEl.innerText = "¡Rival conectado! Listo para comenzar.";
+              statusEl.style.color = "var(--accent-green)";
+            } else {
+              statusEl.innerText = "Esperando a que el rival se conecte...";
+              statusEl.style.color = "var(--accent-gold)";
             }
+          }
         });
       }
     }
@@ -1695,57 +1744,71 @@
         return;
       }
       if (funcName === 'hostStartCoreGame' && !isHost) return;
-      
+
       const hostOnlyActions = ['networkNextGame', 'networkReturnToMenu', 'networkNextDive', 'openBlackMarket'];
       const marketActions = ['buyMarketItem', 'sellMarketItem', 'rerollMarket', 'syncMarketStock'];
-      
+
       if (hostOnlyActions.includes(funcName)) {
         if (!isHost) return;
       } else if (marketActions.includes(funcName)) {
-        // Permitir interacciones en el Mercado Negro sin validar el turno del minijuego
+        // El mercado no depende del turno del minijuego.
       } else if (funcName !== 'onStartButtonClick') {
-        if (!isMyTurnNetwork()) return; 
+        if (!isMyTurnNetwork()) return;
       }
 
       party.isWaiting = true;
-      db.ref(roomPath + '/actions').push({ func: funcName, args: args, ts: firebase.database.ServerValue.TIMESTAMP });
+      const actionRef = db.ref(roomPath + '/actions').push();
+      actionRef.set({
+        func: funcName,
+        args: args,
+        ts: firebase.database.ServerValue.TIMESTAMP
+      });
     }
 
-    function getNetworkRoll(sides, forcedVal = null) {
+    async function getNetworkRoll(sides, forcedVal = null) {
       if (gameMode === 'local' || gameMode === 'solo') {
         const val = forcedVal !== null ? forcedVal : (Math.floor(Math.random() * sides) + 1);
-        return Promise.resolve(val);
+        return val;
       }
-      
+
       const rollIdx = netRollIndex++;
       const matchKey = `m${party.matchesPlayed || 0}`;
-      
+      const rollRef = db.ref(roomPath + `/rolls/${matchKey}/${rollIdx}`);
+
       if (isHost) {
-        return new Promise((resolve) => {
-          const valToSet = forcedVal !== null ? forcedVal : (Math.floor(Math.random() * sides) + 1);
-          if (roomPath) {
-            db.ref(roomPath + `/rolls/${matchKey}/` + rollIdx).set(valToSet);
-          }
-          resolve(valToSet);
-        });
-      } else {
-        if (forcedVal !== null && roomPath) {
-          db.ref(roomPath + `/guestManualRolls/${matchKey}/` + rollIdx).set(forcedVal);
-        }
-        return new Promise((resolve) => {
-          if (!roomPath) {
-            resolve(forcedVal !== null ? forcedVal : (Math.floor(Math.random() * sides) + 1));
-            return;
-          }
-          const rollRef = db.ref(roomPath + `/rolls/${matchKey}/` + rollIdx);
-          rollRef.on('value', function handler(snap) {
-            if (snap.exists() && snap.val() !== null) {
-              rollRef.off('value', handler);
-              resolve(snap.val());
-            }
-          });
-        });
+        // Si el Host se recarga después de haber generado el dado pero antes
+        // de terminar la acción, reutiliza el valor existente.
+        const existing = await rollRef.once('value');
+        let valToSet = existing.exists() ? existing.val() : (forcedVal !== null ? forcedVal : (Math.floor(Math.random() * sides) + 1));
+        await rollRef.set(valToSet);
+        party.lastRollResult = { matchKey, rollIdx, sides, value: valToSet };
+        return valToSet;
       }
+
+      // El invitado nunca inventa un resultado. Si es tirada manual,
+      // envía su valor al Host por la ruta anidada correcta.
+      if (forcedVal !== null) {
+        await db.ref(roomPath + `/guestManualRolls/${matchKey}/${rollIdx}`).set(forcedVal);
+      }
+
+      const snap = await rollRef.once('value');
+      if (snap.exists() && snap.val() !== null) {
+        const val = snap.val();
+        party.lastRollResult = { matchKey, rollIdx, sides, value: val };
+        return val;
+      }
+
+      return await new Promise((resolve) => {
+        const handler = (rollSnap) => {
+          if (rollSnap.exists() && rollSnap.val() !== null) {
+            rollRef.off('value', handler);
+            const val = rollSnap.val();
+            party.lastRollResult = { matchKey, rollIdx, sides, value: val };
+            resolve(val);
+          }
+        };
+        rollRef.on('value', handler);
+      });
     }
 
     window.onload = () => {
@@ -2339,7 +2402,12 @@ let party = {
       if (!isHost) return;
       startCoreGame();
       resetRollSync();
+      networkStateReady = false;
+      networkLastActionId = null;
+      lastAppliedActionId = null;
+      db.ref(roomPath + '/state').remove();
       db.ref(roomPath + '/actions').remove();
+      db.ref(roomPath + '/currentEvent').remove();
       db.ref(roomPath + '/gameStatus').set({ status: 'PLAYING', party: party, ts: firebase.database.ServerValue.TIMESTAMP });
     };
 
@@ -2394,25 +2462,28 @@ let party = {
       }
     }
 
-    window.networkStartGame = function(syncedParty) {
-      party = syncedParty;
-      document.querySelectorAll('.p1-display-name').forEach(el => el.innerText = party.p1Name);
-      document.querySelectorAll('.p2-display-name').forEach(el => el.innerText = party.p2Name);
-
-      if (party.isParty) {
-        document.getElementById('party-score-bar').classList.remove('hidden');
-        document.getElementById('global-p1-name').innerText = party.p1Name;
-        document.getElementById('global-p2-name').innerText = party.p2Name;
-        document.getElementById('global-p1-val').innerText = party.p1Wins || 0;
-        document.getElementById('global-p2-val').innerText = party.p2Wins || 0;
-      } else {
-        document.getElementById('party-score-bar').classList.add('hidden');
-      }
+    window.networkStartGame = async function(syncedParty) {
+      // El objeto de gameStatus sirve para arrancar una partida nueva;
+      // /state sirve para RECUPERAR una partida existente después de refresh.
+      party = syncedParty || party;
 
       document.getElementById('setup-screen').classList.add('hidden');
       document.getElementById('game-screen').classList.remove('hidden');
-      
-      startNextMiniGame();
+
+      const stateSnap = await db.ref(roomPath + '/state').once('value');
+      if (stateSnap.exists() && stateSnap.val().networkMeta?.status === 'PLAYING') {
+        party.latestNetworkState = stateSnap.val();
+        networkStateReady = true;
+        networkLastActionId = stateSnap.val().networkMeta?.lastActionId || null;
+        applyNetworkState();
+        return;
+      }
+
+      // Solo el Host crea el primer estado de un contrato nuevo.
+      // El invitado espera a que ese estado llegue por Firebase.
+      if (isHost) {
+        await startNextMiniGame();
+      }
     }
 
     function buildPlaylist(selectedGames, total) {
@@ -2450,6 +2521,7 @@ let party = {
       party.lastDmgToRPG = null;
       party.lastGrenadeDmg = null;
       party.lastTokensStolen = null;
+      party.uiStage = 'game';
       party.currentGame = party.playlist[party.matchesPlayed];
       document.body.className = `theme-${party.currentGame}`;
       
@@ -2536,6 +2608,9 @@ let party = {
       let winnerName = "EMPATE";
       if (winnerCode === 'p1') { party.p1Wins++; winnerName = party.p1Name; }
       if (winnerCode === 'p2') { party.p2Wins++; winnerName = party.p2Name; }
+      party.uiStage = 'result';
+      party.lastWinnerCode = winnerCode;
+      party.lastScoreText = scoreText;
       
       // Recompensas del Mercado Negro (Fase 1)
       let p1Reward = winnerCode === 'p1' ? 120 : 60;
@@ -2617,6 +2692,7 @@ let party = {
     };
 
     window.openBlackMarket = function() {
+      party.uiStage = 'market';
       localMarketBuyer = 1;
       document.getElementById('win-overlay').classList.add('hidden');
       renderBlackMarket();
@@ -2988,6 +3064,7 @@ let party = {
     };
 
     window.networkReturnToMenu = function() {
+      party.uiStage = 'setup';
       stopHeartbeat();
       resetRollSync();
       party.matchesPlayed = 0; party.p1Wins = 0; party.p2Wins = 0;
@@ -3007,11 +3084,15 @@ let party = {
       document.getElementById('setup-screen').classList.remove('hidden');
       document.body.className = `theme-${party.singleGameChoice}`; 
       if (gameMode === 'online' && roomPath && isHost) {
+        db.ref(roomPath + '/state').remove();
+        db.ref(roomPath + '/actions').remove();
+        db.ref(roomPath + '/currentEvent').remove();
         db.ref(roomPath + '/gameStatus').set({ status: 'SETUP' });
       }
     }
 
     window.networkNextGame = function() {
+      party.uiStage = 'game';
       // Pasiva: Inversionista Usurero (Interés del 10% al salir del mercado)
       if ((party.p1Contacts || []).includes('contact_usurero')) {
          let interes = Math.min(200, Math.floor((party.p1Coins || 0) * 0.10));
@@ -3871,93 +3952,81 @@ let party = {
       handleMiniGameEnd(winnerCode, "Capo Eliminado");
     }
 
-    function syncStateToNetwork() {
+    function syncStateToNetwork(actionId = networkLastActionId) {
       if (gameMode !== 'online' || !isHost || !roomPath) return;
 
+      // Serializamos TODO el estado de partida, excepto referencias locales
+      // que no deben viajar a Firebase (AbortController, flags de red, etc.).
+      const { abortController, actionInProgress, latestNetworkState, ...partySerializable } = party;
+
       db.ref(roomPath + '/state').set({
-        party: {
-          p1Coins: party.p1Coins || 0,
-          p2Coins: party.p2Coins || 0,
-          p1Wins: party.p1Wins || 0,
-          p2Wins: party.p2Wins || 0,
-          matchesPlayed: party.matchesPlayed || 0,
-          totalMatches: party.totalMatches || 3,
-          currentGame: party.currentGame || 'rpg',
-          p1Contacts: party.p1Contacts || [],
-          p2Contacts: party.p2Contacts || [],
-          p1Consumable: party.p1Consumable || null,
-          p2Consumable: party.p2Consumable || null
+        networkMeta: {
+          status: 'PLAYING',
+          lastActionId: actionId || null,
+          rollIndex: netRollIndex,
+          lastRollResult: party.lastRollResult || null,
+          savedAt: firebase.database.ServerValue.TIMESTAMP
         },
-        rpg: { 
-          p1Hp: rpg.p1.hp, p1Max: rpg.p1.max, p1Poison: rpg.p1.poison || 0, p1Heals: rpg.p1.heals || 0, p1Blocked: !!rpg.p1.blocked,
-          p2Hp: rpg.p2.hp, p2Max: rpg.p2.max, p2Poison: rpg.p2.poison || 0, p2Heals: rpg.p2.heals || 0, p2Blocked: !!rpg.p2.blocked,
-          turn: rpg.turn, round: rpg.round 
-        },
-        exp: { 
-          p1Hp: exp.p1.hp, p1Max: exp.p1.max || 20, p1Secured: exp.p1.secured, p1Temp: exp.p1.temp, p1Surfaced: exp.p1.surfaced, p1RepairUses: exp.p1.repairUses || 0, p1RepairCD: exp.p1.repairCooldown || 0, p1TorpedoUses: exp.p1.torpedoUses || 0,
-          p2Hp: exp.p2.hp, p2Max: exp.p2.max || 20, p2Secured: exp.p2.secured, p2Temp: exp.p2.temp, p2Surfaced: exp.p2.surfaced, p2RepairUses: exp.p2.repairUses || 0, p2RepairCD: exp.p2.repairCooldown || 0, p2TorpedoUses: exp.p2.torpedoUses || 0,
-          turn: exp.turn, round: exp.round, dive: exp.dive 
-        },
-        maf: { 
-          p1Prestige: maf.p1.prestige, p1Coins: maf.p1.coins, p1Parcels: maf.p1.parcels || [], p1Sabotages: maf.p1.sabotages || {},
-          p2Prestige: maf.p2.prestige, p2Coins: maf.p2.coins, p2Parcels: maf.p2.parcels || [], p2Sabotages: maf.p2.sabotages || {},
-          turn: maf.turn, round: maf.round, phase: maf.phase 
-        },
-        pok: { 
-          p1Tokens: pok.p1.tokens, p1TahurCD: pok.p1.tahurCD || 0, p1TahurUsos: pok.p1.tahurUsos || 0,
-          p2Tokens: pok.p2.tokens, p2TahurCD: pok.p2.tahurCD || 0, p2TahurUsos: pok.p2.tahurUsos || 0,
-          turn: pok.turn, round: pok.round 
-        }
+        party: JSON.parse(JSON.stringify(partySerializable)),
+        rpg: JSON.parse(JSON.stringify(rpg)),
+        exp: JSON.parse(JSON.stringify(exp)),
+        maf: JSON.parse(JSON.stringify(maf)),
+        pok: JSON.parse(JSON.stringify(pok))
       });
     }
 
     function applyNetworkState() {
-      if (isHost || !party.latestNetworkState) return;
+      if (!party.latestNetworkState) return;
       const data = party.latestNetworkState;
       if (!data) return;
 
       if (data.party) {
-        party.p1Coins = data.party.p1Coins;
-        party.p2Coins = data.party.p2Coins;
-        party.p1Wins = data.party.p1Wins;
-        party.p2Wins = data.party.p2Wins;
-        party.matchesPlayed = data.party.matchesPlayed;
-        party.p1Contacts = data.party.p1Contacts || [];
-        party.p2Contacts = data.party.p2Contacts || [];
-        party.p1Consumable = data.party.p1Consumable || null;
-        party.p2Consumable = data.party.p2Consumable || null;
-        if (data.party.currentGame) party.currentGame = data.party.currentGame;
+        const localTransient = {
+          abortController: party.abortController || null,
+          actionInProgress: party.actionInProgress || false,
+          latestNetworkState: data
+        };
+        Object.assign(party, data.party);
+        party.abortController = localTransient.abortController;
+        party.actionInProgress = localTransient.actionInProgress;
+        party.latestNetworkState = data;
       }
 
-      if (data.rpg) {
-        rpg.p1.hp = data.rpg.p1Hp; rpg.p1.max = data.rpg.p1Max; rpg.p1.poison = data.rpg.p1Poison || 0; rpg.p1.heals = data.rpg.p1Heals || 0; rpg.p1.blocked = !!data.rpg.p1Blocked;
-        rpg.p2.hp = data.rpg.p2Hp; rpg.p2.max = data.rpg.p2Max; rpg.p2.poison = data.rpg.p2Poison || 0; rpg.p2.heals = data.rpg.p2Heals || 0; rpg.p2.blocked = !!data.rpg.p2Blocked;
-        rpg.turn = data.rpg.turn; rpg.round = data.rpg.round;
+      if (data.rpg) rpg = data.rpg;
+      if (data.exp) exp = data.exp;
+      if (data.maf) maf = data.maf;
+      if (data.pok) pok = data.pok;
+
+      if (data.networkMeta) {
+        netRollIndex = Number.isInteger(data.networkMeta.rollIndex) ? data.networkMeta.rollIndex : netRollIndex;
+        party.lastRollResult = data.networkMeta.lastRollResult || party.lastRollResult || null;
+        networkLastActionId = data.networkMeta.lastActionId || networkLastActionId;
       }
 
-      if (data.exp) {
-        exp.p1.hp = data.exp.p1Hp; exp.p1.max = data.exp.p1Max || 20; exp.p1.secured = data.exp.p1Secured; exp.p1.temp = data.exp.p1Temp; exp.p1.surfaced = data.exp.p1Surfaced; exp.p1.repairUses = data.exp.p1RepairUses || 0; exp.p1.repairCooldown = data.exp.p1RepairCD || 0; exp.p1.torpedoUses = data.exp.p1TorpedoUses || 0;
-        exp.p2.hp = data.exp.p2Hp; exp.p2.max = data.exp.p2Max || 20; exp.p2.secured = data.exp.p2Secured; exp.p2.temp = data.exp.p2Temp; exp.p2.surfaced = data.exp.p2Surfaced; exp.p2.repairUses = data.exp.p2RepairUses || 0; exp.p2.repairCooldown = data.exp.p2RepairCD || 0; exp.p2.torpedoUses = data.exp.p2TorpedoUses || 0;
-        exp.turn = data.exp.turn; exp.round = data.exp.round; exp.dive = data.exp.dive;
+      if (party.currentGame) {
+        document.body.className = `theme-${party.currentGame}`;
+        document.getElementById('rpg-container').classList.toggle('hidden', party.currentGame !== 'rpg');
+        document.getElementById('exp-container').classList.toggle('hidden', party.currentGame !== 'exp');
+        document.getElementById('maf-container').classList.toggle('hidden', party.currentGame !== 'maf');
+        document.getElementById('pok-container').classList.toggle('hidden', party.currentGame !== 'pok');
       }
 
-      if (data.maf) {
-        maf.p1.prestige = data.maf.p1Prestige; maf.p1.coins = data.maf.p1Coins; maf.p1.parcels = data.maf.p1Parcels || []; maf.p1.sabotages = data.maf.p1Sabotages || {1:0, 2:0, 3:0, 4:0, 5:0, 6:0};
-        maf.p2.prestige = data.maf.p2Prestige; maf.p2.coins = data.maf.p2Coins; maf.p2.parcels = data.maf.p2Parcels || []; maf.p2.sabotages = data.maf.p2Sabotages || {1:0, 2:0, 3:0, 4:0, 5:0, 6:0};
-        maf.turn = data.maf.turn; maf.round = data.maf.round; maf.phase = data.maf.phase;
-      }
+      document.querySelectorAll('.p1-display-name').forEach(el => el.innerText = party.p1Name || 'P1');
+      document.querySelectorAll('.p2-display-name').forEach(el => el.innerText = party.p2Name || 'P2');
 
-      if (data.pok) {
-        pok.p1.tokens = data.pok.p1Tokens; pok.p1.tahurCD = data.pok.p1TahurCD || 0; pok.p1.tahurUsos = data.pok.p1TahurUsos || 0;
-        pok.p2.tokens = data.pok.p2Tokens; pok.p2.tahurCD = data.pok.p2TahurCD || 0; pok.p2.tahurUsos = data.pok.p2TahurUsos || 0;
-        pok.turn = data.pok.turn;
-        pok.round = data.pok.round;
-      }
-
+      const scoreBar = document.getElementById('party-score-bar');
+      if (scoreBar) scoreBar.classList.toggle('hidden', !party.isParty);
       const p1Val = document.getElementById('global-p1-val');
       const p2Val = document.getElementById('global-p2-val');
       if (p1Val) p1Val.innerText = party.p1Wins || 0;
       if (p2Val) p2Val.innerText = party.p2Wins || 0;
+
+      if (party.isParty) {
+        const indicator = document.getElementById('party-match-indicator');
+        if (indicator && party.currentGame) {
+          indicator.innerText = `CONTRATO ${party.matchesPlayed + 1} DE ${party.totalMatches} (${gameTitles[party.currentGame]})`;
+        }
+      }
 
       if (party.currentGame === 'rpg') renderUI_RPG_Only();
       else if (party.currentGame === 'exp') renderUI_EXP_Only();
@@ -3965,6 +4034,56 @@ let party = {
       else if (party.currentGame === 'pok') renderUI_POK_Only();
 
       updateDeckHUD();
+
+      // Recuperar también la pantalla en la que estaba el usuario.
+      if (party.uiStage === 'market') {
+        document.getElementById('win-overlay').classList.add('hidden');
+        renderBlackMarket();
+        document.getElementById('modal-market').classList.remove('hidden');
+      } else if (party.uiStage === 'result') {
+        document.getElementById('modal-market').classList.add('hidden');
+
+        const winnerCode = party.lastWinnerCode || 'tie';
+        const winnerName = winnerCode === 'p1' ? party.p1Name : winnerCode === 'p2' ? party.p2Name : 'EMPATE';
+        const scoreText = party.lastScoreText || '';
+        const title = document.getElementById('final-winner-name');
+        const msg = document.getElementById('final-winner-msg');
+        const btn = document.getElementById('btn-next-match');
+        const winsNeeded = Math.floor(party.totalMatches / 2) + 1;
+        const isPartyOver = party.isParty && (party.p1Wins >= winsNeeded || party.p2Wins >= winsNeeded || party.matchesPlayed >= party.totalMatches);
+        const isHostOrLocal = (gameMode === 'local' || gameMode === 'solo') || isHost;
+
+        setWinOverlayAvatars(winnerCode);
+
+        if (!party.isParty) {
+          title.innerText = winnerName.toUpperCase();
+          msg.innerText = `FIN DEL JUEGO - ${scoreText}`;
+          btn.innerText = isHostOrLocal ? 'VOLVER A LOS NEGOCIOS' : 'ESPERANDO AL CAPO 1...';
+          btn.disabled = !isHostOrLocal;
+          btn.onclick = () => { if (isHostOrLocal) dispatchAction('networkReturnToMenu'); };
+        } else if (isPartyOver) {
+          let grandWinner = '¡EMPATE TOTAL!';
+          if (party.p1Wins > party.p2Wins) grandWinner = party.p1Name;
+          else if (party.p2Wins > party.p1Wins) grandWinner = party.p2Name;
+          title.innerText = grandWinner.toUpperCase();
+          msg.innerText = `🏆 JEFE ABSOLUTO (${party.p1Wins} - ${party.p2Wins})`;
+          btn.innerText = isHostOrLocal ? 'VOLVER A LOS NEGOCIOS' : 'ESPERANDO AL CAPO 1...';
+          btn.disabled = !isHostOrLocal;
+          btn.onclick = () => { if (isHostOrLocal) dispatchAction('networkReturnToMenu'); };
+        } else {
+          title.innerText = winnerName.toUpperCase();
+          msg.innerText = `Gana este contrato de ${gameTitles[party.currentGame]} (${scoreText})`;
+          const nextAction = party.isRoguelike ? 'openBlackMarket' : 'networkNextGame';
+          btn.innerText = isHostOrLocal ? (party.isRoguelike ? 'IR AL MERCADO NEGRO' : 'SIGUIENTE CONTRATO ➔') : 'ESPERANDO AL CAPO 1...';
+          btn.disabled = !isHostOrLocal;
+          btn.onclick = () => { if (isHostOrLocal) dispatchAction(nextAction); };
+        }
+
+        document.getElementById('win-overlay').classList.remove('hidden');
+      } else {
+        document.getElementById('win-overlay').classList.add('hidden');
+        document.getElementById('modal-market').classList.add('hidden');
+      }
     }
 
     function renderUI_RPG_Only() {
