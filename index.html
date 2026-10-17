@@ -55,15 +55,23 @@
     <!-- ========================================== -->
     <main id="lobbySection" class="game-section">
       
-      <!-- Panel de Perfil de Jugador -->
+      <!-- Panel de Perfil de Jugador con Previsualización -->
       <section class="panel-box">
         <h2 class="panel-title">PERFIL DEL CAPO</h2>
-        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-          <div style="flex: 1; min-width: 200px;">
+        <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+          
+          <!-- Previsualización del Avatar -->
+          <div style="width: 85px; height: 85px; background: rgba(0,0,0,0.5); border: 2px solid var(--border-subtle); border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; box-shadow: inset 0 0 10px rgba(0,0,0,0.8);">
+            <img id="profilePreviewImg" src="assets/characters/Color_R/idle.png" style="width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; transition: transform 0.2s ease;" alt="Avatar del Capo" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+          </div>
+
+          <!-- Campos de Configuración -->
+          <div style="flex: 1; min-width: 160px;">
             <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: bold; margin-bottom: 5px; display: block;">NOMBRE (ALIAS):</label>
             <input type="text" id="inputPlayerName" class="input-room" placeholder="Capo..." maxlength="15">
           </div>
-          <div style="flex: 1; min-width: 200px;">
+          
+          <div style="flex: 1; min-width: 160px;">
             <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: bold; margin-bottom: 5px; display: block;">COLOR / BANDO:</label>
             <select id="selectPlayerColor" class="input-room" style="cursor: pointer;">
               <option value="Color_R">🔴 Rojo</option>
@@ -74,6 +82,7 @@
               <option value="Color_W">⚪ Blanco</option>
             </select>
           </div>
+
         </div>
       </section>
 

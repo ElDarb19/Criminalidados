@@ -1993,7 +1993,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
   initFirebaseAuth();
 
-  // Bindings del perfil
+  // Bindings del perfil (Lógica de previsualización)
   const nameInput = document.getElementById("inputPlayerName");
   if (nameInput) {
     nameInput.value = localAuth.username;
@@ -2003,10 +2003,26 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   const colorInput = document.getElementById("selectPlayerColor");
+  const previewImg = document.getElementById("profilePreviewImg");
+  
   if (colorInput) {
     colorInput.value = localAuth.color;
+    
+    // Iniciar imagen por defecto
+    if (previewImg) {
+      previewImg.src = `assets/characters/${localAuth.color}/idle.png`;
+    }
+    
+    // Escuchar cambios de color para actualizar la previsualización en vivo
     colorInput.addEventListener("change", (e) => {
       localAuth.color = e.target.value;
+      if (previewImg) {
+        // Fallback en caso de que la imagen no cargue
+        previewImg.onerror = function() {
+            this.src = 'assets/characters/None/idle.png';
+        };
+        previewImg.src = `assets/characters/${localAuth.color}/idle.png`;
+      }
     });
   }
 
@@ -2034,3 +2050,4 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+    
