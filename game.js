@@ -228,7 +228,8 @@ const MARKET_CATALOG = [
 const localAuth = {
   uid: null,
   isReady: false,
-  username: "Capo_" + Math.floor(1000 + Math.random() * 9000)
+  username: "Capo_" + Math.floor(1000 + Math.random() * 9000),
+  color: "Color_R"
 };
 
 // Estado Central del Juego
@@ -480,10 +481,11 @@ const Juice = {
 // ==========================================
 // 4. FACTORY DE JUGADORES Y DISTRITOS
 // ==========================================
-function createPlayerData(uid, name, isHost = false) {
+function createPlayerData(uid, name, color, isHost = false) {
   return {
     uid: uid,
     name: name,
+    color: color,
     hp: CONFIG.MAX_HP,
     maxHp: CONFIG.MAX_HP,
     shield: 0,
@@ -1599,9 +1601,15 @@ function renderPlayers() {
 
     const hpPercent = Math.max(0, Math.min(100, (p.hp / p.maxHp) * 100));
 
+    // AÑADIDO: Avatar preview dentro de la tarjeta usando el color seleccionado
     card.innerHTML = `
       <div class="player-header">
-        <span class="player-name">${escapeHTML(p.name)}</span>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 40px; height: 40px; border-radius: 8px; background: rgba(0,0,0,0.5); overflow: hidden; border: 1px solid var(--border-subtle); flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+             <img src="assets/characters/${p.color || 'Color_R'}/idle.png" style="width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated;" onerror="this.src='assets/characters/None/idle.png'">
+          </div>
+          <span class="player-name">${escapeHTML(p.name)}</span>
+        </div>
         ${p.isHost ? '<span class="badge-host">CAPO</span>' : ""}
       </div>
       <div class="hp-bar-bg">
@@ -1780,7 +1788,7 @@ function createOnlineRoom() {
     currentTurnUid: localAuth.uid,
     turnOrder: [localAuth.uid],
     players: {
-      [localAuth.uid]: createPlayerData(localAuth.uid, localAuth.username, true)
+      [localAuth.uid]: createPlayerData(localAuth.uid, localAuth.username, localAuth.color, true)
     },
     heistState: { vaultPot: 3000, alarmLevel: 0, roundLoot: 0 },
     empireState: { districts: initDistrictsState() },
@@ -1839,7 +1847,7 @@ function joinOnlineRoom(targetRoomId) {
       }
 
       const updates = {};
-      updates[`players/${localAuth.uid}`] = createPlayerData(localAuth.uid, localAuth.username, false);
+      updates[`players/${localAuth.uid}`] = createPlayerData(localAuth.uid, localAuth.username, localAuth.color, false);
 
       if (!data.turnOrder || !data.turnOrder.includes(localAuth.uid)) {
         updates["turnOrder"] = data.turnOrder ? [...data.turnOrder, localAuth.uid] : [data.hostUid, localAuth.uid];
@@ -1937,8 +1945,8 @@ function startLocalMatch() {
   const p2Uid = "LOCAL_P2";
 
   gameState.players = {
-    [p1Uid]: createPlayerData(p1Uid, localAuth.username, true),
-    [p2Uid]: createPlayerData(p2Uid, "Matón Callejero", false)
+    [p1Uid]: createPlayerData(p1Uid, localAuth.username, localAuth.color, true),
+    [p2Uid]: createPlayerData(p2Uid, "Matón Callejero", "Color_B", false)
   };
 
   gameState.turnOrder = [p1Uid, p2Uid];
@@ -1963,8 +1971,8 @@ function startAIMatch() {
   const aiUid = "AI_BOT";
 
   gameState.players = {
-    [p1Uid]: createPlayerData(p1Uid, localAuth.username, true),
-    [aiUid]: createPlayerData(aiUid, "Don Salieri (IA)", false)
+    [p1Uid]: createPlayerData(p1Uid, localAuth.username, localAuth.color, true),
+    [aiUid]: createPlayerData(aiUid, "Don Salieri (IA)", "Color_W", false)
   };
 
   gameState.turnOrder = [p1Uid, aiUid];
@@ -1984,6 +1992,23 @@ window.addEventListener("DOMContentLoaded", () => {
   console.log("[CrimenDev] Criminal Dice - Engine Táctico 1v1 Inicializado.");
 
   initFirebaseAuth();
+
+  // Bindings del perfil
+  const nameInput = document.getElementById("inputPlayerName");
+  if (nameInput) {
+    nameInput.value = localAuth.username;
+    nameInput.addEventListener("input", (e) => {
+      localAuth.username = e.target.value || ("Capo_" + Math.floor(1000 + Math.random() * 900));
+    });
+  }
+
+  const colorInput = document.getElementById("selectPlayerColor");
+  if (colorInput) {
+    colorInput.value = localAuth.color;
+    colorInput.addEventListener("change", (e) => {
+      localAuth.color = e.target.value;
+    });
+  }
 
   document.querySelectorAll(".btn-select-contract").forEach((btn) => {
     btn.addEventListener("click", (e) => {

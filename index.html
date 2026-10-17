@@ -55,6 +55,28 @@
     <!-- ========================================== -->
     <main id="lobbySection" class="game-section">
       
+      <!-- Panel de Perfil de Jugador -->
+      <section class="panel-box">
+        <h2 class="panel-title">PERFIL DEL CAPO</h2>
+        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 200px;">
+            <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: bold; margin-bottom: 5px; display: block;">NOMBRE (ALIAS):</label>
+            <input type="text" id="inputPlayerName" class="input-room" placeholder="Capo..." maxlength="15">
+          </div>
+          <div style="flex: 1; min-width: 200px;">
+            <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: bold; margin-bottom: 5px; display: block;">COLOR / BANDO:</label>
+            <select id="selectPlayerColor" class="input-room" style="cursor: pointer;">
+              <option value="Color_R">🔴 Rojo</option>
+              <option value="Color_B">🔵 Azul</option>
+              <option value="Color_G">🟢 Verde</option>
+              <option value="Color_P">🌸 Rosa</option>
+              <option value="Color_Pu">🟣 Morado</option>
+              <option value="Color_W">⚪ Blanco</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
       <!-- Panel de Contratos (Minijuegos) -->
       <section class="panel-box">
         <h2 class="panel-title">SELECCIONAR CONTRATO</h2>
