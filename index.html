@@ -5,15 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Criminal Dice / Crimen Urbano</title>
   
-  <!-- Hoja de estilos del juego -->
   <link rel="stylesheet" href="styles.css">
 
-  <!-- Firebase SDKs (Versión v9 Compat) -->
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
-  <!-- Configuración de Firebase (Reemplaza con tus credenciales de consola) -->
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCEY_P4mC8xArf88rRBYyI-JZ_M74o6FuE",
@@ -32,45 +30,36 @@
 </head>
 <body>
 
-  <!-- Contenedor Principal con Game Juice (Screen Shake Target) -->
   <div class="game-container">
-    
-    <!-- Toast de Notificaciones -->
     <div id="gameNotification" class="notification-toast"></div>
 
-    <!-- Barra de Estado Superior -->
     <header class="game-header">
       <div class="header-brand">
         <h1 class="game-title">CRIMINAL DICE</h1>
         <span class="game-subtitle">CRIMEN URBANO</span>
       </div>
       <div class="header-status">
-        <span id="playerUidBadge" class="badge badge-auth" title="Tu UID de Firebase">Conectando...</span>
+        <span id="playerUidBadge" class="badge badge-auth">Conectando...</span>
         <span id="currentRoomCode" class="badge badge-room">SIN SALA</span>
       </div>
     </header>
 
     <!-- ========================================== -->
-    <!-- 1. SECCIÓN DE LOBBY / SELECCIÓN DE MODOS   -->
+    <!-- 1. SECCIÓN DE LOBBY                        -->
     <!-- ========================================== -->
     <main id="lobbySection" class="game-section">
       
-      <!-- Panel de Perfil de Jugador con Previsualización -->
+      <!-- Panel de Perfil -->
       <section class="panel-box">
         <h2 class="panel-title">PERFIL DEL CAPO</h2>
         <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
-          
-          <!-- Previsualización del Avatar -->
-          <div style="width: 85px; height: 85px; background: rgba(0,0,0,0.5); border: 2px solid var(--border-subtle); border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; box-shadow: inset 0 0 10px rgba(0,0,0,0.8);">
-            <img id="profilePreviewImg" src="assets/characters/Color_R/idle.png" style="width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; transition: transform 0.2s ease;" alt="Avatar del Capo" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+          <div style="width: 85px; height: 85px; background: rgba(0,0,0,0.5); border: 2px solid var(--border-subtle); border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
+            <img id="profilePreviewImg" src="assets/characters/Color_R/idle.png" style="width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated;" alt="Avatar">
           </div>
-
-          <!-- Campos de Configuración -->
           <div style="flex: 1; min-width: 160px;">
             <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: bold; margin-bottom: 5px; display: block;">NOMBRE (ALIAS):</label>
             <input type="text" id="inputPlayerName" class="input-room" placeholder="Capo..." maxlength="15">
           </div>
-          
           <div style="flex: 1; min-width: 160px;">
             <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: bold; margin-bottom: 5px; display: block;">COLOR / BANDO:</label>
             <select id="selectPlayerColor" class="input-room" style="cursor: pointer;">
@@ -82,129 +71,122 @@
               <option value="Color_W">⚪ Blanco</option>
             </select>
           </div>
-
         </div>
       </section>
 
-      <!-- Panel de Contratos (Minijuegos) -->
+      <!-- Panel de Configuración de Partida (Modo Party / Roguelike) -->
       <section class="panel-box">
-        <h2 class="panel-title">SELECCIONAR CONTRATO</h2>
+        <h2 class="panel-title">CONFIGURACIÓN DE PARTIDA</h2>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; border: 1px solid var(--border-subtle);">
+            <span style="font-weight: bold; color: var(--text-main);">GUERRA TOTAL (Modo Party)</span>
+            <input type="checkbox" id="partyModeCheck" style="width: 20px; height: 20px; accent-color: var(--accent-crimson);">
+          </div>
+          <div id="partySettingsBox" style="display: none; padding: 10px; border-left: 2px solid var(--accent-crimson); margin-left: 10px;">
+            <label style="font-size: 0.85rem; color: var(--text-muted);">Número de contratos a jugar:</label>
+            <input type="number" id="totalMatchesInput" class="input-room" value="3" min="1" max="10" style="width: 100px; padding: 5px; margin-top: 5px;">
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; border: 1px solid var(--border-subtle);">
+            <span style="font-weight: bold; color: var(--text-main);">SISTEMA ROGUELIKE (Mercado Negro)</span>
+            <input type="checkbox" id="roguelikeModeCheck" checked style="width: 20px; height: 20px; accent-color: var(--accent-crimson);">
+          </div>
+        </div>
+      </section>
+
+      <section class="panel-box">
+        <h2 class="panel-title">SELECCIONAR CONTRATO INICIAL</h2>
         <div class="contract-selector-grid">
-          <button class="btn-contract btn-select-contract active" data-contract="guerra_bandas">
-            <span class="contract-icon">💥</span>
-            <strong>Guerra de Bandas</strong>
-            <small>Duelo directo de dados y daño crítico</small>
-          </button>
-          <button class="btn-contract btn-select-contract" data-contract="gran_atraco">
-            <span class="contract-icon">🏦</span>
-            <strong>El Gran Atraco</strong>
-            <small>Arriesga tu botín o escapa a tiempo</small>
-          </button>
-          <button class="btn-contract btn-select-contract" data-contract="imperio_criminal">
-            <span class="contract-icon">🏙️</span>
-            <strong>Imperio Criminal</strong>
-            <small>Asalta distritos y cobra dividendos</small>
-          </button>
-          <button class="btn-contract btn-select-contract" data-contract="apuestas_clandestinas">
-            <span class="contract-icon">🎲</span>
-            <strong>Apuestas Clandestinas</strong>
-            <small>Par, impar o alto en el bajo mundo</small>
-          </button>
+          <button class="btn-contract btn-select-contract active" data-contract="guerra_bandas">💥 <strong>Guerra de Bandas</strong></button>
+          <button class="btn-contract btn-select-contract" data-contract="gran_atraco">🏦 <strong>El Gran Atraco</strong></button>
+          <button class="btn-contract btn-select-contract" data-contract="imperio_criminal">🏙️ <strong>Imperio Criminal</strong></button>
+          <button class="btn-contract btn-select-contract" data-contract="apuestas_clandestinas">🎲 <strong>Apuestas Clandestinas</strong></button>
         </div>
       </section>
 
-      <!-- Panel de Modos Locales y Solo -->
       <section class="panel-box">
-        <h2 class="panel-title">OPERACIONES LOCALES</h2>
-        <div class="actions-grid">
-          <button id="btnModeLocal" class="btn-action">
-            Partida Local (1v1 Mismo Dispositivo)
-          </button>
-          <button id="btnModeAI" class="btn-action btn-secondary">
-            Solo vs Don Salieri (IA)
-          </button>
+        <h2 class="panel-title">INICIAR OPERACIÓN</h2>
+        <div class="actions-grid" style="margin-bottom: 15px;">
+          <button id="btnModeLocal" class="btn-action">Local (1v1)</button>
+          <button id="btnModeAI" class="btn-action btn-secondary">Solo vs IA</button>
         </div>
-      </section>
 
-      <!-- Panel Multijugador Online (Firebase RTDB) -->
-      <section class="panel-box online-panel">
-        <h2 class="panel-title">SINDICATO ONLINE</h2>
         <div class="online-actions-flow">
           <div class="online-flow-item">
-            <button id="btnCreateOnlineRoom" class="btn-action btn-online-action" disabled>
-              Crear Nueva Sala Online
-            </button>
+            <button id="btnCreateOnlineRoom" class="btn-action btn-online-action" style="width: 100%;" disabled>Crear Sala Online</button>
           </div>
           <div class="online-flow-divider">O</div>
           <div class="online-flow-item join-group">
-            <input 
-              type="text" 
-              id="inputRoomCode" 
-              class="input-room" 
-              placeholder="CÓDIGO (Ej: CD-4921)" 
-              maxlength="10" 
-              autocomplete="off"
-              spellcheck="false"
-            >
-            <button id="btnJoinOnlineRoom" class="btn-action btn-online-action" disabled>
-              Unirse a Sala
-            </button>
+            <input type="text" id="inputRoomCode" class="input-room" placeholder="CÓDIGO (Ej: CD-4921)" maxlength="10">
+            <button id="btnJoinOnlineRoom" class="btn-action btn-online-action" disabled>Unirse</button>
           </div>
         </div>
         
-        <!-- Botón del Host para comenzar la partida online -->
-        <div class="host-controls">
-          <button id="btnStartOnlineMatch" class="btn-action btn-success" style="display: none;" disabled>
-            Iniciar Asalto Online
-          </button>
+        <div class="host-controls" style="margin-top: 15px;">
+          <button id="btnCopyInvite" class="btn-action btn-secondary" style="display: none; margin-bottom: 10px; width: 100%;">📋 Copiar Enlace de Invitación</button>
+          <button id="btnStartOnlineMatch" class="btn-action btn-success" style="display: none; width: 100%;" disabled>Iniciar Asalto Online</button>
         </div>
       </section>
 
     </main>
 
     <!-- ========================================== -->
-    <!-- 2. SECCIÓN DE BATALLA / TABLERO ACTIVO     -->
+    <!-- 2. SECCIÓN DE BATALLA                      -->
     <!-- ========================================== -->
     <main id="battleSection" class="game-section" style="display: none;">
       
-      <!-- Encabezado de Turno y Contrato -->
+      <!-- Marcador Modo Party (Solo visible si está activo) -->
+      <div id="partyScoreBar" style="display: none; justify-content: space-between; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; border: 1px solid var(--accent-gold); margin-bottom: 15px; text-align: center;">
+        <div><strong style="color: var(--accent-gold);">P1 (Tú)</strong><br><span id="partyScoreP1" style="font-size: 1.2rem; font-weight: bold;">0</span></div>
+        <div><span style="font-size: 0.8rem; color: var(--text-muted);">CONTRATOS</span><br><strong id="partyMatchIndicator" style="color: #fff;">1 / 3</strong></div>
+        <div><strong style="color: var(--accent-gold);">P2 (Rival)</strong><br><span id="partyScoreP2" style="font-size: 1.2rem; font-weight: bold;">0</span></div>
+      </div>
+
       <div class="battle-header-bar">
         <div class="contract-indicator">
           <span>CONTRATO ACTIVO:</span>
           <strong id="contractTitle">GUERRA DE BANDAS</strong>
         </div>
-        <div id="turnStatusLabel" class="turn-status-badge">
-          Determinando turno...
-        </div>
+        <div id="turnStatusLabel" class="turn-status-badge">Determinando turno...</div>
       </div>
 
-      <!-- Tablero Central -->
       <div id="gameBoard" class="game-board">
-        
-        <!-- Contenedor Dinámico de Tarjetas de Jugador (players[uid]) -->
         <div id="playersContainer" class="players-container"></div>
-
-        <!-- Zona del Dado / Acción Central -->
+        
         <div class="dice-arena">
           <div id="diceContainer" class="dice-container">
             <div class="dice-face" id="diceVisual">🎲</div>
           </div>
         </div>
 
-        <!-- Panel de Acciones Específicas del Contrato Activo -->
         <div id="contractPanel" class="contract-panel"></div>
-
       </div>
 
-      <!-- Barra Inferior de Navegación -->
       <footer class="battle-footer">
-        <button id="btnExitBattle" class="btn-action btn-danger btn-sm" onclick="resetToMainMenu()">
-          Abandonar Partida
-        </button>
+        <button id="btnExitBattle" class="btn-action btn-danger btn-sm" onclick="resetToMainMenu()">Abandonar Partida</button>
       </footer>
-
     </main>
+  </div>
 
+  <!-- ========================================== -->
+  <!-- 3. MODAL DE DADOS VIRTUALES (PIXEL ART)    -->
+  <!-- ========================================== -->
+  <div id="modal-virtual" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; align-items: center; justify-content: center;">
+    <div style="background: var(--bg-card); border: 2px solid var(--accent-crimson); border-radius: 12px; padding: 20px; text-align: center; max-width: 300px; width: 90%;">
+      <h2 id="virtual-title" style="color: var(--accent-gold); font-size: 1.2rem; margin-bottom: 15px;">Lanzando...</h2>
+      
+      <!-- Contenedor del Personaje en el modal -->
+      <div style="width: 100px; height: 100px; margin: 0 auto 15px auto;">
+        <img id="modal-char-img" src="" style="width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated;" alt="Capo">
+      </div>
+
+      <!-- Contenedor del Dado 3D Pixel Art -->
+      <div id="modal-dice-wrapper" style="position: relative; width: 80px; height: 80px; margin: 0 auto; display: none; image-rendering: pixelated;">
+        <div id="modal-dice-shadow" style="position: absolute; inset: 0; background-size: contain; background-position: center; background-repeat: no-repeat; z-index: 1;"></div>
+        <div id="modal-dice-color" style="position: absolute; inset: 0; background-size: contain; background-position: center; background-repeat: no-repeat; z-index: 2;"></div>
+        <div id="modal-dice-base" style="position: absolute; inset: 0; background-size: contain; background-position: center; background-repeat: no-repeat; z-index: 3;"></div>
+        <div id="modal-dice-num" style="position: absolute; inset: 0; background-size: contain; background-position: center; background-repeat: no-repeat; z-index: 4;"></div>
+      </div>
+    </div>
   </div>
 
   <!-- Motor Principal del Juego -->
