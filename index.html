@@ -1,195 +1,124 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Criminal Dice / Crimen Urbano</title>
-  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090b0e">
+  <meta name="description" content="Crimen Urbano: contratos, dados y estrategia entre capos de la ciudad.">
+  <title>Crimen Urbano — Mafia Noir</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
-
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCEY_P4mC8xArf88rRBYyI-JZ_M74o6FuE",
-      authDomain: "criminalidados-243e6.firebaseapp.com",
-      databaseURL: "https://criminalidados-243e6-default-rtdb.firebaseio.com",
-      projectId: "criminalidados-243e6",
-      storageBucket: "criminalidados-243e6.firebasestorage.app",
-      messagingSenderId: "375013954181",
-      appId: "1:375013954181:web:1d1a5d6ce1990454c04fec"
-    };
-
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
-  </script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script defer src="game.js"></script>
 </head>
-<body>
-
-  <div class="game-container">
-    <div id="gameNotification" class="notification-toast"></div>
-
-    <header class="game-header">
-      <div class="header-brand">
-        <h1 class="game-title">CRIMINAL DICE</h1>
-        <span class="game-subtitle">CRIMEN URBANO</span>
-      </div>
-      <div class="header-status">
-        <span id="playerUidBadge" class="badge badge-auth">Conectando...</span>
-        <span id="currentRoomCode" class="badge badge-room">SIN SALA</span>
-      </div>
+<body class="theme-rpg">
+  <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
+  <main class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="Crimen Urbano, inicio">
+        <span class="brand-mark">CU</span>
+        <span><strong>CRIMEN <em>URBANO</em></strong><small>LA CIUDAD NO PERDONA</small></span>
+      </a>
+      <div class="topbar-right"><span class="status-pill"><i></i> SISTEMA LISTO</span><button class="btn btn-quiet btn-small" onclick="openManualGuide()">? Manual</button></div>
     </header>
 
-    <!-- ========================================== -->
-    <!-- 1. SECCIÓN DE LOBBY                        -->
-    <!-- ========================================== -->
-    <main id="lobbySection" class="game-section">
-      
-      <!-- Panel de Perfil -->
-      <section class="panel-box">
-        <h2 class="panel-title">PERFIL DEL CAPO</h2>
-        <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
-          <div style="width: 85px; height: 85px; background: rgba(0,0,0,0.5); border: 2px solid var(--border-subtle); border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
-            <img id="profilePreviewImg" src="assets/characters/Color_R/idle.png" style="width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated;" alt="Avatar">
+    <section id="setup-screen" class="screen setup-screen">
+      <div class="hero-copy"><p class="eyebrow">ESTRATEGIA · AZAR · PODER</p><h1>CONQUISTA<br><span>LA CIUDAD.</span></h1><p class="hero-lede">Reúne a tu banda, elige tus dados y demuestra quién manda en las calles.</p></div>
+      <div class="setup-layout">
+        <section class="panel setup-panel">
+          <div class="panel-heading"><div><span class="step-tag">01 / IDENTIDAD</span><h2>Elige a tus capos</h2></div><span class="panel-icon">♟</span></div>
+          <div class="players-setup-grid">
+            <article class="setup-player player-one"><div class="avatar-frame"><img id="p1-preview-img" src="assets/characters/Color_R/idle.png" alt="Vista previa del Capo 1"></div><label for="p1-name-input">CAPO 1 · TU BANDA</label><input id="p1-name-input" maxlength="24" placeholder="Capo Alpha" value="" oninput="onPlayerSetupInput()"><label for="p1-color-input">ASPECTO</label><select id="p1-color-input" onchange="updateMenuPreviews(); onPlayerSetupInput()"><option value="Color_R">Rojo — Carmesí</option><option value="Color_B">Azul — Cobalto</option><option value="Color_G">Verde — Esmeralda</option><option value="Color_Y">Amarillo — Oro</option><option value="Color_P">Morado — Violeta</option><option value="None">Clásico</option></select></article>
+            <div class="versus-mark">VS</div>
+            <article class="setup-player player-two"><div class="avatar-frame"><img id="p2-preview-img" src="assets/characters/Color_B/idle.png" alt="Vista previa del Capo 2"></div><label for="p2-name-input">CAPO 2 · RIVAL</label><input id="p2-name-input" maxlength="24" placeholder="Capo Bravo" value="" oninput="onPlayerSetupInput()"><label for="p2-color-input">ASPECTO</label><select id="p2-color-input" onchange="updateMenuPreviews(); onPlayerSetupInput()"><option value="Color_B">Azul — Cobalto</option><option value="Color_R">Rojo — Carmesí</option><option value="Color_G">Verde — Esmeralda</option><option value="Color_Y">Amarillo — Oro</option><option value="Color_P">Morado — Violeta</option><option value="None">Clásico</option></select></article>
           </div>
-          <div style="flex: 1; min-width: 160px;">
-            <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: bold; margin-bottom: 5px; display: block;">NOMBRE (ALIAS):</label>
-            <input type="text" id="inputPlayerName" class="input-room" placeholder="Capo..." maxlength="15">
+          <div class="panel-divider"></div>
+          <div class="panel-heading compact"><div><span class="step-tag">02 / MODALIDAD</span><h2>Cómo jugarás</h2></div></div>
+          <div class="mode-grid">
+            <button id="m-local" class="mode-card selected" onclick="setGameMode('local')"><span class="mode-symbol">♟♟</span><strong>LOCAL</strong><small>Dos jugadores, un dispositivo</small></button>
+            <button id="m-solo" class="mode-card" onclick="setGameMode('solo')"><span class="mode-symbol">♟⚙</span><strong>VS. IA</strong><small>Enfréntate a La Sombra</small></button>
+            <button id="m-online" class="mode-card" onclick="setGameMode('online')"><span class="mode-symbol">⌁</span><strong>ONLINE</strong><small>Juega con alguien a distancia</small></button>
           </div>
-          <div style="flex: 1; min-width: 160px;">
-            <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: bold; margin-bottom: 5px; display: block;">COLOR / BANDO:</label>
-            <select id="selectPlayerColor" class="input-room" style="cursor: pointer;">
-              <option value="Color_R">🔴 Rojo</option>
-              <option value="Color_B">🔵 Azul</option>
-              <option value="Color_G">🟢 Verde</option>
-              <option value="Color_P">🌸 Rosa</option>
-              <option value="Color_Pu">🟣 Morado</option>
-              <option value="Color_W">⚪ Blanco</option>
-            </select>
+          <div id="network-panel" class="network-panel hidden">
+            <div class="network-heading"><span class="step-tag">CONEXIÓN ONLINE</span><span id="network-status" class="connection-state">Sin conectar</span></div>
+            <div class="network-actions"><button class="btn btn-secondary" onclick="createOnlineRoom()">＋ Crear sala</button><button class="btn btn-secondary" onclick="showJoinRoomInput()">↗ Unirse a sala</button></div>
+            <div id="join-room-box" class="join-room-box hidden"><label for="room-code-input">Código de sala</label><div class="inline-input"><input id="room-code-input" maxlength="8" placeholder="Ej. A7K2" autocomplete="off"><button class="btn btn-gold" onclick="joinOnlineRoom()">Unirme</button></div></div>
+            <div id="online-info-box" class="online-info-box hidden"><p>Sala creada. Comparte el código con tu rival.</p><div class="room-code"><strong id="room-id-display">----</strong><button class="btn btn-small btn-secondary" onclick="copyInviteLink()">Copiar enlace</button></div><p class="muted">El anfitrión configura la partida y la inicia.</p></div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <!-- Panel de Configuración de Partida (Modo Party / Roguelike) -->
-      <section class="panel-box">
-        <h2 class="panel-title">CONFIGURACIÓN DE PARTIDA</h2>
-        <div style="display: flex; flex-direction: column; gap: 12px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; border: 1px solid var(--border-subtle);">
-            <span style="font-weight: bold; color: var(--text-main);">GUERRA TOTAL (Modo Party)</span>
-            <input type="checkbox" id="partyModeCheck" style="width: 20px; height: 20px; accent-color: var(--accent-crimson);">
-          </div>
-          <div id="partySettingsBox" style="display: none; padding: 10px; border-left: 2px solid var(--accent-crimson); margin-left: 10px;">
-            <label style="font-size: 0.85rem; color: var(--text-muted);">Número de contratos a jugar:</label>
-            <input type="number" id="totalMatchesInput" class="input-room" value="3" min="1" max="10" style="width: 100px; padding: 5px; margin-top: 5px;">
-          </div>
-          <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; border: 1px solid var(--border-subtle);">
-            <span style="font-weight: bold; color: var(--text-main);">SISTEMA ROGUELIKE (Mercado Negro)</span>
-            <input type="checkbox" id="roguelikeModeCheck" checked style="width: 20px; height: 20px; accent-color: var(--accent-crimson);">
-          </div>
-        </div>
-      </section>
+        <aside class="setup-sidebar">
+          <section id="setup-card-game" class="panel setup-options-panel"><div class="panel-heading"><div><span class="step-tag">03 / CONTRATO</span><h2>Tipo de partida</h2></div></div>
+            <label class="toggle-row"><span><strong>Modo campaña</strong><small>Juega varios contratos y consigue recompensas.</small></span><input id="party-mode-check" type="checkbox" checked onchange="togglePartySettings()"><i class="toggle"></i></label>
+            <label class="toggle-row"><span><strong>Modo roguelike</strong><small>Conserva la progresión del mercado negro.</small></span><input id="roguelike-mode-check" type="checkbox" checked><i class="toggle"></i></label>
+            <div id="single-game-settings" class="single-game-settings hidden"><p class="field-label">ELIGE UN CONTRATO</p><div class="contract-choice-grid">
+              <button id="opt-single-rpg" class="contract-choice selected" onclick="selectSingleGame('rpg')"><span>⚔</span><strong>Guerra de bandas</strong><small>Combate por turnos</small></button>
+              <button id="opt-single-exp" class="contract-choice" onclick="selectSingleGame('exp')"><span>💰</span><strong>El gran atraco</strong><small>Botín y cobertura</small></button>
+              <button id="opt-single-maf" class="contract-choice" onclick="selectSingleGame('maf')"><span>🏙</span><strong>Imperio criminal</strong><small>Control territorial</small></button>
+              <button id="opt-single-pok" class="contract-choice" onclick="selectSingleGame('pok')"><span>🎲</span><strong>Apuestas clandestinas</strong><small>Duelo de fichas</small></button>
+            </div></div>
+            <div id="party-settings" class="party-settings"><p class="field-label">CONTRATOS DISPONIBLES</p><div class="check-grid"><label><input id="party-cb-rpg" type="checkbox" checked onchange="validateCheckboxes()"><span>⚔ Guerra de bandas</span></label><label><input id="party-cb-exp" type="checkbox" checked onchange="validateCheckboxes()"><span>💰 El gran atraco</span></label><label><input id="party-cb-maf" type="checkbox" checked onchange="validateCheckboxes()"><span>🏙 Imperio criminal</span></label><label><input id="party-cb-pok" type="checkbox" checked onchange="validateCheckboxes()"><span>🎲 Apuestas clandestinas</span></label></div><label class="field-label" for="total-matches">NÚMERO DE CONTRATOS</label><input id="total-matches" type="number" min="3" max="15" value="5" oninput="updatePartyText()"><p id="party-desc-text" class="hint-text">El primero en ganar 3 victorias dominará la ciudad.</p></div>
+          </section>
+          <section id="setup-card-dice" class="panel dice-settings"><div class="panel-heading compact"><div><span class="step-tag">04 / DADOS</span><h2>Tu destino</h2></div></div><div class="dice-mode-grid"><button id="d-virt" class="dice-mode selected" onclick="setDice('virtual')"><span>🎲</span><strong>Virtuales</strong><small>Dados animados</small></button><button id="d-real" class="dice-mode" onclick="setDice('real')"><span>⚄</span><strong>Físicos</strong><small>Usa tus propios dados</small></button></div></section>
+          <button id="btn-start-game" class="btn btn-primary btn-start" onclick="onStartButtonClick()"><span>¡COMENZAR!</span><b>➜</b></button>
+          <button class="btn btn-quiet guide-link" onclick="openManualGuide()">Leer manual y reglas ↗</button>
+        </aside>
+      </div>
+    </section>
 
-      <section class="panel-box">
-        <h2 class="panel-title">SELECCIONAR CONTRATO INICIAL</h2>
-        <div class="contract-selector-grid">
-          <button class="btn-contract btn-select-contract active" data-contract="guerra_bandas">💥 <strong>Guerra de Bandas</strong></button>
-          <button class="btn-contract btn-select-contract" data-contract="gran_atraco">🏦 <strong>El Gran Atraco</strong></button>
-          <button class="btn-contract btn-select-contract" data-contract="imperio_criminal">🏙️ <strong>Imperio Criminal</strong></button>
-          <button class="btn-contract btn-select-contract" data-contract="apuestas_clandestinas">🎲 <strong>Apuestas Clandestinas</strong></button>
-        </div>
-      </section>
+    <section id="game-screen" class="screen game-screen hidden">
+      <div class="game-topline"><div><p class="eyebrow">OPERACIÓN EN CURSO</p><h1 id="contractTitle">GUERRA DE BANDAS</h1><p id="turnStatusLabel" class="muted">Prepara tu siguiente movimiento.</p></div><div class="game-top-actions"><span id="round-indicator" class="round-pill">RONDA 1</span><button class="btn btn-quiet" onclick="dispatchAction('networkReturnToMenu')">Salir al menú</button></div></div>
+      <div class="score-strip"><div class="score-player"><span class="score-dot red-dot"></span><div><small id="global-p1-name" class="p1-display-name">Capo Alpha</small><strong id="global-p1-val">0</strong></div></div><div id="party-score-bar" class="party-score-bar"><span id="party-match-indicator">CONTRATO 1</span><div><span id="party-score-p1">0</span><b>—</b><span id="party-score-p2">0</span></div></div><div class="score-player right"><div><small id="global-p2-name" class="p2-display-name">Capo Bravo</small><strong id="global-p2-val">0</strong></div><span class="score-dot blue-dot"></span></div></div>
+      <div id="city-event-banner" class="city-event-banner hidden"><strong id="city-event-title"></strong><p id="city-event-desc"></p></div>
+      <div class="game-hud-grid"><section class="panel hud-panel"><div class="hud-heading"><span>INVENTARIO / CAPO 1</span><strong id="market-p1-coins-hud">💲 <span id="market-p1-coins-hud-value">100</span></strong></div><div id="p1-items-hud" class="items-hud player-deck-hud"><div id="rpg-p1-items-hud"></div><div id="exp-p1-items-hud"></div><div id="maf-p1-items-hud"></div><div id="pok-p1-items-hud"></div><span id="rpg-p1-money-hud" class="hidden"></span><span id="exp-p1-money-hud" class="hidden"></span><span id="maf-p1-money-hud" class="hidden"></span><span id="pok-p1-money-hud" class="hidden"></span></div></section><section class="panel hud-panel"><div class="hud-heading"><span>INVENTARIO / CAPO 2</span><strong>💲 <span id="market-p2-coins-hud-value">100</span></strong></div><div id="p2-items-hud" class="items-hud"></div></section></div>
 
-      <section class="panel-box">
-        <h2 class="panel-title">INICIAR OPERACIÓN</h2>
-        <div class="actions-grid" style="margin-bottom: 15px;">
-          <button id="btnModeLocal" class="btn-action">Local (1v1)</button>
-          <button id="btnModeAI" class="btn-action btn-secondary">Solo vs IA</button>
+      <div id="rpg-container" class="minigame-container">
+        <div class="minigame-intro"><span class="contract-icon">⚔</span><div><span class="step-tag">CONTRATO 01</span><h2>Guerra de bandas</h2><p>Reduce la salud rival a cero. Cada turno cuenta.</p></div></div>
+        <div class="duel-grid">
+          <article id="rpg-m1-box" class="combatant-card"><div class="combatant-top"><img id="rpg-p1-avatar-img" src="assets/characters/Color_R/idle.png" alt="Capo 1"><div><small class="p1-display-name">Capo Alpha</small><h3 id="rpg-p1-hp-label">— SALUD</h3><span id="rpg-p1-status" class="status-label">Listo</span></div></div><div id="rpg-p1-bar-container" class="bar-track"><div id="rpg-p1-bar" class="bar-fill red-fill"></div></div><div class="combatant-footer"><span>TRATAMIENTOS</span><strong id="rpg-badge-h">0/3</strong></div></article>
+          <div class="duel-vs">VS</div>
+          <article id="rpg-m2-box" class="combatant-card"><div class="combatant-top"><img id="rpg-p2-avatar-img" src="assets/characters/Color_B/idle.png" alt="Capo 2"><div><small class="p2-display-name">Capo Bravo</small><h3 id="rpg-p2-hp-label">— SALUD</h3><span id="rpg-p2-status" class="status-label">Listo</span></div></div><div id="rpg-p2-bar-container" class="bar-track"><div id="rpg-p2-bar" class="bar-fill blue-fill"></div></div><div class="combatant-footer"><span>ESTADO</span><strong id="rpg-p2-status-detail">EN PIE</strong></div></article>
         </div>
-
-        <div class="online-actions-flow">
-          <div class="online-flow-item">
-            <button id="btnCreateOnlineRoom" class="btn-action btn-online-action" style="width: 100%;" disabled>Crear Sala Online</button>
-          </div>
-          <div class="online-flow-divider">O</div>
-          <div class="online-flow-item join-group">
-            <input type="text" id="inputRoomCode" class="input-room" placeholder="CÓDIGO (Ej: CD-4921)" maxlength="10">
-            <button id="btnJoinOnlineRoom" class="btn-action btn-online-action" disabled>Unirse</button>
-          </div>
-        </div>
-        
-        <div class="host-controls" style="margin-top: 15px;">
-          <button id="btnCopyInvite" class="btn-action btn-secondary" style="display: none; margin-bottom: 10px; width: 100%;">📋 Copiar Enlace de Invitación</button>
-          <button id="btnStartOnlineMatch" class="btn-action btn-success" style="display: none; width: 100%;" disabled>Iniciar Asalto Online</button>
-        </div>
-      </section>
-
-    </main>
-
-    <!-- ========================================== -->
-    <!-- 2. SECCIÓN DE BATALLA                      -->
-    <!-- ========================================== -->
-    <main id="battleSection" class="game-section" style="display: none;">
-      
-      <!-- Marcador Modo Party (Solo visible si está activo) -->
-      <div id="partyScoreBar" style="display: none; justify-content: space-between; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; border: 1px solid var(--accent-gold); margin-bottom: 15px; text-align: center;">
-        <div><strong style="color: var(--accent-gold);">P1 (Tú)</strong><br><span id="partyScoreP1" style="font-size: 1.2rem; font-weight: bold;">0</span></div>
-        <div><span style="font-size: 0.8rem; color: var(--text-muted);">CONTRATOS</span><br><strong id="partyMatchIndicator" style="color: #fff;">1 / 3</strong></div>
-        <div><strong style="color: var(--accent-gold);">P2 (Rival)</strong><br><span id="partyScoreP2" style="font-size: 1.2rem; font-weight: bold;">0</span></div>
+        <div class="action-grid"><button id="rpg-btn-q" class="action-card" onclick="dispatchAction('rpgAction','quick')"><span>⚡</span><strong>Ataque rápido</strong><small>Ágil y directo</small></button><button id="rpg-btn-s" class="action-card" onclick="dispatchAction('rpgAction','strong')"><span>🔫</span><strong>Ataque fuerte</strong><small>Más riesgo, más daño</small></button><button id="rpg-btn-h" class="action-card" onclick="dispatchAction('rpgAction','heal')"><span>🩺</span><strong>Médico de calle</strong><small>Recupera salud · <b id="rpg-badge-heal">0/3</b></small></button><button id="rpg-btn-p" class="action-card" onclick="dispatchAction('rpgAction','poison')"><span>☠</span><strong>Veneno</strong><small>Debilita al rival</small></button></div>
+        <div class="log-panel"><div class="log-heading"><strong>REGISTRO DE LA CALLE</strong><span>EN VIVO</span></div><div id="rpg-log-box" class="log-box" aria-live="polite"></div></div>
       </div>
 
-      <div class="battle-header-bar">
-        <div class="contract-indicator">
-          <span>CONTRATO ACTIVO:</span>
-          <strong id="contractTitle">GUERRA DE BANDAS</strong>
-        </div>
-        <div id="turnStatusLabel" class="turn-status-badge">Determinando turno...</div>
+      <div id="exp-container" class="minigame-container hidden">
+        <div class="minigame-intro"><span class="contract-icon">💰</span><div><span class="step-tag">CONTRATO 02</span><h2>El gran atraco</h2><p>Explora la bóveda, protege tu cobertura y decide cuándo escapar.</p><span id="exp-dive-indicator" class="inline-status">ATRACO 1/3</span></div></div>
+        <div class="duel-grid"><article id="exp-m1-box" class="combatant-card"><div class="combatant-top"><img id="exp-p1-avatar-img" src="assets/characters/Color_R/idle.png" alt="Capo 1"><div><small class="p1-display-name">Capo Alpha</small><h3 id="exp-p1-hp-label">20/20 COB</h3><span>BOTÍN ASEGURADO: <b id="exp-p1-secured">0</b></span><span id="exp-p1-status" class="status-label">Dentro del banco</span></div></div><div id="exp-p1-bar-container" class="bar-track"><div id="exp-p1-bar" class="bar-fill red-fill"></div></div><div id="exp-p1-temp-loot" class="loot-chip">💰 0</div></article><div class="duel-vs">VS</div><article id="exp-m2-box" class="combatant-card"><div class="combatant-top"><img id="exp-p2-avatar-img" src="assets/characters/Color_B/idle.png" alt="Capo 2"><div><small class="p2-display-name">Capo Bravo</small><h3 id="exp-p2-hp-label">20/20 COB</h3><span>BOTÍN ASEGURADO: <b id="exp-p2-secured">0</b></span><span id="exp-p2-status" class="status-label">Dentro del banco</span></div></div><div id="exp-p2-bar-container" class="bar-track"><div id="exp-p2-bar" class="bar-fill blue-fill"></div></div><div id="exp-p2-temp-loot" class="loot-chip">💰 0</div></article></div>
+        <div class="action-grid"><button id="exp-btn-q" class="action-card" onclick="dispatchAction('expAction','explore')"><span>🔎</span><strong>Saquear cajas</strong><small>Busca dinero y botín</small></button><button id="exp-btn-s" class="action-card" onclick="dispatchAction('expAction','sabotage')"><span>💣</span><strong>Lanzar granada</strong><small>Ataca al rival</small></button><button id="exp-btn-h" class="action-card" onclick="dispatchAction('expAction','repair')"><span>🛠</span><strong>Reparar cobertura</strong><small><b id="exp-badge-h">1/Inv</b></small></button><button id="exp-btn-sab" class="action-card" onclick="dispatchAction('expAction','sabotage')"><span>🚤</span><strong>Sabotear</strong><small>Torpedo · <b id="exp-badge-sab">0/3</b></small></button><button id="exp-btn-p" class="action-card" onclick="dispatchAction('expAction','surface')"><span>🚨</span><strong>Asegurar botín y salir</strong><small>Abandona la bóveda</small></button></div>
+        <div class="log-panel"><div class="log-heading"><strong>REGISTRO DEL ATRACO</strong><span>EN VIVO</span></div><div id="exp-log-box" class="log-box" aria-live="polite"></div></div>
       </div>
 
-      <div id="gameBoard" class="game-board">
-        <div id="playersContainer" class="players-container"></div>
-        
-        <div class="dice-arena">
-          <div id="diceContainer" class="dice-container">
-            <div class="dice-face" id="diceVisual">🎲</div>
-          </div>
-        </div>
-
-        <div id="contractPanel" class="contract-panel"></div>
+      <div id="maf-container" class="minigame-container hidden">
+        <div class="minigame-intro"><span class="contract-icon">🏙</span><div><span class="step-tag">CONTRATO 03</span><h2>Imperio criminal</h2><p>Controla distritos, recauda efectivo y sabotea los territorios rivales.</p></div></div>
+        <div class="duel-grid"><article id="maf-m1-box" class="combatant-card"><div class="combatant-top"><img id="maf-p1-avatar-img" src="assets/characters/Color_R/idle.png" alt="Capo 1"><div><small class="p1-display-name">Capo Alpha</small><h3 id="maf-p1-prestige">0/15 INFLUENCIA</h3><span>EFECTIVO: <b id="maf-p1-coins">0</b> 💵</span></div></div><div id="maf-p1-bar-container" class="bar-track"><div id="maf-p1-bar" class="bar-fill red-fill"></div></div><div id="maf-p1-parcels" class="district-grid"></div></article><div class="duel-vs">VS</div><article id="maf-m2-box" class="combatant-card"><div class="combatant-top"><img id="maf-p2-avatar-img" src="assets/characters/Color_B/idle.png" alt="Capo 2"><div><small class="p2-display-name">Capo Bravo</small><h3 id="maf-p2-prestige">0/15 INFLUENCIA</h3><span>EFECTIVO: <b id="maf-p2-coins">0</b> 💵</span></div></div><div id="maf-p2-bar-container" class="bar-track"><div id="maf-p2-bar" class="bar-fill blue-fill"></div></div><div id="maf-p2-parcels" class="district-grid"></div></article></div>
+        <div id="maf-phase-roll" class="phase-panel"><h3>FASE 1 · RECAUDAR</h3><p>Lanza un dado para obtener efectivo de los distritos.</p><div class="action-grid"><button class="action-card" onclick="dispatchAction('mafRollHarvest',6,false)"><span>🎲</span><strong>Recaudación segura</strong><small>1d6 · riesgo moderado</small></button><button class="action-card" onclick="dispatchAction('mafRollHarvest',12,false)"><span>🎲</span><strong>Recaudación arriesgada</strong><small>1d12 · mayor recompensa</small></button><button class="action-card" onclick="dispatchAction('mafRollHarvest',6,true)"><span>🪙</span><strong>Lavado egoísta</strong><small>Solo tú cobras</small></button></div></div>
+        <div id="maf-phase-action" class="phase-panel hidden"><h3>FASE 2 · MOVER LOS HILOS</h3><p id="maf-cost-buy">Costo: 1 Efectivo</p><div class="action-grid"><button id="maf-btn-safe" class="action-card" onclick="dispatchAction('openBuyModal')"><span>🏢</span><strong>Comprar distrito</strong><small>Expande tu imperio</small></button><button id="maf-btn-exotic" class="action-card" onclick="dispatchAction('openSabotageModal')"><span>🚓</span><strong>Enviar redada</strong><small>Sabotea al rival · 3💵</small></button><button id="maf-btn-buy" class="action-card" onclick="dispatchAction('openBuyModal')"><span>🗺</span><strong>Controlar territorio</strong><small>Compra otro distrito</small></button><button id="maf-btn-brew" class="action-card" onclick="dispatchAction('mafActionBrew')"><span>🤝</span><strong>Sobornar político</strong><small>Cuesta 5💵</small></button><button id="maf-btn-sab" class="action-card" onclick="dispatchAction('openSabotageModal')"><span>🕵</span><strong>Infiltrar soplón</strong><small>Cuesta 3💵</small></button><button id="maf-btn-pass" class="action-card" onclick="dispatchAction('mafActionPass')"><span>⏭</span><strong>Pasar turno</strong><small>Conservar recursos</small></button></div><label id="egoist-label" class="check-inline"><input id="maf-egoist-check" type="checkbox"><span>Modo egoísta (si la mecánica lo permite)</span></label></div>
+        <div class="log-panel"><div class="log-heading"><strong>REGISTRO DEL IMPERIO</strong><span>EN VIVO</span></div><div id="maf-log-box" class="log-box" aria-live="polite"></div></div>
       </div>
 
-      <footer class="battle-footer">
-        <button id="btnExitBattle" class="btn-action btn-danger btn-sm" onclick="resetToMainMenu()">Abandonar Partida</button>
-      </footer>
-    </main>
-  </div>
-
-  <!-- ========================================== -->
-  <!-- 3. MODAL DE DADOS VIRTUALES (PIXEL ART)    -->
-  <!-- ========================================== -->
-  <div id="modal-virtual" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; align-items: center; justify-content: center;">
-    <div style="background: var(--bg-card); border: 2px solid var(--accent-crimson); border-radius: 12px; padding: 20px; text-align: center; max-width: 300px; width: 90%;">
-      <h2 id="virtual-title" style="color: var(--accent-gold); font-size: 1.2rem; margin-bottom: 15px;">Lanzando...</h2>
-      
-      <!-- Contenedor del Personaje en el modal -->
-      <div style="width: 100px; height: 100px; margin: 0 auto 15px auto;">
-        <img id="modal-char-img" src="" style="width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated;" alt="Capo">
+      <div id="pok-container" class="minigame-container hidden">
+        <div class="minigame-intro"><span class="contract-icon">🎲</span><div><span class="step-tag">CONTRATO 04</span><h2>Apuestas clandestinas</h2><p>Arriesga fichas en duelos directos. La mesa solo recuerda al ganador.</p></div></div>
+        <div class="duel-grid"><article id="pok-m1-box" class="combatant-card"><div class="combatant-top"><img id="pok-p1-avatar-img" src="assets/characters/Color_R/idle.png" alt="Capo 1"><div><small class="p1-display-name">Capo Alpha</small><h3><span id="pok-p1-tokens">12</span> FICHAS</h3></div></div></article><div class="duel-vs">VS</div><article id="pok-m2-box" class="combatant-card"><div class="combatant-top"><img id="pok-p2-avatar-img" src="assets/characters/Color_B/idle.png" alt="Capo 2"><div><small class="p2-display-name">Capo Bravo</small><h3><span id="pok-p2-tokens">12</span> FICHAS</h3></div></div></article></div>
+        <div class="action-grid"><button id="pok-btn-q" class="action-card" onclick="dispatchAction('pokAction','apuesta')"><span>🃏</span><strong>Apuesta básica</strong><small>Arriesga una ficha</small></button><button id="pok-btn-s" class="action-card" onclick="dispatchAction('pokAction','golpe')"><span>👊</span><strong>Golpe a la mesa</strong><small>Arriesga tres fichas</small></button><button id="pok-btn-sab" class="action-card" onclick="dispatchAction('pokAction','tahur')"><span>🎩</span><strong>Trampa de tahúr</strong><small><b id="pok-badge-sab">Activo</b></small></button></div>
+        <div class="log-panel"><div class="log-heading"><strong>REGISTRO DE LA MESA</strong><span>EN VIVO</span></div><div id="pok-log-box" class="log-box" aria-live="polite"></div></div>
       </div>
+      <button class="btn btn-quiet back-menu" onclick="dispatchAction('networkReturnToMenu')">← Volver al menú principal</button>
+    </section>
+  </main>
 
-      <!-- Contenedor del Dado 3D Pixel Art -->
-      <div id="modal-dice-wrapper" style="position: relative; width: 80px; height: 80px; margin: 0 auto; display: none; image-rendering: pixelated;">
-        <div id="modal-dice-shadow" style="position: absolute; inset: 0; background-size: contain; background-position: center; background-repeat: no-repeat; z-index: 1;"></div>
-        <div id="modal-dice-color" style="position: absolute; inset: 0; background-size: contain; background-position: center; background-repeat: no-repeat; z-index: 2;"></div>
-        <div id="modal-dice-base" style="position: absolute; inset: 0; background-size: contain; background-position: center; background-repeat: no-repeat; z-index: 3;"></div>
-        <div id="modal-dice-num" style="position: absolute; inset: 0; background-size: contain; background-position: center; background-repeat: no-repeat; z-index: 4;"></div>
-      </div>
-    </div>
-  </div>
+  <div id="modal-splash" class="overlay hidden"><div class="splash-card"><span class="splash-kicker">NUEVO CONTRATO</span><h2 id="splash-title">GUERRA DE BANDAS</h2><div class="splash-line"></div></div></div>
+  <div id="modal-virtual" class="overlay hidden"><div class="modal-card dice-modal"><button class="modal-close btn-cancel" onclick="networkCancelAction()" aria-label="Cerrar">×</button><p id="virtual-title" class="eyebrow">TIRADA EN CURSO</p><img id="modal-char-img" class="modal-character" src="assets/characters/None/idle.png" alt="Personaje"><div id="modal-dice-wrapper" class="dice-stage"><div id="modal-dice-shadow"></div><div id="modal-dice-color"></div><div id="modal-dice-base"></div><strong id="modal-dice-num">?</strong></div></div></div>
+  <div id="modal-manual" class="overlay hidden"><div class="modal-card manual-modal"><button class="modal-close" onclick="networkCancelAction()" aria-label="Cerrar">×</button><h2>Introduce tu tirada</h2><p id="manual-title" class="muted">Resultado del dado físico</p><p id="manual-desc"></p><label for="input-manual-value">Resultado</label><input id="input-manual-value" type="number" min="1" max="20" value="1"><img id="modal-manual-char-img" class="manual-character" src="assets/characters/None/idle.png" alt="Personaje"><button id="btn-confirm-manual" class="btn btn-primary" >Confirmar tirada</button></div></div>
+  <div id="modal-choice" class="overlay hidden"><div class="modal-card choice-modal"><button class="modal-close btn-cancel" onclick="closeChoiceModal()" aria-label="Cerrar">×</button><p class="eyebrow">DECISIÓN ESTRATÉGICA</p><h2 id="choice-title">Elige tu acción</h2><p id="choice-desc" class="muted"></p><div id="choice-container" class="choice-container"></div></div></div>
+  <div id="modal-market" class="overlay hidden"><div class="modal-card market-modal"><div class="modal-heading"><div><p class="eyebrow">ECONOMÍA CLANDESTINA</p><h2>Mercado negro</h2><p class="muted">Invierte en contactos y consumibles para el siguiente contrato.</p></div><button class="modal-close" onclick="document.getElementById('modal-market').classList.add('hidden')" aria-label="Cerrar">×</button></div><div class="market-wallets"><div><small>CAPO 1</small><strong>💲 <span id="market-p1-coins">100</span></strong></div><div><small>CAPO 2</small><strong>💲 <span id="market-p2-coins">100</span></strong></div><div><small>RETIRO</small><strong>💲 <span id="reroll-cost-display">50</span></strong><button class="btn btn-small btn-secondary btn-buy-market" onclick="rerollMarket(1)">Renovar stock</button></div></div><div id="market-grid-container" class="market-grid-container"></div><button id="btn-market-continue" class="btn btn-primary market-continue" onclick="dispatchAction('networkNextGame')">Continuar al siguiente contrato ➜</button></div></div>
+  <div id="win-overlay" class="overlay hidden"><div class="modal-card win-modal"><p class="eyebrow">RESULTADO DEL CONTRATO</p><div class="winner-avatars"><div><img id="win-img-p1" src="assets/characters/Color_R/idle.png" alt="Capo 1"><small id="win-label-p1">Capo Alpha</small></div><span>VS</span><div><img id="win-img-p2" src="assets/characters/Color_B/idle.png" alt="Capo 2"><small id="win-label-p2">Capo Bravo</small></div></div><h2 id="final-winner-name">GANADOR</h2><p id="final-winner-msg" class="muted">Fin del contrato</p><div class="score-result"><span><b id="global-p1-val-result">0</b> <small class="p1-display-name">Capo Alpha</small></span><span><b id="global-p2-val-result">0</b> <small class="p2-display-name">Capo Bravo</small></span></div><button id="btn-next-match" class="btn btn-primary">Continuar ➜</button></div></div>
 
-  <!-- Motor Principal del Juego -->
-  <script src="game.js"></script>
+  <div id="modal-manual-guide" class="overlay hidden"><div class="modal-card guide-modal"><button class="modal-close" onclick="closeManualGuide()" aria-label="Cerrar">×</button><p class="eyebrow">ARCHIVO DE OPERACIONES</p><h2>Manual de Crimen Urbano</h2><div class="manual-tabs"><button id="tab-btn-1" class="active" onclick="switchManualTab(1)">Objetivo</button><button id="tab-btn-2" onclick="switchManualTab(2)">Contratos</button><button id="tab-btn-3" onclick="switchManualTab(3)">Campaña</button><button id="tab-btn-4" onclick="switchManualTab(4)">Online</button></div><div id="tab-content-1" class="manual-tab-content"><h3>Domina la ciudad</h3><p>Juega por turnos, administra tus recursos y supera los contratos para convertirte en el capo dominante.</p></div><div id="tab-content-2" class="manual-tab-content hidden"><h3>Cuatro contratos</h3><p><b>Guerra de bandas:</b> combate y estados. <b>El gran atraco:</b> botín y cobertura. <b>Imperio criminal:</b> dinero y distritos. <b>Apuestas clandestinas:</b> fichas y riesgo.</p></div><div id="tab-content-3" class="manual-tab-content hidden"><h3>Progresión</h3><p>Activa el modo campaña para encadenar contratos. El modo roguelike habilita el mercado negro y sus mejoras.</p></div><div id="tab-content-4" class="manual-tab-content hidden"><h3>Partidas a distancia</h3><p>El anfitrión crea una sala y comparte el código o enlace. El segundo jugador se une y configura su identidad antes de empezar.</p></div></div></div>
+
 </body>
 </html>
