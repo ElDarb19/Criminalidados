@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#090b0e">
-  <meta name="description" content="Crimen Urbano: contratos, dados y estrategia entre capos de la ciudad.">
-  <title>Crimen Urbano — Mafia Noir</title>
+  <meta name="description" content="Criminal Dice: contratos, dados y estrategia entre capos de la ciudad.">
+  <title>Criminal Dice — Mafia Noir</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -18,58 +18,180 @@
   <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
   <main class="app-shell">
     <header class="topbar">
-      <a class="brand" href="#top" aria-label="Crimen Urbano, inicio">
-        <span class="brand-mark">CU</span>
-        <span><strong>CRIMEN <em>URBANO</em></strong><small>LA CIUDAD NO PERDONA</small></span>
-      </a>
-      <div class="topbar-right"><span class="status-pill"><i></i> SISTEMA LISTO</span><button class="btn btn-quiet btn-small" onclick="openManualGuide()">? Manual</button></div>
+      <div></div> <!-- Espaciador para centrar/alinear a la derecha -->
+      <div class="topbar-right">
+        <button class="btn-manual" onclick="openManualGuide()">📖 MANUAL DEL CAPO</button>
+      </div>
     </header>
 
     <section id="setup-screen" class="screen setup-screen">
-      <div class="hero-copy"><p class="eyebrow">ESTRATEGIA · AZAR · PODER</p><h1>CONQUISTA<br><span>LA CIUDAD.</span></h1><p class="hero-lede">Reúne a tu banda, elige tus dados y demuestra quién manda en las calles.</p></div>
-      <div class="setup-layout">
-        <section class="panel setup-panel">
-          <div class="panel-heading"><div><span class="step-tag">01 / IDENTIDAD</span><h2>Elige a tus capos</h2></div><span class="panel-icon">♟</span></div>
-          <div class="players-setup-grid">
-            <article class="setup-player player-one"><div class="avatar-frame"><img id="p1-preview-img" src="assets/characters/Color_R/idle.png" alt="Vista previa del Capo 1"></div><label for="p1-name-input">CAPO 1 · TU BANDA</label><input id="p1-name-input" maxlength="24" placeholder="Capo Alpha" value="" oninput="onPlayerSetupInput()"><label for="p1-color-input">ASPECTO</label><select id="p1-color-input" onchange="updateMenuPreviews(); onPlayerSetupInput()"><option value="Color_R">Rojo — Carmesí</option><option value="Color_B">Azul — Cobalto</option><option value="Color_G">Verde — Esmeralda</option><option value="Color_Y">Amarillo — Oro</option><option value="Color_P">Morado — Violeta</option><option value="None">Clásico</option></select></article>
-            <div class="versus-mark">VS</div>
-            <article class="setup-player player-two"><div class="avatar-frame"><img id="p2-preview-img" src="assets/characters/Color_B/idle.png" alt="Vista previa del Capo 2"></div><label for="p2-name-input">CAPO 2 · RIVAL</label><input id="p2-name-input" maxlength="24" placeholder="Capo Bravo" value="" oninput="onPlayerSetupInput()"><label for="p2-color-input">ASPECTO</label><select id="p2-color-input" onchange="updateMenuPreviews(); onPlayerSetupInput()"><option value="Color_B">Azul — Cobalto</option><option value="Color_R">Rojo — Carmesí</option><option value="Color_G">Verde — Esmeralda</option><option value="Color_Y">Amarillo — Oro</option><option value="Color_P">Morado — Violeta</option><option value="None">Clásico</option></select></article>
-          </div>
-          <div class="panel-divider"></div>
-          <div class="panel-heading compact"><div><span class="step-tag">02 / MODALIDAD</span><h2>Cómo jugarás</h2></div></div>
-          <div class="mode-grid">
-            <button id="m-local" class="mode-card selected" onclick="setGameMode('local')"><span class="mode-symbol">♟♟</span><strong>LOCAL</strong><small>Dos jugadores, un dispositivo</small></button>
-            <button id="m-solo" class="mode-card" onclick="setGameMode('solo')"><span class="mode-symbol">♟⚙</span><strong>VS. IA</strong><small>Enfréntate a La Sombra</small></button>
-            <button id="m-online" class="mode-card" onclick="setGameMode('online')"><span class="mode-symbol">⌁</span><strong>ONLINE</strong><small>Juega con alguien a distancia</small></button>
-          </div>
-          <div id="network-panel" class="network-panel hidden">
-            <div class="network-heading"><span class="step-tag">CONEXIÓN ONLINE</span><span id="network-status" class="connection-state">Sin conectar</span></div>
-            <div class="network-actions"><button class="btn btn-secondary" onclick="createOnlineRoom()">＋ Crear sala</button><button class="btn btn-secondary" onclick="showJoinRoomInput()">↗ Unirse a sala</button></div>
-            <div id="join-room-box" class="join-room-box hidden"><label for="room-code-input">Código de sala</label><div class="inline-input"><input id="room-code-input" maxlength="8" placeholder="Ej. A7K2" autocomplete="off"><button class="btn btn-gold" onclick="joinOnlineRoom()">Unirme</button></div></div>
-            <div id="online-info-box" class="online-info-box hidden"><p>Sala creada. Comparte el código con tu rival.</p><div class="room-code"><strong id="room-id-display">----</strong><button class="btn btn-small btn-secondary" onclick="copyInviteLink()">Copiar enlace</button></div><p class="muted">El anfitrión configura la partida y la inicia.</p></div>
-          </div>
-        </section>
-
-        <aside class="setup-sidebar">
-          <section id="setup-card-game" class="panel setup-options-panel"><div class="panel-heading"><div><span class="step-tag">03 / CONTRATO</span><h2>Tipo de partida</h2></div></div>
-            <label class="toggle-row"><span><strong>Modo campaña</strong><small>Juega varios contratos y consigue recompensas.</small></span><input id="party-mode-check" type="checkbox" checked onchange="togglePartySettings()"><i class="toggle"></i></label>
-            <label class="toggle-row"><span><strong>Modo roguelike</strong><small>Conserva la progresión del mercado negro.</small></span><input id="roguelike-mode-check" type="checkbox" checked><i class="toggle"></i></label>
-            <div id="single-game-settings" class="single-game-settings hidden"><p class="field-label">ELIGE UN CONTRATO</p><div class="contract-choice-grid">
-              <button id="opt-single-rpg" class="contract-choice selected" onclick="selectSingleGame('rpg')"><span>⚔</span><strong>Guerra de bandas</strong><small>Combate por turnos</small></button>
-              <button id="opt-single-exp" class="contract-choice" onclick="selectSingleGame('exp')"><span>💰</span><strong>El gran atraco</strong><small>Botín y cobertura</small></button>
-              <button id="opt-single-maf" class="contract-choice" onclick="selectSingleGame('maf')"><span>🏙</span><strong>Imperio criminal</strong><small>Control territorial</small></button>
-              <button id="opt-single-pok" class="contract-choice" onclick="selectSingleGame('pok')"><span>🎲</span><strong>Apuestas clandestinas</strong><small>Duelo de fichas</small></button>
-            </div></div>
-            <div id="party-settings" class="party-settings"><p class="field-label">CONTRATOS DISPONIBLES</p><div class="check-grid"><label><input id="party-cb-rpg" type="checkbox" checked onchange="validateCheckboxes()"><span>⚔ Guerra de bandas</span></label><label><input id="party-cb-exp" type="checkbox" checked onchange="validateCheckboxes()"><span>💰 El gran atraco</span></label><label><input id="party-cb-maf" type="checkbox" checked onchange="validateCheckboxes()"><span>🏙 Imperio criminal</span></label><label><input id="party-cb-pok" type="checkbox" checked onchange="validateCheckboxes()"><span>🎲 Apuestas clandestinas</span></label></div><label class="field-label" for="total-matches">NÚMERO DE CONTRATOS</label><input id="total-matches" type="number" min="3" max="15" value="5" oninput="updatePartyText()"><p id="party-desc-text" class="hint-text">El primero en ganar 3 victorias dominará la ciudad.</p></div>
-          </section>
-          <section id="setup-card-dice" class="panel dice-settings"><div class="panel-heading compact"><div><span class="step-tag">04 / DADOS</span><h2>Tu destino</h2></div></div><div class="dice-mode-grid"><button id="d-virt" class="dice-mode selected" onclick="setDice('virtual')"><span>🎲</span><strong>Virtuales</strong><small>Dados animados</small></button><button id="d-real" class="dice-mode" onclick="setDice('real')"><span>⚄</span><strong>Físicos</strong><small>Usa tus propios dados</small></button></div></section>
-          <button id="btn-start-game" class="btn btn-primary btn-start" onclick="onStartButtonClick()"><span>¡COMENZAR!</span><b>➜</b></button>
-          <button class="btn btn-quiet guide-link" onclick="openManualGuide()">Leer manual y reglas ↗</button>
-        </aside>
+      <div class="menu-header">
+        <h1>CRIMINAL DICE</h1>
+        <p>RANDOM DICE GAME</p>
       </div>
+
+      <div class="setup-modules">
+        <!-- MÓDULO 1: MODO DE JUEGO -->
+        <div class="menu-module">
+          <h2>MODO DE JUEGO</h2>
+          <div class="module-grid-2">
+            <button id="m-local" class="menu-btn selected" onclick="setMenuMode('local')">📱 Local</button>
+            <button id="m-online" class="menu-btn" onclick="setMenuMode('online')">🌐 Online</button>
+          </div>
+        </div>
+
+        <!-- MÓDULO 2: CONEXIÓN MULTIJUGADOR -->
+        <div id="module-connection" class="menu-module connection-module hidden">
+          <h2>CONEXIÓN MULTIJUGADOR</h2>
+          <div class="module-grid-2">
+            <button id="c-create" class="menu-btn" onclick="setConnMode('create')">👑 Crear Sala</button>
+            <button id="c-join" class="menu-btn" onclick="setConnMode('join')">🔑 Unirse a Sala</button>
+          </div>
+          <div id="conn-create-box" class="conn-box hidden">
+            <p class="room-code-text">SALA: <span id="room-id-display">----</span></p>
+            <button class="btn-cyan-outline" onclick="copyInviteLink()">📋 Copiar Enlace de Invitación</button>
+          </div>
+          <div id="conn-join-box" class="conn-box hidden">
+            <input id="room-code-input" maxlength="8" placeholder="Escribe el código..." autocomplete="off">
+            <button class="btn-cyan-outline" onclick="joinOnlineRoom()">Entrar</button>
+          </div>
+        </div>
+
+        <!-- MÓDULO 3: JEFES DE LA MAFIA -->
+        <div class="menu-module">
+          <h2>JEFES DE LA MAFIA</h2>
+          <div class="mafia-counters">
+            <label>Cant. Jugadores 
+              <input type="number" id="num-players" min="1" max="4" value="2" onchange="updateMafiaConfig()">
+            </label>
+            <label>Cant. Bots 
+              <input type="number" id="num-bots" min="0" max="3" value="0" onchange="updateMafiaConfig()">
+            </label>
+          </div>
+          
+          <div class="mafia-roster" id="mafia-roster">
+            <!-- Capo 1 -->
+            <div class="mafia-row" id="mafia-row-1">
+              <div class="mafia-avatar"><img id="capo-img-1" src="assets/characters/Color_R/idle.png" alt="Capo 1"></div>
+              <input type="text" id="capo-name-1" value="Capo 1" oninput="updateCapoData(1)" maxlength="16">
+              <select id="capo-color-1" onchange="updateCapoData(1)">
+                <option value="Color_R">🔴 Rojo</option>
+                <option value="Color_B">🔵 Azul</option>
+                <option value="Color_G">🟢 Verde</option>
+                <option value="Color_Y">🟡 Amarillo</option>
+                <option value="Color_P">🟣 Morado</option>
+              </select>
+            </div>
+            <!-- Capo 2 -->
+            <div class="mafia-row" id="mafia-row-2">
+              <div class="mafia-avatar"><img id="capo-img-2" src="assets/characters/Color_B/idle.png" alt="Capo 2"></div>
+              <input type="text" id="capo-name-2" value="Capo 2" oninput="updateCapoData(2)" maxlength="16">
+              <select id="capo-color-2" onchange="updateCapoData(2)">
+                <option value="Color_R">🔴 Rojo</option>
+                <option value="Color_B" selected>🔵 Azul</option>
+                <option value="Color_G">🟢 Verde</option>
+                <option value="Color_Y">🟡 Amarillo</option>
+                <option value="Color_P">🟣 Morado</option>
+              </select>
+            </div>
+            <!-- Capo 3 -->
+            <div class="mafia-row hidden" id="mafia-row-3">
+              <div class="mafia-avatar"><img id="capo-img-3" src="assets/characters/Color_G/idle.png" alt="Capo 3"></div>
+              <input type="text" id="capo-name-3" value="Capo 3" oninput="updateCapoData(3)" maxlength="16">
+              <select id="capo-color-3" onchange="updateCapoData(3)">
+                <option value="Color_R">🔴 Rojo</option>
+                <option value="Color_B">🔵 Azul</option>
+                <option value="Color_G" selected>🟢 Verde</option>
+                <option value="Color_Y">🟡 Amarillo</option>
+                <option value="Color_P">🟣 Morado</option>
+              </select>
+            </div>
+            <!-- Capo 4 -->
+            <div class="mafia-row hidden" id="mafia-row-4">
+              <div class="mafia-avatar"><img id="capo-img-4" src="assets/characters/Color_Y/idle.png" alt="Capo 4"></div>
+              <input type="text" id="capo-name-4" value="Capo 4" oninput="updateCapoData(4)" maxlength="16">
+              <select id="capo-color-4" onchange="updateCapoData(4)">
+                <option value="Color_R">🔴 Rojo</option>
+                <option value="Color_B">🔵 Azul</option>
+                <option value="Color_G">🟢 Verde</option>
+                <option value="Color_Y" selected>🟡 Amarillo</option>
+                <option value="Color_P">🟣 Morado</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- MÓDULO 4: ELEGIR CONTRATO -->
+        <div class="menu-module">
+          <h2>ELEGIR CONTRATO</h2>
+          <div class="contract-toggles">
+            <label class="toggle-row">
+              <span>Modo Party</span>
+              <input type="checkbox" id="t-party" onchange="updateContractUI()">
+              <i class="toggle"></i>
+            </label>
+            <label class="toggle-row">
+              <span>Mercado Negro</span>
+              <input type="checkbox" id="t-market" checked onchange="updateContractUI()">
+              <i class="toggle"></i>
+            </label>
+            <label class="toggle-row">
+              <span>Eventos de Ciudad</span>
+              <input type="checkbox" id="t-events" checked onchange="updateContractUI()">
+              <i class="toggle"></i>
+            </label>
+          </div>
+          
+          <!-- Vista Contrato Único -->
+          <div id="contract-single-view" class="module-grid-2" style="margin-top: 15px;">
+            <button id="opt-single-rpg" class="menu-btn contract-btn selected" onclick="selectSingleGame('rpg')">Guerra de Bandas</button>
+            <button id="opt-single-exp" class="menu-btn contract-btn" onclick="selectSingleGame('exp')">El Gran Atraco</button>
+            <button id="opt-single-maf" class="menu-btn contract-btn" onclick="selectSingleGame('maf')">Imperio Criminal</button>
+            <button id="opt-single-pok" class="menu-btn contract-btn" onclick="selectSingleGame('pok')">Apuestas Clandestinas</button>
+          </div>
+
+          <!-- Vista Modo Party -->
+          <div id="contract-party-view" class="party-settings hidden">
+            <label class="field-label" style="font-size: 11px;">TOTAL DE CONTRATOS (PLAYLIST)</label>
+            <input id="total-matches" type="number" min="3" max="15" value="6" oninput="updatePartyText()" style="margin-bottom: 15px;">
+            
+            <label class="field-label" style="font-size: 11px;">ACTIVIDADES A INCLUIR</label>
+            <div class="check-list">
+              <label><input id="party-cb-rpg" type="checkbox" checked onchange="validateCheckboxes()"> Guerra de Bandas (Combate Directo)</label>
+              <label><input id="party-cb-exp" type="checkbox" checked onchange="validateCheckboxes()"> El Gran Atraco (Tentar a la suerte)</label>
+              <label><input id="party-cb-maf" type="checkbox" checked onchange="validateCheckboxes()"> Imperio Criminal (Gestión Territorial)</label>
+              <label><input id="party-cb-pok" type="checkbox" checked onchange="validateCheckboxes()"> Apuestas Clandestinas (Poker y Riesgo)</label>
+            </div>
+            <p id="party-desc-text" class="party-hint-red">El primero en ganar 4 victorias dominará la ciudad.</p>
+            
+            <div class="party-quick-rules">
+              <strong>⚡ REGLAS RÁPIDAS DEL MODO PARTY:</strong>
+              <ul>
+                <li><strong>Atraco Único:</strong> 1 sola inmersión, 1 granada máx, cooldown de 5 rondas para cobertura.</li>
+                <li><strong>Imperio Acelerado:</strong> Meta reducida de 15 a 10 Puntos de Influencia.</li>
+                <li><strong>Apuestas Rápidas:</strong> Inician con 8 fichas, Trampa de Tahúr limitada a 1 uso por partida.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- MÓDULO 5: TIPOS DE DADOS -->
+        <div class="menu-module">
+          <h2>TIPOS DE DADOS</h2>
+          <div class="module-grid-2">
+            <button id="d-virt" class="menu-btn selected" onclick="setDice('virtual')">Virtuales</button>
+            <button id="d-real" class="menu-btn" onclick="setDice('real')">Físicos</button>
+          </div>
+        </div>
+
+      </div> <!-- fin setup-modules -->
+
+      <button id="btn-start-game" class="btn btn-theme-main btn-start" onclick="onStartButtonClick()">¡COMENZAR!</button>
+
     </section>
 
     <section id="game-screen" class="screen game-screen hidden">
+      <!-- (SE MANTIENE EL CONTENIDO DEL JUEGO INTACTO COMO SE ACORDÓ) -->
       <div class="game-topline"><div><p class="eyebrow">OPERACIÓN EN CURSO</p><h1 id="contractTitle">GUERRA DE BANDAS</h1><p id="turnStatusLabel" class="muted">Prepara tu siguiente movimiento.</p></div><div class="game-top-actions"><span id="round-indicator" class="round-pill">RONDA 1</span><button class="btn btn-quiet" onclick="dispatchAction('networkReturnToMenu')">Salir al menú</button></div></div>
       <div class="score-strip"><div class="score-player"><span class="score-dot red-dot"></span><div><small id="global-p1-name" class="p1-display-name">Capo Alpha</small><strong id="global-p1-val">0</strong></div></div><div id="party-score-bar" class="party-score-bar"><span id="party-match-indicator">CONTRATO 1</span><div><span id="party-score-p1">0</span><b>—</b><span id="party-score-p2">0</span></div></div><div class="score-player right"><div><small id="global-p2-name" class="p2-display-name">Capo Bravo</small><strong id="global-p2-val">0</strong></div><span class="score-dot blue-dot"></span></div></div>
       <div id="city-event-banner" class="city-event-banner hidden"><strong id="city-event-title"></strong><p id="city-event-desc"></p></div>
@@ -111,14 +233,13 @@
     </section>
   </main>
 
+  <!-- Modales originales se mantienen abajo -->
   <div id="modal-splash" class="overlay hidden"><div class="splash-card"><span class="splash-kicker">NUEVO CONTRATO</span><h2 id="splash-title">GUERRA DE BANDAS</h2><div class="splash-line"></div></div></div>
   <div id="modal-virtual" class="overlay hidden"><div class="modal-card dice-modal"><button class="modal-close btn-cancel" onclick="networkCancelAction()" aria-label="Cerrar">×</button><p id="virtual-title" class="eyebrow">TIRADA EN CURSO</p><img id="modal-char-img" class="modal-character" src="assets/characters/None/idle.png" alt="Personaje"><div id="modal-dice-wrapper" class="dice-stage"><div id="modal-dice-shadow"></div><div id="modal-dice-color"></div><div id="modal-dice-base"></div><strong id="modal-dice-num">?</strong></div></div></div>
   <div id="modal-manual" class="overlay hidden"><div class="modal-card manual-modal"><button class="modal-close" onclick="networkCancelAction()" aria-label="Cerrar">×</button><h2>Introduce tu tirada</h2><p id="manual-title" class="muted">Resultado del dado físico</p><p id="manual-desc"></p><label for="input-manual-value">Resultado</label><input id="input-manual-value" type="number" min="1" max="20" value="1"><img id="modal-manual-char-img" class="manual-character" src="assets/characters/None/idle.png" alt="Personaje"><button id="btn-confirm-manual" class="btn btn-primary" >Confirmar tirada</button></div></div>
   <div id="modal-choice" class="overlay hidden"><div class="modal-card choice-modal"><button class="modal-close btn-cancel" onclick="closeChoiceModal()" aria-label="Cerrar">×</button><p class="eyebrow">DECISIÓN ESTRATÉGICA</p><h2 id="choice-title">Elige tu acción</h2><p id="choice-desc" class="muted"></p><div id="choice-container" class="choice-container"></div></div></div>
   <div id="modal-market" class="overlay hidden"><div class="modal-card market-modal"><div class="modal-heading"><div><p class="eyebrow">ECONOMÍA CLANDESTINA</p><h2>Mercado negro</h2><p class="muted">Invierte en contactos y consumibles para el siguiente contrato.</p></div><button class="modal-close" onclick="document.getElementById('modal-market').classList.add('hidden')" aria-label="Cerrar">×</button></div><div class="market-wallets"><div><small>CAPO 1</small><strong>💲 <span id="market-p1-coins">100</span></strong></div><div><small>CAPO 2</small><strong>💲 <span id="market-p2-coins">100</span></strong></div><div><small>RETIRO</small><strong>💲 <span id="reroll-cost-display">50</span></strong><button class="btn btn-small btn-secondary btn-buy-market" onclick="rerollMarket(1)">Renovar stock</button></div></div><div id="market-grid-container" class="market-grid-container"></div><button id="btn-market-continue" class="btn btn-primary market-continue" onclick="dispatchAction('networkNextGame')">Continuar al siguiente contrato ➜</button></div></div>
   <div id="win-overlay" class="overlay hidden"><div class="modal-card win-modal"><p class="eyebrow">RESULTADO DEL CONTRATO</p><div class="winner-avatars"><div><img id="win-img-p1" src="assets/characters/Color_R/idle.png" alt="Capo 1"><small id="win-label-p1">Capo Alpha</small></div><span>VS</span><div><img id="win-img-p2" src="assets/characters/Color_B/idle.png" alt="Capo 2"><small id="win-label-p2">Capo Bravo</small></div></div><h2 id="final-winner-name">GANADOR</h2><p id="final-winner-msg" class="muted">Fin del contrato</p><div class="score-result"><span><b id="global-p1-val-result">0</b> <small class="p1-display-name">Capo Alpha</small></span><span><b id="global-p2-val-result">0</b> <small class="p2-display-name">Capo Bravo</small></span></div><button id="btn-next-match" class="btn btn-primary">Continuar ➜</button></div></div>
-
   <div id="modal-manual-guide" class="overlay hidden"><div class="modal-card guide-modal"><button class="modal-close" onclick="closeManualGuide()" aria-label="Cerrar">×</button><p class="eyebrow">ARCHIVO DE OPERACIONES</p><h2>Manual de Crimen Urbano</h2><div class="manual-tabs"><button id="tab-btn-1" class="active" onclick="switchManualTab(1)">Objetivo</button><button id="tab-btn-2" onclick="switchManualTab(2)">Contratos</button><button id="tab-btn-3" onclick="switchManualTab(3)">Campaña</button><button id="tab-btn-4" onclick="switchManualTab(4)">Online</button></div><div id="tab-content-1" class="manual-tab-content"><h3>Domina la ciudad</h3><p>Juega por turnos, administra tus recursos y supera los contratos para convertirte en el capo dominante.</p></div><div id="tab-content-2" class="manual-tab-content hidden"><h3>Cuatro contratos</h3><p><b>Guerra de bandas:</b> combate y estados. <b>El gran atraco:</b> botín y cobertura. <b>Imperio criminal:</b> dinero y distritos. <b>Apuestas clandestinas:</b> fichas y riesgo.</p></div><div id="tab-content-3" class="manual-tab-content hidden"><h3>Progresión</h3><p>Activa el modo campaña para encadenar contratos. El modo roguelike habilita el mercado negro y sus mejoras.</p></div><div id="tab-content-4" class="manual-tab-content hidden"><h3>Partidas a distancia</h3><p>El anfitrión crea una sala y comparte el código o enlace. El segundo jugador se une y configura su identidad antes de empezar.</p></div></div></div>
-
 </body>
 </html>
