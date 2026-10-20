@@ -1,0 +1,25 @@
+#game-screen{max-width:760px;margin:0 auto;padding:60px 14px 40px}
+.ghead{display:flex;justify-content:space-between;align-items:center}
+.ghead h2{font-family:Cinzel,serif;color:var(--theme-accent);margin:6px 0}
+#g-round{font-weight:800;color:var(--theme-accent)}
+#g-turn{text-align:center;font-weight:700;margin:10px 0;min-height:1.4em}
+#g-players{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.pcard{display:flex;gap:10px;align-items:center;background:var(--theme-card);border:2px solid rgba(255,255,255,.1);border-radius:14px;padding:10px;transition:.2s}
+.pcard img{width:64px;height:64px;object-fit:contain;image-rendering:pixelated;border-radius:8px;border:2px solid var(--pc)}
+.pcard>div{flex:1;min-width:0}.pcard small{color:var(--text-light);font-size:.7rem}
+.pcard.turn{border-color:var(--pc);box-shadow:0 0 14px var(--pc)}
+.pcard.dead{opacity:.4;filter:grayscale(1)}
+.pcard.targetable{cursor:pointer;border-color:var(--accent-orange);animation:pulse 1s infinite}
+@keyframes pulse{50%{transform:scale(1.03)}}
+.hp{height:10px;background:rgba(0,0,0,.5);border-radius:6px;overflow:hidden;margin:5px 0}.hp i{display:block;height:100%;transition:width .4s}
+#g-actions{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:14px 0}
+#g-actions button{padding:14px 6px}
+#g-actions button:disabled{opacity:.35;cursor:not-allowed}
+#g-log{background:rgba(0,0,0,.35);border-radius:12px;padding:10px;max-height:220px;overflow-y:auto;font-size:.8rem;line-height:1.5;color:var(--text-light);margin-top:10px}
+#fx .modal-content{max-width:300px}
+#fx-char{width:110px;height:110px;object-fit:contain;image-rendering:pixelated}
+#d-wrap{position:relative;width:88px;height:88px;margin:8px auto;image-rendering:pixelated}
+#d-wrap div{position:absolute;inset:0;background-size:contain;background-repeat:no-repeat;background-position:center}
+#modal-roll input{margin:10px 0;text-align:center;font-size:1.2rem}
+#modal-roll .start,#modal-over .start{margin-top:6px}
+.err{color:var(--accent-orange);font-size:.8rem;min-height:1.1em}
