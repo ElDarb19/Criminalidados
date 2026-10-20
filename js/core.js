@@ -7,8 +7,15 @@ const MODULES = { rpg: () => RPG };           // cada contrato nuevo se registra
 const $$ = id => document.getElementById(id);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
-const charImg = (color, img) => `assets/characters/${color}/${img}.png`;
-function sfx(name) { try { const a = new Audio('assets/audios/' + name + '.mp3'); a.volume = .6; a.play().catch(() => {}); } catch (e) {} }
+// Los bots usan la carpeta assets/characters/Bot/ cuando exista; si no, su color; y como último recurso None/.
+const BOT_FOLDER = 'Bot';
+function charList(p, img) {
+  const f = []; if (p.bot) f.push(BOT_FOLDER + '/' + img);
+  f.push(p.color + '/' + img, 'None/' + img, 'None/idle');
+  return f.map(x => 'assets/characters/' + x + '.png');
+}
+const charSrc = (p, img) => charList(p, img)[0];
+function charNext(el) { const l = (el.dataset.c || '').split('|'); l.shift(); if (!l.length) { el.onerror = null; return; } el.dataset.c = l.join('|'); el.src = l[0]; }
 
 window.addEventListener('criminaldice:start', e => CD.start(e.detail));
 
@@ -38,8 +45,24 @@ CD.onRemote = function (a) {
   if (a.type === 'roll') { if (CD.rollResolve && CD.G.prompt && CD.G.prompt.slot === a.slot) CD.rollResolve(a.value); }
   else CD.exec(a.slot, a.type, a.target);
 };
+let floatId = 0; CD.floatSeen = 0; CD.overSeen = false;
+CD.float = function (slot, text, kind) {                    // texto flotante sobre la tarjeta de un jugador
+  const G = CD.G; G.floats = (G.floats || []).slice(-7); G.floats.push({ id:++floatId, slot, text, kind });
+  CD.floatSeen = floatId; CD.publish(); showFloat(slot, text, kind);
+};
+function showFloat(slot, text, kind) {
+  const card = document.querySelector('.pcard[data-slot="' + slot + '"]'); if (!card) return;
+  const r = card.getBoundingClientRect(), s = document.createElement('div');
+  s.className = 'float ' + kind; s.textContent = text; s.style.left = (r.left + r.width / 2) + 'px'; s.style.top = (r.top + r.height / 3) + 'px';
+  document.body.appendChild(s); setTimeout(() => s.remove(), 1700);
+  card.classList.add(kind === 'heal' ? 'pulse-heal' : 'shake'); setTimeout(() => card.classList.remove('shake', 'pulse-heal'), 450);
+  playSound(kind === 'heal' ? 'heal' : kind === 'crit' ? 'crit' : kind === 'dmg' ? 'hit' : 'roll');
+  if (kind === 'crit') { const g = $$('game-screen'); g.classList.add('screen-shake'); setTimeout(() => g.classList.remove('screen-shake'), 350); }
+}
 CD.onState = function (st) {
   CD.G = st;
+  (st.floats || []).forEach(f => { if (f.id > CD.floatSeen) { CD.floatSeen = f.id; showFloat(f.slot, f.text, f.kind); } });
+  if (st.over && !CD.overSeen) { CD.overSeen = true; playSound('win'); }
   if (st.fx && st.fx.id > CD.fxSeen) { CD.fxSeen = st.fx.id; playFx(st.fx); }
   if (st.prompt && st.prompt.id > CD.promptSeen && st.prompt.slot === CD.me) {
     CD.promptSeen = st.prompt.id; askManual(st.prompt.sides, st.prompt.desc).then(v => CD.send({ type:'roll', slot:CD.me, value:v }));
@@ -49,7 +72,7 @@ CD.onState = function (st) {
 
 // ---------- dados ----------
 let fxId = 0, promptId = 0;
-CD.roll = async function (sides, p, desc, img) {
+CD.roll = async function (sides, p, desc, img, sound) {
   const G = CD.G, human = !p.bot, manual = CD.cfg.dice === 'real' && human;
   let val;
   if (manual) {
@@ -59,7 +82,7 @@ CD.roll = async function (sides, p, desc, img) {
       val = await new Promise(r => { CD.rollResolve = r; }); CD.rollResolve = null; G.prompt = null;
     }
   } else val = 1 + Math.floor(Math.random() * sides);
-  G.fx = { id:++fxId, sides, val, slot:p.slot, desc, img:img || 'idle', color:p.color, manual };
+  G.fx = { id:++fxId, sides, val, slot:p.slot, desc, img:img || 'idle', color:p.color, bot:p.bot, sound:sound || null, manual };
   CD.publish(); const t = playFx(G.fx); render(); await t;
   return val;
 };
@@ -73,14 +96,15 @@ function askManual(sides, desc) {
 }
 async function playFx(fx) {
   const box = $$('fx'), d = 'assets/D' + fx.sides + '/';
-  $$('fx-title').textContent = fx.desc; $$('fx-char').src = charImg(fx.color, fx.img);
-  $$('fx-char').onerror = function () { this.onerror = null; this.src = charImg('None', 'idle'); };
+  const list = charList({ bot:fx.bot, color:fx.color }, fx.img), im = $$('fx-char');
+  $$('fx-title').textContent = fx.desc; im.dataset.c = list.join('|'); im.onerror = function () { charNext(this); }; im.src = list[0];
+  if (fx.sound) playSound(fx.sound);
   $$('d-shadow').style.backgroundImage = fx.sides > 6 ? `url('${d}Sombra.png')` : 'none';
   $$('d-color').style.backgroundImage = `url('${d}${fx.color}.png')`; $$('d-base').style.backgroundImage = `url('${d}Capa 0.png')`;
   const num = $$('d-num'); box.classList.remove('hidden');
-  if (fx.manual) { num.style.backgroundImage = `url('${d}${fx.val}.png')`; await sleep(900); }
-  else { for (let i = 0; i < 10; i++) { num.style.backgroundImage = `url('${d}${1 + Math.floor(Math.random() * fx.sides)}.png')`; $$('d-wrap').style.transform = `rotate(${Math.random() * 20 - 10}deg)`; await sleep(60); }
-    num.style.backgroundImage = `url('${d}${fx.val}.png')`; $$('d-wrap').style.transform = 'none'; await sleep(650); }
+  if (fx.manual) { num.style.backgroundImage = `url('${d}${fx.val}.png')`; playSound('diceLanding'); await sleep(900); }
+  else { for (let i = 0; i < 10; i++) { num.style.backgroundImage = `url('${d}${1 + Math.floor(Math.random() * fx.sides)}.png')`; $$('d-wrap').style.transform = `rotate(${Math.random() * 20 - 10}deg)`; playSound('roll'); await sleep(60); }
+    num.style.backgroundImage = `url('${d}${fx.val}.png')`; $$('d-wrap').style.transform = 'none'; playSound('diceLanding'); await sleep(650); }
   box.classList.add('hidden');
 }
 
@@ -99,6 +123,8 @@ CD.exec = async function (slot, type, target) {
   if (G.over || G.wait || !p || p.slot !== slot) return;
   G.wait = true; CD.publish(); render();
   try { await MODULES[CD.cfg.contract]().act(G, p, type, target); } catch (e) { console.error(e); }
+  CD.publish(); render(); await sleep(G.over ? 600 : 1500);     // momento para ver el daño sobre el personaje
+  G.focus = null;
   if (!G.over) CD.advance();
   G.wait = false; CD.publish(); render(); CD.next();
 };
@@ -115,6 +141,7 @@ CD.next = function () {                       // los bots juegan solos
 };
 CD.finish = function (winnerSlot) {
   const G = CD.G; G.over = true; G.result = { winner:winnerSlot };
+  playSound('win');
   CD.log(winnerSlot == null ? '🤝 Empate: nadie sobrevivió.' : '🏆 ' + G.players[winnerSlot].name + ' domina la ciudad.');
 };
 CD.exit = () => { if (CD.cfg.online && CD.auth) db.ref('rooms/' + CD.cfg.room).remove(); location.href = location.pathname; };
@@ -126,15 +153,16 @@ function render() {
   const mine = CD.canAct(G.players[G.turn]) && !G.wait && !G.over && G.started;
   $$('g-players').innerHTML = G.players.map(p => {
     const R = p.max ? Math.max(0, p.hp / Math.max(p.max, p.hp) * 100) : 0, isT = CD.pending && p.alive && p.slot !== G.players[G.turn].slot;
-    return `<div class="pcard ${G.players[G.turn].slot === p.slot && !G.over ? 'turn' : ''} ${p.alive ? '' : 'dead'} ${isT ? 'targetable' : ''}" style="--pc:${COLORS[p.color]}" ${isT ? `onclick="CD.pick(${p.slot})"` : ''}>
-      <img src="${charImg(p.color, p.alive ? 'idle' : 'lose')}" onerror="this.onerror=null;this.src='${charImg('None', 'idle')}'" alt="">
+    const L = charList(p, p.alive ? 'idle' : 'lose'), marked = G.focus && G.focus.target === p.slot && G.focus.att !== p.slot;
+    return `<div class="pcard ${G.players[G.turn].slot === p.slot && !G.over ? 'turn' : ''} ${p.alive ? '' : 'dead'} ${isT ? 'targetable' : ''} ${marked ? 'marked' : ''}" data-slot="${p.slot}" style="--pc:${COLORS[p.color]}" ${isT ? `onclick="CD.pick(${p.slot})"` : ''}>
+      ${marked ? '<span class="mark">🎯</span>' : ''}<img src="${L[0]}" data-c="${L.join('|')}" onerror="charNext(this)" alt="">
       <div><b>${esc(p.name)}</b>${p.bot ? ' 🤖' : ''}<div class="hp"><i style="width:${R}%;background:${p.poison > 0 ? '#9b59b6' : 'var(--theme-accent)'}"></i></div>
       <small>${p.alive ? (p.max ? p.hp + '/' + p.max + ' SALUD' : '— SALUD') : '💀 ELIMINADO'}${p.poison > 0 ? ' · 🕵️ soplón ' + p.poison : ''}${p.blocked ? ' · 🚫 médico' : ''}</small></div></div>`; }).join('');
   const cur = G.players[G.turn];
   $$('g-turn').textContent = G.over ? '' : !G.started ? 'Tirando la salud inicial…' : G.prompt ? '⏳ Esperando el dado de ' + G.players[G.prompt.slot].name :
     CD.pending ? '🎯 Elige a quién atacar' : (mine ? '👉 Tu turno, ' + cur.name : 'Turno de ' + cur.name + (cur.bot ? ' (bot)' : ''));
   $$('g-actions').classList.toggle('hidden', !mine);
-  if (mine) { $$('a-heal').disabled = cur.blocked; document.querySelectorAll('#g-actions button').forEach(b => b.classList.toggle('selected', b.dataset.a === CD.pending)); }
+  if (mine) { $$('a-heal').disabled = cur.blocked; $$('a-heal-s').textContent = cur.blocked ? '🚫 Bloqueado: usa otra habilidad' : 'd8 de salud · ' + cur.heals + '/3 seguidas'; document.querySelectorAll('#g-actions button').forEach(b => b.classList.toggle('selected', b.dataset.a === CD.pending)); }
   $$('g-log').innerHTML = G.log.slice().reverse().map(l => '<div>' + esc(l) + '</div>').join('');
   $$('modal-over').classList.toggle('hidden', !G.over);
   if (G.over) $$('over-text').textContent = G.result.winner == null ? 'Empate' : '🏆 ' + G.players[G.result.winner].name;
