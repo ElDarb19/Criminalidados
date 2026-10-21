@@ -19,7 +19,7 @@ const SINGLE_CONTRACT_START_MONEY = 300;
 const MARKET_MOMENTS = { rpg:['inicio'], maf:['inicio'], pok:['inicio'], exp:['inicio','tras_inmersion_1','tras_inmersion_3'] };
 const COLOR_KEYS = Object.keys(COLORS);
 const GAMES = ['rpg','exp','maf','pok'];
-const IMPLEMENTED = ['rpg'];   // contratos ya migrados a 4 jugadores; añade aquí cada uno al terminarlo
+const IMPLEMENTED = ['rpg', 'exp'];   // contratos ya migrados a 4 jugadores; añade aquí cada uno al terminarlo
 const GAME_NAMES = { rpg:'Guerra de Bandas', exp:'El Gran Atraco', maf:'Imperio Criminal', pok:'Apuestas Clandestinas' };
 const $ = id => document.getElementById(id);
 
@@ -284,7 +284,7 @@ function startGame() {
     if (!S.room) return say('start-msg', 'Crea una sala primero.');
     for (let i = 0; i < S.humans; i++) if (!S.players[i].uid) return say('start-msg', 'Faltan jugadores por unirse a la sala.');
   }
-  if (S.party || !IMPLEMENTED.includes(S.contract)) return say('start-msg', 'Por ahora solo está disponible Guerra de Bandas (sin Modo Party). Los demás contratos están en construcción.');
+  if (S.party || !IMPLEMENTED.includes(S.contract)) return say('start-msg', 'Por ahora están disponibles Guerra de Bandas y El Gran Atraco (sin Modo Party). Los demás están en construcción.');
   if (S.party && S.total < minTotal()) return say('start-msg', 'El total de contratos debe ser al menos ' + minTotal() + '.');
   const c = buildConfig();
   if (online() && lobbyRef) lobbyRef.update({ status:'STARTING', config:Object.assign(cfgFromState(), { final:c }) });

@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<<<<<<< HEAD
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Criminal Dice</title>
@@ -11,8 +10,10 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script defer src="menu.js"></script>
+<script defer src="js/audio.js"></script>
 <script defer src="js/core.js"></script>
 <script defer src="js/rpg.js"></script>
+<script defer src="js/exp.js"></script>
 <script defer src="js/ai.js"></script>
 </head>
 <body class="theme-rpg">
@@ -80,12 +81,7 @@
   <div class="ghead"><h2 id="g-title"></h2><div id="g-round"></div></div>
   <div id="g-turn"></div>
   <div id="g-players"></div>
-  <div id="g-actions" class="hidden">
-    <button class="opt" data-a="quick" onclick="CD.choose('quick')">⚡ Ráfaga Tommy Gun<br><small>d6 de daño</small></button>
-    <button class="opt" data-a="strong" onclick="CD.choose('strong')">🔫 Francotirador<br><small>d20 ≥ 11, luego d12</small></button>
-    <button class="opt" id="a-heal" data-a="heal" onclick="CD.choose('heal')">🩺 Médico de calle<br><small>d8 de salud</small></button>
-    <button class="opt" data-a="poison" onclick="CD.choose('poison')">🕵️ Infiltrar Soplón<br><small>1 de daño por turno</small></button>
-  </div>
+  <div id="g-actions" class="hidden"></div>
   <div id="g-log"></div>
 </section>
 
@@ -100,8 +96,13 @@
   <button id="manual-ok" class="start">CONFIRMAR DADO</button>
 </div></div>
 
+<div id="modal-between" class="modal-overlay hidden" style="z-index:3650"><div class="modal-content">
+  <h2 id="between-title" style="font-family:Cinzel,serif"></h2><p id="between-text" style="color:var(--text-light);font-size:.9rem;line-height:1.6"></p>
+  <button id="between-btn" class="start" onclick="CD.nextStage()"></button>
+</div></div>
+
 <div id="modal-over" class="modal-overlay hidden" style="z-index:3700"><div class="modal-content">
-  <p style="letter-spacing:2px;color:var(--text-light)">FIN DEL CONTRATO</p><h2 id="over-text" style="font-family:Cinzel,serif"></h2>
+  <p style="letter-spacing:2px;color:var(--text-light)">FIN DEL CONTRATO</p><h2 id="over-text" style="font-family:Cinzel,serif"></h2><p id="over-sub" style="color:var(--text-light);font-size:.85rem"></p>
   <button class="start" onclick="CD.exit()">VOLVER AL MENÚ</button>
 </div></div>
 
@@ -306,247 +307,5 @@
     </div>
   </div>
 
-=======
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#090b0e">
-  <meta name="description" content="Criminal Dice: contratos, dados y estrategia entre capos de la ciudad.">
-  <title>Criminal Dice — Mafia Noir</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-  <script defer src="game.js"></script>
-</head>
-<body class="theme-rpg">
-  <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
-  <main class="app-shell">
-    <header class="topbar">
-      <div></div> <!-- Espaciador para centrar/alinear a la derecha -->
-      <div class="topbar-right">
-        <button class="btn-manual" onclick="openManualGuide()">📖 MANUAL DEL CAPO</button>
-      </div>
-    </header>
-
-    <section id="setup-screen" class="screen setup-screen">
-      <div class="menu-header">
-        <h1>CRIMINAL DICE</h1>
-        <p>RANDOM DICE GAME</p>
-      </div>
-
-      <div class="setup-modules">
-        <!-- MÓDULO 1: MODO DE JUEGO -->
-        <div class="menu-module">
-          <h2>MODO DE JUEGO</h2>
-          <div class="module-grid-2">
-            <button id="m-local" class="menu-btn selected" onclick="setMenuMode('local')">📱 Local</button>
-            <button id="m-online" class="menu-btn" onclick="setMenuMode('online')">🌐 Online</button>
-          </div>
-        </div>
-
-        <!-- MÓDULO 2: CONEXIÓN MULTIJUGADOR -->
-        <div id="module-connection" class="menu-module connection-module hidden">
-          <h2>CONEXIÓN MULTIJUGADOR</h2>
-          <div class="module-grid-2">
-            <button id="c-create" class="menu-btn" onclick="setConnMode('create')">👑 Crear Sala</button>
-            <button id="c-join" class="menu-btn" onclick="setConnMode('join')">🔑 Unirse a Sala</button>
-          </div>
-          <div id="conn-create-box" class="conn-box hidden">
-            <p class="room-code-text">SALA: <span id="room-id-display">----</span></p>
-            <button class="btn-cyan-outline" onclick="copyInviteLink()">📋 Copiar Enlace de Invitación</button>
-          </div>
-          <div id="conn-join-box" class="conn-box hidden">
-            <input id="room-code-input" maxlength="8" placeholder="Escribe el código..." autocomplete="off">
-            <button class="btn-cyan-outline" onclick="joinOnlineRoom()">Entrar</button>
-          </div>
-        </div>
-
-        <!-- MÓDULO 3: JEFES DE LA MAFIA -->
-        <div class="menu-module">
-          <h2>JEFES DE LA MAFIA</h2>
-          <div class="mafia-counters">
-            <label>Cant. Jugadores 
-              <input type="number" id="num-players" min="1" max="4" value="2" onchange="updateMafiaConfig()">
-            </label>
-            <label>Cant. Bots 
-              <input type="number" id="num-bots" min="0" max="3" value="0" onchange="updateMafiaConfig()">
-            </label>
-          </div>
-          
-          <div class="mafia-roster" id="mafia-roster">
-            <!-- Capo 1 -->
-            <div class="mafia-row" id="mafia-row-1">
-              <div class="mafia-avatar"><img id="capo-img-1" src="assets/characters/Color_R/idle.png" alt="Capo 1"></div>
-              <input type="text" id="capo-name-1" value="Capo 1" oninput="updateCapoData(1)" maxlength="16">
-              <select id="capo-color-1" onchange="updateCapoData(1)">
-                <option value="Color_R">🔴 Rojo</option>
-                <option value="Color_B">🔵 Azul</option>
-                <option value="Color_G">🟢 Verde</option>
-                <option value="Color_Y">🟡 Amarillo</option>
-                <option value="Color_P">🟣 Morado</option>
-              </select>
-            </div>
-            <!-- Capo 2 -->
-            <div class="mafia-row" id="mafia-row-2">
-              <div class="mafia-avatar"><img id="capo-img-2" src="assets/characters/Color_B/idle.png" alt="Capo 2"></div>
-              <input type="text" id="capo-name-2" value="Capo 2" oninput="updateCapoData(2)" maxlength="16">
-              <select id="capo-color-2" onchange="updateCapoData(2)">
-                <option value="Color_R">🔴 Rojo</option>
-                <option value="Color_B" selected>🔵 Azul</option>
-                <option value="Color_G">🟢 Verde</option>
-                <option value="Color_Y">🟡 Amarillo</option>
-                <option value="Color_P">🟣 Morado</option>
-              </select>
-            </div>
-            <!-- Capo 3 -->
-            <div class="mafia-row hidden" id="mafia-row-3">
-              <div class="mafia-avatar"><img id="capo-img-3" src="assets/characters/Color_G/idle.png" alt="Capo 3"></div>
-              <input type="text" id="capo-name-3" value="Capo 3" oninput="updateCapoData(3)" maxlength="16">
-              <select id="capo-color-3" onchange="updateCapoData(3)">
-                <option value="Color_R">🔴 Rojo</option>
-                <option value="Color_B">🔵 Azul</option>
-                <option value="Color_G" selected>🟢 Verde</option>
-                <option value="Color_Y">🟡 Amarillo</option>
-                <option value="Color_P">🟣 Morado</option>
-              </select>
-            </div>
-            <!-- Capo 4 -->
-            <div class="mafia-row hidden" id="mafia-row-4">
-              <div class="mafia-avatar"><img id="capo-img-4" src="assets/characters/Color_Y/idle.png" alt="Capo 4"></div>
-              <input type="text" id="capo-name-4" value="Capo 4" oninput="updateCapoData(4)" maxlength="16">
-              <select id="capo-color-4" onchange="updateCapoData(4)">
-                <option value="Color_R">🔴 Rojo</option>
-                <option value="Color_B">🔵 Azul</option>
-                <option value="Color_G">🟢 Verde</option>
-                <option value="Color_Y" selected>🟡 Amarillo</option>
-                <option value="Color_P">🟣 Morado</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <!-- MÓDULO 4: ELEGIR CONTRATO -->
-        <div class="menu-module">
-          <h2>ELEGIR CONTRATO</h2>
-          <div class="contract-toggles">
-            <label class="toggle-row">
-              <span>Modo Party</span>
-              <input type="checkbox" id="t-party" onchange="updateContractUI()">
-              <i class="toggle"></i>
-            </label>
-            <label class="toggle-row">
-              <span>Mercado Negro</span>
-              <input type="checkbox" id="t-market" checked onchange="updateContractUI()">
-              <i class="toggle"></i>
-            </label>
-            <label class="toggle-row">
-              <span>Eventos de Ciudad</span>
-              <input type="checkbox" id="t-events" checked onchange="updateContractUI()">
-              <i class="toggle"></i>
-            </label>
-          </div>
-          
-          <!-- Vista Contrato Único -->
-          <div id="contract-single-view" class="module-grid-2" style="margin-top: 15px;">
-            <button id="opt-single-rpg" class="menu-btn contract-btn selected" onclick="selectSingleGame('rpg')">Guerra de Bandas</button>
-            <button id="opt-single-exp" class="menu-btn contract-btn" onclick="selectSingleGame('exp')">El Gran Atraco</button>
-            <button id="opt-single-maf" class="menu-btn contract-btn" onclick="selectSingleGame('maf')">Imperio Criminal</button>
-            <button id="opt-single-pok" class="menu-btn contract-btn" onclick="selectSingleGame('pok')">Apuestas Clandestinas</button>
-          </div>
-
-          <!-- Vista Modo Party -->
-          <div id="contract-party-view" class="party-settings hidden">
-            <label class="field-label" style="font-size: 11px;">TOTAL DE CONTRATOS (PLAYLIST)</label>
-            <input id="total-matches" type="number" min="3" max="15" value="6" oninput="updatePartyText()" style="margin-bottom: 15px;">
-            
-            <label class="field-label" style="font-size: 11px;">ACTIVIDADES A INCLUIR</label>
-            <div class="check-list">
-              <label><input id="party-cb-rpg" type="checkbox" checked onchange="validateCheckboxes()"> Guerra de Bandas (Combate Directo)</label>
-              <label><input id="party-cb-exp" type="checkbox" checked onchange="validateCheckboxes()"> El Gran Atraco (Tentar a la suerte)</label>
-              <label><input id="party-cb-maf" type="checkbox" checked onchange="validateCheckboxes()"> Imperio Criminal (Gestión Territorial)</label>
-              <label><input id="party-cb-pok" type="checkbox" checked onchange="validateCheckboxes()"> Apuestas Clandestinas (Poker y Riesgo)</label>
-            </div>
-            <p id="party-desc-text" class="party-hint-red">El primero en ganar 4 victorias dominará la ciudad.</p>
-            
-            <div class="party-quick-rules">
-              <strong>⚡ REGLAS RÁPIDAS DEL MODO PARTY:</strong>
-              <ul>
-                <li><strong>Atraco Único:</strong> 1 sola inmersión, 1 granada máx, cooldown de 5 rondas para cobertura.</li>
-                <li><strong>Imperio Acelerado:</strong> Meta reducida de 15 a 10 Puntos de Influencia.</li>
-                <li><strong>Apuestas Rápidas:</strong> Inician con 8 fichas, Trampa de Tahúr limitada a 1 uso por partida.</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <!-- MÓDULO 5: TIPOS DE DADOS -->
-        <div class="menu-module">
-          <h2>TIPOS DE DADOS</h2>
-          <div class="module-grid-2">
-            <button id="d-virt" class="menu-btn selected" onclick="setDice('virtual')">Virtuales</button>
-            <button id="d-real" class="menu-btn" onclick="setDice('real')">Físicos</button>
-          </div>
-        </div>
-
-      </div> <!-- fin setup-modules -->
-
-      <button id="btn-start-game" class="btn btn-theme-main btn-start" onclick="onStartButtonClick()">¡COMENZAR!</button>
-
-    </section>
-
-    <section id="game-screen" class="screen game-screen hidden">
-      <!-- (SE MANTIENE EL CONTENIDO DEL JUEGO INTACTO COMO SE ACORDÓ) -->
-      <div class="game-topline"><div><p class="eyebrow">OPERACIÓN EN CURSO</p><h1 id="contractTitle">GUERRA DE BANDAS</h1><p id="turnStatusLabel" class="muted">Prepara tu siguiente movimiento.</p></div><div class="game-top-actions"><span id="round-indicator" class="round-pill">RONDA 1</span><button class="btn btn-quiet" onclick="dispatchAction('networkReturnToMenu')">Salir al menú</button></div></div>
-      <div class="score-strip"><div class="score-player"><span class="score-dot red-dot"></span><div><small id="global-p1-name" class="p1-display-name">Capo Alpha</small><strong id="global-p1-val">0</strong></div></div><div id="party-score-bar" class="party-score-bar"><span id="party-match-indicator">CONTRATO 1</span><div><span id="party-score-p1">0</span><b>—</b><span id="party-score-p2">0</span></div></div><div class="score-player right"><div><small id="global-p2-name" class="p2-display-name">Capo Bravo</small><strong id="global-p2-val">0</strong></div><span class="score-dot blue-dot"></span></div></div>
-      <div id="city-event-banner" class="city-event-banner hidden"><strong id="city-event-title"></strong><p id="city-event-desc"></p></div>
-      <div class="game-hud-grid"><section class="panel hud-panel"><div class="hud-heading"><span>INVENTARIO / CAPO 1</span><strong id="market-p1-coins-hud">💲 <span id="market-p1-coins-hud-value">100</span></strong></div><div id="p1-items-hud" class="items-hud player-deck-hud"><div id="rpg-p1-items-hud"></div><div id="exp-p1-items-hud"></div><div id="maf-p1-items-hud"></div><div id="pok-p1-items-hud"></div><span id="rpg-p1-money-hud" class="hidden"></span><span id="exp-p1-money-hud" class="hidden"></span><span id="maf-p1-money-hud" class="hidden"></span><span id="pok-p1-money-hud" class="hidden"></span></div></section><section class="panel hud-panel"><div class="hud-heading"><span>INVENTARIO / CAPO 2</span><strong>💲 <span id="market-p2-coins-hud-value">100</span></strong></div><div id="p2-items-hud" class="items-hud"></div></section></div>
-
-      <div id="rpg-container" class="minigame-container">
-        <div class="minigame-intro"><span class="contract-icon">⚔</span><div><span class="step-tag">CONTRATO 01</span><h2>Guerra de bandas</h2><p>Reduce la salud rival a cero. Cada turno cuenta.</p></div></div>
-        <div class="duel-grid">
-          <article id="rpg-m1-box" class="combatant-card"><div class="combatant-top"><img id="rpg-p1-avatar-img" src="assets/characters/Color_R/idle.png" alt="Capo 1"><div><small class="p1-display-name">Capo Alpha</small><h3 id="rpg-p1-hp-label">— SALUD</h3><span id="rpg-p1-status" class="status-label">Listo</span></div></div><div id="rpg-p1-bar-container" class="bar-track"><div id="rpg-p1-bar" class="bar-fill red-fill"></div></div><div class="combatant-footer"><span>TRATAMIENTOS</span><strong id="rpg-badge-h">0/3</strong></div></article>
-          <div class="duel-vs">VS</div>
-          <article id="rpg-m2-box" class="combatant-card"><div class="combatant-top"><img id="rpg-p2-avatar-img" src="assets/characters/Color_B/idle.png" alt="Capo 2"><div><small class="p2-display-name">Capo Bravo</small><h3 id="rpg-p2-hp-label">— SALUD</h3><span id="rpg-p2-status" class="status-label">Listo</span></div></div><div id="rpg-p2-bar-container" class="bar-track"><div id="rpg-p2-bar" class="bar-fill blue-fill"></div></div><div class="combatant-footer"><span>ESTADO</span><strong id="rpg-p2-status-detail">EN PIE</strong></div></article>
-        </div>
-        <div class="action-grid"><button id="rpg-btn-q" class="action-card" onclick="dispatchAction('rpgAction','quick')"><span>⚡</span><strong>Ataque rápido</strong><small>Ágil y directo</small></button><button id="rpg-btn-s" class="action-card" onclick="dispatchAction('rpgAction','strong')"><span>🔫</span><strong>Ataque fuerte</strong><small>Más riesgo, más daño</small></button><button id="rpg-btn-h" class="action-card" onclick="dispatchAction('rpgAction','heal')"><span>🩺</span><strong>Médico de calle</strong><small>Recupera salud · <b id="rpg-badge-heal">0/3</b></small></button><button id="rpg-btn-p" class="action-card" onclick="dispatchAction('rpgAction','poison')"><span>☠</span><strong>Veneno</strong><small>Debilita al rival</small></button></div>
-        <div class="log-panel"><div class="log-heading"><strong>REGISTRO DE LA CALLE</strong><span>EN VIVO</span></div><div id="rpg-log-box" class="log-box" aria-live="polite"></div></div>
-      </div>
-
-      <div id="exp-container" class="minigame-container hidden">
-        <div class="minigame-intro"><span class="contract-icon">💰</span><div><span class="step-tag">CONTRATO 02</span><h2>El gran atraco</h2><p>Explora la bóveda, protege tu cobertura y decide cuándo escapar.</p><span id="exp-dive-indicator" class="inline-status">ATRACO 1/3</span></div></div>
-        <div class="duel-grid"><article id="exp-m1-box" class="combatant-card"><div class="combatant-top"><img id="exp-p1-avatar-img" src="assets/characters/Color_R/idle.png" alt="Capo 1"><div><small class="p1-display-name">Capo Alpha</small><h3 id="exp-p1-hp-label">20/20 COB</h3><span>BOTÍN ASEGURADO: <b id="exp-p1-secured">0</b></span><span id="exp-p1-status" class="status-label">Dentro del banco</span></div></div><div id="exp-p1-bar-container" class="bar-track"><div id="exp-p1-bar" class="bar-fill red-fill"></div></div><div id="exp-p1-temp-loot" class="loot-chip">💰 0</div></article><div class="duel-vs">VS</div><article id="exp-m2-box" class="combatant-card"><div class="combatant-top"><img id="exp-p2-avatar-img" src="assets/characters/Color_B/idle.png" alt="Capo 2"><div><small class="p2-display-name">Capo Bravo</small><h3 id="exp-p2-hp-label">20/20 COB</h3><span>BOTÍN ASEGURADO: <b id="exp-p2-secured">0</b></span><span id="exp-p2-status" class="status-label">Dentro del banco</span></div></div><div id="exp-p2-bar-container" class="bar-track"><div id="exp-p2-bar" class="bar-fill blue-fill"></div></div><div id="exp-p2-temp-loot" class="loot-chip">💰 0</div></article></div>
-        <div class="action-grid"><button id="exp-btn-q" class="action-card" onclick="dispatchAction('expAction','explore')"><span>🔎</span><strong>Saquear cajas</strong><small>Busca dinero y botín</small></button><button id="exp-btn-s" class="action-card" onclick="dispatchAction('expAction','sabotage')"><span>💣</span><strong>Lanzar granada</strong><small>Ataca al rival</small></button><button id="exp-btn-h" class="action-card" onclick="dispatchAction('expAction','repair')"><span>🛠</span><strong>Reparar cobertura</strong><small><b id="exp-badge-h">1/Inv</b></small></button><button id="exp-btn-sab" class="action-card" onclick="dispatchAction('expAction','sabotage')"><span>🚤</span><strong>Sabotear</strong><small>Torpedo · <b id="exp-badge-sab">0/3</b></small></button><button id="exp-btn-p" class="action-card" onclick="dispatchAction('expAction','surface')"><span>🚨</span><strong>Asegurar botín y salir</strong><small>Abandona la bóveda</small></button></div>
-        <div class="log-panel"><div class="log-heading"><strong>REGISTRO DEL ATRACO</strong><span>EN VIVO</span></div><div id="exp-log-box" class="log-box" aria-live="polite"></div></div>
-      </div>
-
-      <div id="maf-container" class="minigame-container hidden">
-        <div class="minigame-intro"><span class="contract-icon">🏙</span><div><span class="step-tag">CONTRATO 03</span><h2>Imperio criminal</h2><p>Controla distritos, recauda efectivo y sabotea los territorios rivales.</p></div></div>
-        <div class="duel-grid"><article id="maf-m1-box" class="combatant-card"><div class="combatant-top"><img id="maf-p1-avatar-img" src="assets/characters/Color_R/idle.png" alt="Capo 1"><div><small class="p1-display-name">Capo Alpha</small><h3 id="maf-p1-prestige">0/15 INFLUENCIA</h3><span>EFECTIVO: <b id="maf-p1-coins">0</b> 💵</span></div></div><div id="maf-p1-bar-container" class="bar-track"><div id="maf-p1-bar" class="bar-fill red-fill"></div></div><div id="maf-p1-parcels" class="district-grid"></div></article><div class="duel-vs">VS</div><article id="maf-m2-box" class="combatant-card"><div class="combatant-top"><img id="maf-p2-avatar-img" src="assets/characters/Color_B/idle.png" alt="Capo 2"><div><small class="p2-display-name">Capo Bravo</small><h3 id="maf-p2-prestige">0/15 INFLUENCIA</h3><span>EFECTIVO: <b id="maf-p2-coins">0</b> 💵</span></div></div><div id="maf-p2-bar-container" class="bar-track"><div id="maf-p2-bar" class="bar-fill blue-fill"></div></div><div id="maf-p2-parcels" class="district-grid"></div></article></div>
-        <div id="maf-phase-roll" class="phase-panel"><h3>FASE 1 · RECAUDAR</h3><p>Lanza un dado para obtener efectivo de los distritos.</p><div class="action-grid"><button class="action-card" onclick="dispatchAction('mafRollHarvest',6,false)"><span>🎲</span><strong>Recaudación segura</strong><small>1d6 · riesgo moderado</small></button><button class="action-card" onclick="dispatchAction('mafRollHarvest',12,false)"><span>🎲</span><strong>Recaudación arriesgada</strong><small>1d12 · mayor recompensa</small></button><button class="action-card" onclick="dispatchAction('mafRollHarvest',6,true)"><span>🪙</span><strong>Lavado egoísta</strong><small>Solo tú cobras</small></button></div></div>
-        <div id="maf-phase-action" class="phase-panel hidden"><h3>FASE 2 · MOVER LOS HILOS</h3><p id="maf-cost-buy">Costo: 1 Efectivo</p><div class="action-grid"><button id="maf-btn-safe" class="action-card" onclick="dispatchAction('openBuyModal')"><span>🏢</span><strong>Comprar distrito</strong><small>Expande tu imperio</small></button><button id="maf-btn-exotic" class="action-card" onclick="dispatchAction('openSabotageModal')"><span>🚓</span><strong>Enviar redada</strong><small>Sabotea al rival · 3💵</small></button><button id="maf-btn-buy" class="action-card" onclick="dispatchAction('openBuyModal')"><span>🗺</span><strong>Controlar territorio</strong><small>Compra otro distrito</small></button><button id="maf-btn-brew" class="action-card" onclick="dispatchAction('mafActionBrew')"><span>🤝</span><strong>Sobornar político</strong><small>Cuesta 5💵</small></button><button id="maf-btn-sab" class="action-card" onclick="dispatchAction('openSabotageModal')"><span>🕵</span><strong>Infiltrar soplón</strong><small>Cuesta 3💵</small></button><button id="maf-btn-pass" class="action-card" onclick="dispatchAction('mafActionPass')"><span>⏭</span><strong>Pasar turno</strong><small>Conservar recursos</small></button></div><label id="egoist-label" class="check-inline"><input id="maf-egoist-check" type="checkbox"><span>Modo egoísta (si la mecánica lo permite)</span></label></div>
-        <div class="log-panel"><div class="log-heading"><strong>REGISTRO DEL IMPERIO</strong><span>EN VIVO</span></div><div id="maf-log-box" class="log-box" aria-live="polite"></div></div>
-      </div>
-
-      <div id="pok-container" class="minigame-container hidden">
-        <div class="minigame-intro"><span class="contract-icon">🎲</span><div><span class="step-tag">CONTRATO 04</span><h2>Apuestas clandestinas</h2><p>Arriesga fichas en duelos directos. La mesa solo recuerda al ganador.</p></div></div>
-        <div class="duel-grid"><article id="pok-m1-box" class="combatant-card"><div class="combatant-top"><img id="pok-p1-avatar-img" src="assets/characters/Color_R/idle.png" alt="Capo 1"><div><small class="p1-display-name">Capo Alpha</small><h3><span id="pok-p1-tokens">12</span> FICHAS</h3></div></div></article><div class="duel-vs">VS</div><article id="pok-m2-box" class="combatant-card"><div class="combatant-top"><img id="pok-p2-avatar-img" src="assets/characters/Color_B/idle.png" alt="Capo 2"><div><small class="p2-display-name">Capo Bravo</small><h3><span id="pok-p2-tokens">12</span> FICHAS</h3></div></div></article></div>
-        <div class="action-grid"><button id="pok-btn-q" class="action-card" onclick="dispatchAction('pokAction','apuesta')"><span>🃏</span><strong>Apuesta básica</strong><small>Arriesga una ficha</small></button><button id="pok-btn-s" class="action-card" onclick="dispatchAction('pokAction','golpe')"><span>👊</span><strong>Golpe a la mesa</strong><small>Arriesga tres fichas</small></button><button id="pok-btn-sab" class="action-card" onclick="dispatchAction('pokAction','tahur')"><span>🎩</span><strong>Trampa de tahúr</strong><small><b id="pok-badge-sab">Activo</b></small></button></div>
-        <div class="log-panel"><div class="log-heading"><strong>REGISTRO DE LA MESA</strong><span>EN VIVO</span></div><div id="pok-log-box" class="log-box" aria-live="polite"></div></div>
-      </div>
-      <button class="btn btn-quiet back-menu" onclick="dispatchAction('networkReturnToMenu')">← Volver al menú principal</button>
-    </section>
-  </main>
-
-  <!-- Modales originales se mantienen abajo -->
-  <div id="modal-splash" class="overlay hidden"><div class="splash-card"><span class="splash-kicker">NUEVO CONTRATO</span><h2 id="splash-title">GUERRA DE BANDAS</h2><div class="splash-line"></div></div></div>
-  <div id="modal-virtual" class="overlay hidden"><div class="modal-card dice-modal"><button class="modal-close btn-cancel" onclick="networkCancelAction()" aria-label="Cerrar">×</button><p id="virtual-title" class="eyebrow">TIRADA EN CURSO</p><img id="modal-char-img" class="modal-character" src="assets/characters/None/idle.png" alt="Personaje"><div id="modal-dice-wrapper" class="dice-stage"><div id="modal-dice-shadow"></div><div id="modal-dice-color"></div><div id="modal-dice-base"></div><strong id="modal-dice-num">?</strong></div></div></div>
-  <div id="modal-manual" class="overlay hidden"><div class="modal-card manual-modal"><button class="modal-close" onclick="networkCancelAction()" aria-label="Cerrar">×</button><h2>Introduce tu tirada</h2><p id="manual-title" class="muted">Resultado del dado físico</p><p id="manual-desc"></p><label for="input-manual-value">Resultado</label><input id="input-manual-value" type="number" min="1" max="20" value="1"><img id="modal-manual-char-img" class="manual-character" src="assets/characters/None/idle.png" alt="Personaje"><button id="btn-confirm-manual" class="btn btn-primary" >Confirmar tirada</button></div></div>
-  <div id="modal-choice" class="overlay hidden"><div class="modal-card choice-modal"><button class="modal-close btn-cancel" onclick="closeChoiceModal()" aria-label="Cerrar">×</button><p class="eyebrow">DECISIÓN ESTRATÉGICA</p><h2 id="choice-title">Elige tu acción</h2><p id="choice-desc" class="muted"></p><div id="choice-container" class="choice-container"></div></div></div>
-  <div id="modal-market" class="overlay hidden"><div class="modal-card market-modal"><div class="modal-heading"><div><p class="eyebrow">ECONOMÍA CLANDESTINA</p><h2>Mercado negro</h2><p class="muted">Invierte en contactos y consumibles para el siguiente contrato.</p></div><button class="modal-close" onclick="document.getElementById('modal-market').classList.add('hidden')" aria-label="Cerrar">×</button></div><div class="market-wallets"><div><small>CAPO 1</small><strong>💲 <span id="market-p1-coins">100</span></strong></div><div><small>CAPO 2</small><strong>💲 <span id="market-p2-coins">100</span></strong></div><div><small>RETIRO</small><strong>💲 <span id="reroll-cost-display">50</span></strong><button class="btn btn-small btn-secondary btn-buy-market" onclick="rerollMarket(1)">Renovar stock</button></div></div><div id="market-grid-container" class="market-grid-container"></div><button id="btn-market-continue" class="btn btn-primary market-continue" onclick="dispatchAction('networkNextGame')">Continuar al siguiente contrato ➜</button></div></div>
-  <div id="win-overlay" class="overlay hidden"><div class="modal-card win-modal"><p class="eyebrow">RESULTADO DEL CONTRATO</p><div class="winner-avatars"><div><img id="win-img-p1" src="assets/characters/Color_R/idle.png" alt="Capo 1"><small id="win-label-p1">Capo Alpha</small></div><span>VS</span><div><img id="win-img-p2" src="assets/characters/Color_B/idle.png" alt="Capo 2"><small id="win-label-p2">Capo Bravo</small></div></div><h2 id="final-winner-name">GANADOR</h2><p id="final-winner-msg" class="muted">Fin del contrato</p><div class="score-result"><span><b id="global-p1-val-result">0</b> <small class="p1-display-name">Capo Alpha</small></span><span><b id="global-p2-val-result">0</b> <small class="p2-display-name">Capo Bravo</small></span></div><button id="btn-next-match" class="btn btn-primary">Continuar ➜</button></div></div>
-  <div id="modal-manual-guide" class="overlay hidden"><div class="modal-card guide-modal"><button class="modal-close" onclick="closeManualGuide()" aria-label="Cerrar">×</button><p class="eyebrow">ARCHIVO DE OPERACIONES</p><h2>Manual de Crimen Urbano</h2><div class="manual-tabs"><button id="tab-btn-1" class="active" onclick="switchManualTab(1)">Objetivo</button><button id="tab-btn-2" onclick="switchManualTab(2)">Contratos</button><button id="tab-btn-3" onclick="switchManualTab(3)">Campaña</button><button id="tab-btn-4" onclick="switchManualTab(4)">Online</button></div><div id="tab-content-1" class="manual-tab-content"><h3>Domina la ciudad</h3><p>Juega por turnos, administra tus recursos y supera los contratos para convertirte en el capo dominante.</p></div><div id="tab-content-2" class="manual-tab-content hidden"><h3>Cuatro contratos</h3><p><b>Guerra de bandas:</b> combate y estados. <b>El gran atraco:</b> botín y cobertura. <b>Imperio criminal:</b> dinero y distritos. <b>Apuestas clandestinas:</b> fichas y riesgo.</p></div><div id="tab-content-3" class="manual-tab-content hidden"><h3>Progresión</h3><p>Activa el modo campaña para encadenar contratos. El modo roguelike habilita el mercado negro y sus mejoras.</p></div><div id="tab-content-4" class="manual-tab-content hidden"><h3>Partidas a distancia</h3><p>El anfitrión crea una sala y comparte el código o enlace. El segundo jugador se une y configura su identidad antes de empezar.</p></div></div></div>
->>>>>>> 417ecb166b5d8846b4840ecabfe525bcb99a668d
 </body>
 </html>

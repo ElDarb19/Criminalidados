@@ -3,7 +3,7 @@
 // Punto de extensión para el paso de objetos/eventos: AI.modifiers.
 const AI = {
   modifiers: [],                              // funciones (ctx, valor) => valor, se añadirán con Mercado Negro y Eventos
-  decide(G, me, contract) { return contract === 'rpg' ? this.rpg(G, me) : null; },
+  decide(G, me, contract) { return contract === 'rpg' ? this.rpg(G, me) : contract === 'exp' ? this.exp(G, me) : null; },
 
   rpg(G, me) {
     const foes = G.players.filter(p => p.alive && p.slot !== me.slot);
@@ -28,5 +28,30 @@ const AI = {
     opts.forEach(o => { this.modifiers.forEach(m => { o.v = m({ G, me, foes, o }, o.v); }); o.v += Math.random() * .6; });
     opts.sort((a, b) => b.v - a.v);
     return opts[0];
+  },
+
+  // El Gran Atraco: decide entre sabotear, reforzar, forzar la bóveda, huir o saquear.
+  exp(G, me) {
+    const foes = G.players.filter(p => p.alive && p !== me);                 // rivales aún dentro del banco
+    const mx = EXP.maxGrenades(), grenades = me.torpedoUses < mx;
+    const repairOk = (EXP.party() ? me.repairCooldown <= 0 : me.repairUses < 1) && me.hp < me.max;
+    const best = Math.max(0, ...G.players.filter(p => p !== me).map(p => p.secured + p.temp));   // el rival más fuerte
+    const behind = me.secured + me.temp <= best;
+    // 1. Sabotaje: contra el rival que más botín arriesga; si está casi arrestado, el golpe es letal para su botín.
+    if (grenades && foes.length) {
+      const t = foes.slice().sort((x, y) => (y.temp + (y.hp <= 4 ? 3 : 0)) - (x.temp + (x.hp <= 4 ? 3 : 0)))[0];
+      const killable = t.hp <= 4;
+      if (t.temp >= 2 && (killable && t.temp >= 3 || Math.random() < .75)) return { type:'sabotage', target:t.slot };
+    }
+    // 2. Cobertura crítica: refuerza si está baja y puede.
+    if (me.hp <= 6 && repairOk) return { type:'repair' };
+    // 3. Con poca Cobertura y botín en las manos, asegura antes de arriesgarse a que la arresten.
+    if (me.hp <= 3 && me.temp > 0) return { type:'surface' };
+    // 4. Si algún rival aún puede lanzar granadas, llevar mucho botín encima es peligroso: huye si va ganando.
+    const threatened = foes.some(f => f.torpedoUses < mx);
+    if (me.temp >= (threatened ? 4 : 5) && !behind) return { type:'surface' };
+    // 5. Si va perdiendo, arriesga la bóveda (nunca huye); si no, saquea.
+    if (behind && me.hp > 4) return { type:'deep' };
+    return { type:'explore' };
   }
 };
