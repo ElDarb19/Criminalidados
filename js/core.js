@@ -57,7 +57,11 @@ function showFloat(slot, text, kind) {
   s.className = 'float ' + kind; s.textContent = text; s.style.left = (r.left + r.width / 2) + 'px'; s.style.top = (r.top + r.height / 3) + 'px';
   document.body.appendChild(s); setTimeout(() => s.remove(), 1700);
   card.classList.add(kind === 'heal' ? 'pulse-heal' : 'shake'); setTimeout(() => card.classList.remove('shake', 'pulse-heal'), 450);
+<<<<<<< HEAD
   playSound(kind === 'heal' ? 'heal' : kind === 'loot' ? 'coin' : kind === 'crit' ? 'crit' : kind === 'dmg' ? 'hit' : 'roll');
+=======
+  playSound(kind === 'heal' ? 'heal' : kind === 'crit' ? 'crit' : kind === 'dmg' ? 'hit' : 'roll');
+>>>>>>> d9e90c228dde8be337eb92504ba8cba9230773d8
   if (kind === 'crit') { const g = $$('game-screen'); g.classList.add('screen-shake'); setTimeout(() => g.classList.remove('screen-shake'), 350); }
 }
 CD.onState = function (st) {
@@ -123,7 +127,11 @@ CD.exec = async function (slot, type, target) {
   const G = CD.G, p = G.players[G.turn];
   if (G.over || G.wait || G.between || !p || p.slot !== slot) return;
   G.wait = true; CD.publish(); render();
+<<<<<<< HEAD
   try { await CD.mod().act(G, p, type, target); } catch (e) { console.error(e); }
+=======
+  try { await MODULES[CD.cfg.contract]().act(G, p, type, target); } catch (e) { console.error(e); }
+>>>>>>> d9e90c228dde8be337eb92504ba8cba9230773d8
   CD.publish(); render(); await sleep(G.over ? 600 : 1500);     // momento para ver el daño sobre el personaje
   G.focus = null;
   if (!G.over) CD.advance();
@@ -140,8 +148,13 @@ CD.next = function () {                       // los bots juegan solos
   const G = CD.G; if (!CD.auth || G.over || G.wait || G.between) return; const p = G.players[G.turn];
   if (p.bot) setTimeout(() => { const a = AI.decide(G, p, CD.cfg.contract); if (a) CD.exec(p.slot, a.type, a.target); }, 900);
 };
+<<<<<<< HEAD
 CD.finish = function (winnerSlot, summary) {
   const G = CD.G; G.over = true; G.result = { winner:winnerSlot, summary:summary || '' };
+=======
+CD.finish = function (winnerSlot) {
+  const G = CD.G; G.over = true; G.result = { winner:winnerSlot };
+>>>>>>> d9e90c228dde8be337eb92504ba8cba9230773d8
   playSound('win');
   CD.log(winnerSlot == null ? '🤝 Empate: nadie sobrevivió.' : '🏆 ' + G.players[winnerSlot].name + ' domina la ciudad.');
 };
@@ -159,6 +172,7 @@ function render() {
   const mine = CD.canAct(cur) && !G.wait && !G.over && !G.between && G.started;
   const targets = CD.pending && mine ? (M.validTargets(G, cur, CD.pending) || []) : [];
   $$('g-players').innerHTML = G.players.map(p => {
+<<<<<<< HEAD
     const k = M.card(p, G), L = charList(p, k.img), isT = targets.includes(p.slot);
     const marked = G.focus && G.focus.target === p.slot && G.focus.att !== p.slot;
     return `<div class="pcard ${G.players[G.turn].slot === p.slot && !G.over && !G.between && p.alive ? 'turn' : ''} ${k.state} ${isT ? 'targetable' : ''} ${marked ? 'marked' : ''}" data-slot="${p.slot}" style="--pc:${COLORS[p.color]}" ${isT ? `onclick="CD.pick(${p.slot})"` : ''}>
@@ -168,6 +182,19 @@ function render() {
     CD.pending ? '🎯 Elige a quién atacar' : (mine ? '👉 Tu turno, ' + cur.name : 'Turno de ' + cur.name + (cur.bot ? ' (bot)' : ''));
   const box = $$('g-actions'); box.classList.toggle('hidden', !mine);
   if (mine) box.innerHTML = M.ui(G, cur).map(b => `<button class="opt ${CD.pending === b.type ? 'selected' : ''}" ${b.disabled ? 'disabled' : ''} onclick="CD.choose('${b.type}')">${b.label}<br><small>${b.sub}</small></button>`).join('');
+=======
+    const R = p.max ? Math.max(0, p.hp / Math.max(p.max, p.hp) * 100) : 0, isT = CD.pending && p.alive && p.slot !== G.players[G.turn].slot;
+    const L = charList(p, p.alive ? 'idle' : 'lose'), marked = G.focus && G.focus.target === p.slot && G.focus.att !== p.slot;
+    return `<div class="pcard ${G.players[G.turn].slot === p.slot && !G.over ? 'turn' : ''} ${p.alive ? '' : 'dead'} ${isT ? 'targetable' : ''} ${marked ? 'marked' : ''}" data-slot="${p.slot}" style="--pc:${COLORS[p.color]}" ${isT ? `onclick="CD.pick(${p.slot})"` : ''}>
+      ${marked ? '<span class="mark">🎯</span>' : ''}<img src="${L[0]}" data-c="${L.join('|')}" onerror="charNext(this)" alt="">
+      <div><b>${esc(p.name)}</b>${p.bot ? ' 🤖' : ''}<div class="hp"><i style="width:${R}%;background:${p.poison > 0 ? '#9b59b6' : 'var(--theme-accent)'}"></i></div>
+      <small>${p.alive ? (p.max ? p.hp + '/' + p.max + ' SALUD' : '— SALUD') : '💀 ELIMINADO'}${p.poison > 0 ? ' · 🕵️ soplón ' + p.poison : ''}${p.blocked ? ' · 🚫 médico' : ''}</small></div></div>`; }).join('');
+  const cur = G.players[G.turn];
+  $$('g-turn').textContent = G.over ? '' : !G.started ? 'Tirando la salud inicial…' : G.prompt ? '⏳ Esperando el dado de ' + G.players[G.prompt.slot].name :
+    CD.pending ? '🎯 Elige a quién atacar' : (mine ? '👉 Tu turno, ' + cur.name : 'Turno de ' + cur.name + (cur.bot ? ' (bot)' : ''));
+  $$('g-actions').classList.toggle('hidden', !mine);
+  if (mine) { $$('a-heal').disabled = cur.blocked; $$('a-heal-s').textContent = cur.blocked ? '🚫 Bloqueado: usa otra habilidad' : 'd8 de salud · ' + cur.heals + '/3 seguidas'; document.querySelectorAll('#g-actions button').forEach(b => b.classList.toggle('selected', b.dataset.a === CD.pending)); }
+>>>>>>> d9e90c228dde8be337eb92504ba8cba9230773d8
   $$('g-log').innerHTML = G.log.slice().reverse().map(l => '<div>' + esc(l) + '</div>').join('');
   const bt = $$('modal-between'); bt.classList.toggle('hidden', !G.between);
   if (G.between) {

@@ -36,6 +36,9 @@
 .float.dmg{color:#ff5d4d}.float.crit{color:#ffb400;font-size:2.6rem}.float.heal{color:var(--accent-coin)}.float.status{color:#c77dff;font-size:1.6rem}.float.miss{color:#ccc;font-size:1.3rem}
 @keyframes floatup{0%{opacity:0;transform:translate(-50%,10px) scale(.6)}15%{opacity:1;transform:translate(-50%,0) scale(1.2)}100%{opacity:0;transform:translate(-50%,-70px) scale(1)}}
 .screen-shake{animation:shake .35s}
+<<<<<<< HEAD
 .float.loot{color:var(--accent-loot)}
 .pcard.done{opacity:.75;border-color:var(--accent-coin)}
 .pcard.danger{border-color:var(--accent-red)}
+=======
+>>>>>>> d9e90c228dde8be337eb92504ba8cba9230773d8
