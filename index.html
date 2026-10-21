@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="menu.css">
 <link rel="stylesheet" href="css/game.css">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script defer src="menu.js"></script>
 <script defer src="js/audio.js"></script>
@@ -17,6 +18,14 @@
 <script defer src="js/ai.js"></script>
 </head>
 <body class="theme-rpg">
+<div id="err-banner" style="display:none;position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#7b1d14;color:#fff;font:12px/1.4 monospace;padding:8px 12px;white-space:pre-wrap"></div>
+<script>
+// Muestra en pantalla cualquier error de JavaScript (útil para detectar archivos mal subidos o con conflictos de Git).
+window.addEventListener('error', function (e) {
+  var b = document.getElementById('err-banner'); b.style.display = 'block';
+  b.textContent += '⚠ ' + e.message + (e.filename ? ' — ' + e.filename.split('/').slice(-2).join('/') + ':' + e.lineno : '') + '\n';
+});
+</script>
 <button class="btn-guide-trigger" onclick="openManualGuide()">📖 MANUAL DEL CAPO</button>
 <main id="menu-screen" class="menu">
   <!-- Reemplazable por <img src="logo.png"> -->
@@ -81,16 +90,7 @@
   <div class="ghead"><h2 id="g-title"></h2><div id="g-round"></div></div>
   <div id="g-turn"></div>
   <div id="g-players"></div>
-<<<<<<< HEAD
   <div id="g-actions" class="hidden"></div>
-=======
-  <div id="g-actions" class="hidden">
-    <button class="opt" data-a="quick" onclick="CD.choose('quick')">⚡ Ráfaga Tommy Gun<br><small>d6 de daño</small></button>
-    <button class="opt" data-a="strong" onclick="CD.choose('strong')">🔫 Francotirador<br><small>d20 ≥ 11, luego d12</small></button>
-    <button class="opt" id="a-heal" data-a="heal" onclick="CD.choose('heal')">🩺 Médico de calle<br><small id="a-heal-s">d8 de salud</small></button>
-    <button class="opt" data-a="poison" onclick="CD.choose('poison')">🕵️ Infiltrar Soplón<br><small>1 de daño por turno</small></button>
-  </div>
->>>>>>> d9e90c228dde8be337eb92504ba8cba9230773d8
   <div id="g-log"></div>
 </section>
 

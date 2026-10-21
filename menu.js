@@ -8,8 +8,25 @@ const firebaseConfig = {
   messagingSenderId: "375013954181",
   appId: "1:375013954181:web:1d1a5d6ce1990454c04fec"
 };
-let db = null;
-try { firebase.initializeApp(firebaseConfig); db = firebase.database(); } catch (e) { console.warn('Firebase no disponible', e); }
+let db = null, auth = null, authPromise = null;
+try { firebase.initializeApp(firebaseConfig); db = firebase.database(); auth = firebase.auth(); } catch (e) { console.warn('Firebase no disponible', e); }
+
+// Autenticación anónima: cada pestaña obtiene su propio usuario (persistencia de sesión) y su uid.
+function ensureAuth() {
+  if (!auth) return Promise.reject({ code:'sin-firebase' });
+  if (!authPromise) authPromise = auth.setPersistence(firebase.auth.Auth.Persistence.SESSION)
+    .then(() => auth.currentUser || auth.signInAnonymously().then(c => c.user))
+    .then(u => { uid = u.uid; return u; })
+    .catch(e => { authPromise = null; throw e; });
+  return authPromise;
+}
+function netError(e) {
+  const c = (e && e.code) || '';
+  if (c === 'auth/operation-not-allowed' || c === 'auth/admin-restricted-operation') return 'Activa el acceso "Anónimo" en Firebase → Authentication → Sign-in method.';
+  if (/permission[-_]denied/i.test(c) || /permission_denied/i.test(String(e && e.message))) return 'Firebase rechazó la operación: revisa las reglas de la base de datos (deben permitir usuarios autenticados).';
+  if (c === 'sin-firebase') return 'No se pudo cargar Firebase (revisa tu conexión).';
+  return 'Error de conexión (' + (c || (e && e.message) || 'desconocido') + ').';
+}
 
 // Colores = carpetas de assets/characters/. Para agregar uno nuevo: crea su carpeta y añádelo aquí.
 const COLORS = { Color_R:'#e74c3c', Color_B:'#3498db', Color_G:'#2ecc71', Color_P:'#ff8fc7', Color_Pu:'#9b59b6', Color_W:'#ecf0f1' };
@@ -24,7 +41,7 @@ const GAME_NAMES = { rpg:'Guerra de Bandas', exp:'El Gran Atraco', maf:'Imperio 
 const $ = id => document.getElementById(id);
 
 // Identidad anónima: sin cuentas, solo un id aleatorio por pestaña.
-const uid = sessionStorage.cdUid || (sessionStorage.cdUid = Math.random().toString(36).slice(2, 10));
+let uid = 'local-' + Math.random().toString(36).slice(2, 10);   // se reemplaza por el uid de Firebase al autenticar
 
 const S = {
   mode:'local', room:null, host:true, humans:1, bots:1,
@@ -59,15 +76,16 @@ function setMode(m) {
 
 // ---------- sala online ----------
 function newCode() { return Math.random().toString(36).slice(2, 6).toUpperCase(); }
-function requireDb() { if (!db) { say('net-msg', 'Sin conexión con Firebase.'); return false; } return true; }
+async function requireDb() { try { await ensureAuth(); return true; } catch (e) { say('net-msg', netError(e)); return false; } }
 
-function createRoom() {
-  if (!requireDb()) return;
+async function createRoom() {
+  if (!(await requireDb())) return;
   leaveRoom();
   S.room = newCode(); S.host = true;
+  S.humans = Math.max(S.humans, 2); S.bots = Math.min(S.bots, 4 - S.humans);   // una sala online necesita al menos un lugar libre para invitados
   S.players[0].uid = uid;
   lobbyRef = db.ref('rooms/' + S.room + '/lobby');
-  lobbyRef.set({ status:'LOBBY', config:cfgFromState(), players:{ 0:S.players[0] } });
+  lobbyRef.set({ status:'LOBBY', config:cfgFromState(), players:{ 0:S.players[0] } }).catch(e => { say('net-msg', netError(e)); leaveRoom(); renderAll(); });
   lobbyRef.onDisconnect().remove();
   history.replaceState(null, '', '?room=' + S.room);
   $('room-code').textContent = S.room;
@@ -77,25 +95,25 @@ function createRoom() {
 function showJoin() { $('join-box').classList.remove('hidden'); $('create-box').classList.add('hidden'); }
 
 async function joinRoom() {
-  if (!requireDb()) return;
+  if (!(await requireDb())) return;
   const code = $('join-input').value.trim().toUpperCase();
   if (code.length < 3) return say('net-msg', 'Ingresa un código válido.');
   const ref = db.ref('rooms/' + code + '/lobby');
-  const snap = await ref.once('value');
+  let snap; try { snap = await ref.once('value'); } catch (e) { return say('net-msg', netError(e)); }
   const lobby = snap.val();
   if (!lobby) return say('net-msg', 'Esa sala no existe.');
   if (lobby.status !== 'LOBBY') return say('net-msg', 'La partida ya comenzó.');
   const humans = lobby.config.humans;
   let slot = -1;
-  const tx = await ref.child('players').transaction(pl => {
+  let tx; try { tx = await ref.child('players').transaction(pl => {
     pl = pl || {}; slot = -1;
     for (let i = 0; i < humans; i++) if (!pl[i]) { slot = i; break; }
     if (slot < 0) return;                                   // llena -> aborta
     const taken = Object.values(pl).map(p => p.color);
     pl[slot] = { name:'Capo ' + (slot+1), color:COLOR_KEYS.find(c => !taken.includes(c)), uid };
     return pl;
-  });
-  if (!tx.committed) return say('net-msg', 'La sala está llena.');
+  }); } catch (e) { return say('net-msg', netError(e)); }
+  if (!tx.committed) return say('net-msg', 'La sala está llena (el anfitrión debe subir el número de jugadores).');
   S.room = code; S.host = false; lobbyRef = ref;
   ref.child('players/' + slot).onDisconnect().remove();
   history.replaceState(null, '', '?room=' + code);
@@ -280,6 +298,9 @@ function buildConfig() {
 function startGame() {
   if (online() && !S.host) return;
   say('start-msg', '');
+  const need = { CD:typeof CD, RPG:typeof RPG, EXP:typeof EXP, AI:typeof AI, playSound:typeof playSound };   // detecta archivos que no cargaron
+  const missing = Object.keys(need).filter(k => need[k] === 'undefined');
+  if (missing.length) return say('start-msg', 'No cargaron estos módulos: ' + missing.join(', ') + '. Revisa que js/ tenga todos los archivos y que ninguno tenga marcas de conflicto de Git.');
   if (online()) {
     if (!S.room) return say('start-msg', 'Crea una sala primero.');
     for (let i = 0; i < S.humans; i++) if (!S.players[i].uid) return say('start-msg', 'Faltan jugadores por unirse a la sala.');
@@ -309,6 +330,7 @@ function switchManualTab(t) {
 // ---------- arranque ----------
 document.addEventListener('DOMContentLoaded', () => {
   renderAll();
+  if (auth) ensureAuth().catch(() => {});   // autentica en segundo plano
   const r = new URLSearchParams(location.search).get('room');
   if (r) { setMode('online'); showJoin(); $('join-input').value = r.toUpperCase(); joinRoom(); }
 });

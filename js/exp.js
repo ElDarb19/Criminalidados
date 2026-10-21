@@ -16,9 +16,10 @@ const EXP = {
     this.startDive(G);
   },
   startDive(G) {
-    G.turn = 0; G.round = 1; G.focus = null;
+    G.turn = Math.floor(Math.random() * G.players.length); G.round = 1; G.focus = null;   // sorteo del primer turno en cada atraco
     G.players.forEach(p => Object.assign(p, { max:this.MAX_COB, hp:this.MAX_COB, temp:0, alive:true, arrested:false, repairUses:0, repairCooldown:0, torpedoUses:0 }));
     CD.log('💰 ¡Inicia ' + (G.maxDives === 1 ? 'el Atraco Único' : 'el Atraco ' + G.dive + ' de ' + G.maxDives) + ' a la bóveda!');
+    CD.log('🎲 Sorteo: empieza ' + G.players[G.turn].name + '.');
   },
   async nextStage(G) { G.dive++; this.startDive(G); },
   onRound(G) { if (this.party()) G.players.forEach(p => { if (p.repairCooldown > 0) p.repairCooldown--; }); },
