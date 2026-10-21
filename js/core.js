@@ -47,7 +47,6 @@ CD.start = function (cfg) {
 
 // ---------- presencia: si un jugador online se desconecta, un bot toma su lugar ----------
 CD.presence = function () {
-  if (CD.auth) db.ref(CD.base).onDisconnect().remove();                    // si cae el anfitrión, la partida se cierra
   if (CD.me >= 0) { const r = db.ref(CD.base + '/presence/' + CD.me); r.set(true); r.onDisconnect().remove(); }
   if (!CD.auth) return;
   const seen = {};

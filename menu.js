@@ -85,8 +85,8 @@ async function createRoom() {
   S.humans = Math.max(S.humans, 2); S.bots = Math.min(S.bots, 4 - S.humans);   // una sala online necesita al menos un lugar libre para invitados
   S.players[0].uid = uid;
   lobbyRef = db.ref('rooms/' + S.room + '/lobby');
-  lobbyRef.set({ status:'LOBBY', config:cfgFromState(), players:{ 0:S.players[0] } }).catch(e => { say('net-msg', netError(e)); leaveRoom(); renderAll(); });
-  lobbyRef.onDisconnect().remove();
+  lobbyRef.set({ status:'LOBBY', hostUid:uid, config:cfgFromState(), players:{ 0:S.players[0] } }).catch(e => { say('net-msg', netError(e)); leaveRoom(); renderAll(); });
+  db.ref('rooms/' + S.room).onDisconnect().remove();      // si el anfitrión se desconecta, desaparece toda la sala
   history.replaceState(null, '', '?room=' + S.room);
   $('room-code').textContent = S.room;
   $('create-box').classList.remove('hidden'); $('join-box').classList.add('hidden');
@@ -104,16 +104,14 @@ async function joinRoom() {
   if (!lobby) return say('net-msg', 'Esa sala no existe.');
   if (lobby.status !== 'LOBBY') return say('net-msg', 'La partida ya comenzó.');
   const humans = lobby.config.humans;
+  const pl = lobby.players || {};
   let slot = -1;
-  let tx; try { tx = await ref.child('players').transaction(pl => {
-    pl = pl || {}; slot = -1;
-    for (let i = 0; i < humans; i++) if (!pl[i]) { slot = i; break; }
-    if (slot < 0) return;                                   // llena -> aborta
-    const taken = Object.values(pl).map(p => p.color);
-    pl[slot] = { name:'Capo ' + (slot+1), color:COLOR_KEYS.find(c => !taken.includes(c)), uid };
-    return pl;
-  }); } catch (e) { return say('net-msg', netError(e)); }
-  if (!tx.committed) return say('net-msg', 'La sala está llena (el anfitrión debe subir el número de jugadores).');
+  for (let i = 0; i < humans; i++) if (!pl[i]) { slot = i; break; }
+  if (slot < 0) return say('net-msg', 'La sala está llena (el anfitrión debe subir el número de jugadores).');
+  const taken = Object.values(pl).map(p => p.color);
+  const mine = { name:'Capo ' + (slot + 1), color:COLOR_KEYS.find(c => !taken.includes(c)), uid };
+  let tx; try { tx = await ref.child('players/' + slot).transaction(cur => cur ? undefined : mine); } catch (e) { return say('net-msg', netError(e)); }
+  if (!tx.committed) return say('net-msg', 'Otro jugador tomó ese lugar justo ahora. Intenta de nuevo.');
   S.room = code; S.host = false; lobbyRef = ref;
   ref.child('players/' + slot).onDisconnect().remove();
   history.replaceState(null, '', '?room=' + code);
