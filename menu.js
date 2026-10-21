@@ -36,7 +36,7 @@ const SINGLE_CONTRACT_START_MONEY = 300;
 const MARKET_MOMENTS = { rpg:['inicio'], maf:['inicio'], pok:['inicio'], exp:['inicio','tras_inmersion_1','tras_inmersion_3'] };
 const COLOR_KEYS = Object.keys(COLORS);
 const GAMES = ['rpg','exp','maf','pok'];
-const IMPLEMENTED = ['rpg', 'exp'];   // contratos ya migrados a 4 jugadores; añade aquí cada uno al terminarlo
+const IMPLEMENTED = ['rpg', 'exp', 'maf'];   // contratos ya migrados a 4 jugadores; añade aquí cada uno al terminarlo
 const GAME_NAMES = { rpg:'Guerra de Bandas', exp:'El Gran Atraco', maf:'Imperio Criminal', pok:'Apuestas Clandestinas' };
 const $ = id => document.getElementById(id);
 
@@ -298,14 +298,14 @@ function buildConfig() {
 function startGame() {
   if (online() && !S.host) return;
   say('start-msg', '');
-  const need = { CD:typeof CD, RPG:typeof RPG, EXP:typeof EXP, AI:typeof AI, playSound:typeof playSound };   // detecta archivos que no cargaron
+  const need = { CD:typeof CD, RPG:typeof RPG, EXP:typeof EXP, MAF:typeof MAF, AI:typeof AI, playSound:typeof playSound };   // detecta archivos que no cargaron
   const missing = Object.keys(need).filter(k => need[k] === 'undefined');
   if (missing.length) return say('start-msg', 'No cargaron estos módulos: ' + missing.join(', ') + '. Revisa que js/ tenga todos los archivos y que ninguno tenga marcas de conflicto de Git.');
   if (online()) {
     if (!S.room) return say('start-msg', 'Crea una sala primero.');
     for (let i = 0; i < S.humans; i++) if (!S.players[i].uid) return say('start-msg', 'Faltan jugadores por unirse a la sala.');
   }
-  if (S.party || !IMPLEMENTED.includes(S.contract)) return say('start-msg', 'Por ahora están disponibles Guerra de Bandas y El Gran Atraco (sin Modo Party). Los demás están en construcción.');
+  if (S.party || !IMPLEMENTED.includes(S.contract)) return say('start-msg', 'Por ahora están disponibles Guerra de Bandas, El Gran Atraco e Imperio Criminal (sin Modo Party). Los demás están en construcción.');
   if (S.party && S.total < minTotal()) return say('start-msg', 'El total de contratos debe ser al menos ' + minTotal() + '.');
   const c = buildConfig();
   if (online() && lobbyRef) lobbyRef.update({ status:'STARTING', config:Object.assign(cfgFromState(), { final:c }) });

@@ -15,6 +15,7 @@
 <script defer src="js/core.js"></script>
 <script defer src="js/rpg.js"></script>
 <script defer src="js/exp.js"></script>
+<script defer src="js/maf.js"></script>
 <script defer src="js/ai.js"></script>
 </head>
 <body class="theme-rpg">
@@ -103,6 +104,11 @@ window.addEventListener('error', function (e) {
   <h2 style="font-family:Cinzel,serif">Tira tu dado físico</h2><p id="manual-desc" style="color:var(--theme-accent)"></p>
   <input id="manual-input" type="number" min="1" placeholder="Resultado"><div id="manual-err" class="err"></div>
   <button id="manual-ok" class="start">CONFIRMAR DADO</button>
+</div></div>
+
+<div id="modal-choice" class="modal-overlay hidden" style="z-index:3660"><div class="modal-content">
+  <h2 id="choice-title" style="font-family:Cinzel,serif"></h2><p id="choice-text" style="color:var(--text-light);font-size:.85rem"></p>
+  <div id="choice-opts" class="contracts"></div><button id="choice-cancel" class="btn-cancel">CANCELAR</button>
 </div></div>
 
 <div id="modal-between" class="modal-overlay hidden" style="z-index:3650"><div class="modal-content">

@@ -1,9 +1,9 @@
 // ===== Criminal Dice · Núcleo del juego (hasta 4 jugadores, local y online) =====
 // El anfitrión (o el único dispositivo en local) es la "autoridad": ejecuta las reglas y publica el estado.
 // Los invitados solo envían intenciones (acciones) y dibujan el estado recibido.
-const CD = { G:null, cfg:null, auth:true, me:-1, base:null, pending:null, fxSeen:0, promptSeen:0, rollResolve:null, busy:false };
+const CD = { opts:{}, G:null, cfg:null, auth:true, me:-1, base:null, pending:null, fxSeen:0, promptSeen:0, rollResolve:null, busy:false };
 const GAME_TITLES = { rpg:'GUERRA DE BANDAS', exp:'EL GRAN ATRACO', maf:'IMPERIO CRIMINAL', pok:'APUESTAS CLANDESTINAS' };
-const MODULES = { rpg: () => RPG, exp: () => EXP };           // cada contrato nuevo se registra aquí
+const MODULES = { rpg: () => RPG, exp: () => EXP, maf: () => MAF };           // cada contrato nuevo se registra aquí
 const $$ = id => document.getElementById(id);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
@@ -69,7 +69,7 @@ CD.send = a => db.ref(CD.base + '/actions').push(Object.assign({ uid }, a));
 CD.onRemote = function (a) {
   const p = CD.cfg.players[a.slot]; if (!p || p.uid !== a.uid) return;           // solo el dueño del jefe puede actuar por él
   if (a.type === 'roll') { if (CD.rollResolve && CD.G.prompt && CD.G.prompt.slot === a.slot) CD.rollResolve(a.value); }
-  else CD.exec(a.slot, a.type, a.target);
+  else CD.exec(a.slot, a.type, a.target, a.extra);
 };
 let floatId = 0; CD.floatSeen = 0; CD.overSeen = false;
 CD.float = function (slot, text, kind) {                    // texto flotante sobre la tarjeta de un jugador
@@ -138,20 +138,21 @@ async function playFx(fx) {
 CD.log = t => { CD.G.log.push(t); if (CD.G.log.length > 60) CD.G.log.shift(); };
 CD.alive = () => CD.G.players.filter(p => p.alive);
 CD.canAct = function (p) { return !!p && !p.bot && (CD.cfg.online ? p.slot === CD.me : true); };
-CD.input = function (type, target) {
+CD.input = function (type, target, extra) {
   const G = CD.G, p = G.players[G.turn];
   if (G.over || G.wait || G.between || !CD.canAct(p)) return;
-  CD.pending = null;
-  if (CD.auth) CD.exec(p.slot, type, target); else CD.send({ type, slot:p.slot, target });
+  CD.pending = null; CD.opts = {};
+  if (CD.auth) CD.exec(p.slot, type, target, extra); else CD.send({ type, slot:p.slot, target, extra:extra === undefined ? null : extra });
 };
-CD.exec = async function (slot, type, target) {
+CD.exec = async function (slot, type, target, extra) {
   const G = CD.G, p = G.players[G.turn];
   if (G.over || G.wait || G.between || !p || p.slot !== slot) return;
   G.wait = true; CD.publish(); render();
-  try { await CD.mod().act(G, p, type, target); } catch (e) { console.error(e); }
+  try { await CD.mod().act(G, p, type, target, extra); } catch (e) { console.error(e); }
   CD.publish(); render(); await sleep(G.over ? 600 : 1500);     // momento para ver el daño sobre el personaje
   G.focus = null;
-  if (!G.over) CD.advance();
+  const M = CD.mod();
+  if (!G.over && !(M.keepTurn && M.keepTurn(G))) CD.advance();     // algunos contratos tienen turnos de varias fases
   G.wait = false; CD.publish(); render(); CD.next();
 };
 CD.advance = function () {
@@ -163,7 +164,7 @@ CD.advance = function () {
 };
 CD.next = function () {                       // los bots juegan solos
   const G = CD.G; if (!CD.auth || G.over || G.wait || G.between) return; const p = G.players[G.turn];
-  if (p.bot) setTimeout(() => { const a = AI.decide(G, p, CD.cfg.contract); if (a) CD.exec(p.slot, a.type, a.target); }, 900);
+  if (p.bot) setTimeout(() => { const a = AI.decide(G, p, CD.cfg.contract); if (a) CD.exec(p.slot, a.type, a.target, a.extra); }, 900);
 };
 CD.finish = function (winnerSlot, summary) {
   const G = CD.G; G.over = true; G.result = { winner:winnerSlot, summary:summary || '' };
@@ -188,11 +189,11 @@ function render() {
     const marked = G.focus && G.focus.target === p.slot && G.focus.att !== p.slot;
     return `<div class="pcard ${G.players[G.turn].slot === p.slot && !G.over && !G.between && p.alive ? 'turn' : ''} ${k.state} ${isT ? 'targetable' : ''} ${marked ? 'marked' : ''}" data-slot="${p.slot}" style="--pc:${COLORS[p.color]}" ${isT ? `onclick="CD.pick(${p.slot})"` : ''}>
       ${marked ? '<span class="mark">🎯</span>' : ''}<img src="${L[0]}" data-c="${L.join('|')}" onerror="charNext(this)" alt="">
-      <div><b>${esc(p.name)}</b>${p.bot ? ' 🤖' : ''}<div class="hp"><i style="width:${Math.max(0, Math.min(100, k.pct))}%;background:${k.color}"></i></div><small>${k.label}</small></div></div>`; }).join('');
+      <div><b>${esc(p.name)}</b>${p.bot ? ' 🤖' : ''}<div class="hp"><i style="width:${Math.max(0, Math.min(100, k.pct))}%;background:${k.color}"></i></div><small>${k.label}</small>${k.html || ''}</div></div>`; }).join('');
   $$('g-turn').textContent = G.over ? '' : !G.started ? 'Preparando el contrato…' : G.between ? '' : G.prompt ? '⏳ Esperando el dado de ' + G.players[G.prompt.slot].name :
-    CD.pending ? '🎯 Elige a quién atacar' : (mine ? '👉 Tu turno, ' + cur.name : 'Turno de ' + cur.name + (cur.bot ? ' (bot)' : ''));
+    CD.pending ? '🎯 Elige a tu objetivo' : (mine ? '👉 Tu turno, ' + cur.name : 'Turno de ' + cur.name + (cur.bot ? ' (bot)' : ''));
   const box = $$('g-actions'); box.classList.toggle('hidden', !mine);
-  if (mine) box.innerHTML = M.ui(G, cur).map(b => `<button class="opt ${CD.pending === b.type ? 'selected' : ''}" ${b.disabled ? 'disabled' : ''} onclick="CD.choose('${b.type}')">${b.label}<br><small>${b.sub}</small></button>`).join('');
+  if (mine) box.innerHTML = M.ui(G, cur).map(b => `<button class="opt ${b.wide ? 'wide' : ''} ${CD.pending === b.type ? 'selected' : ''}" ${b.disabled ? 'disabled' : ''} onclick="CD.choose('${b.type}')">${b.label}<br><small>${b.sub}</small></button>`).join('');
   $$('g-log').innerHTML = G.log.slice().reverse().map(l => '<div>' + esc(l) + '</div>').join('');
   const bt = $$('modal-between'); bt.classList.toggle('hidden', !G.between);
   if (G.between) {
@@ -204,10 +205,30 @@ function render() {
 }
 CD.choose = function (type) {                 // botón de acción
   const G = CD.G, me = G.players[G.turn]; if (G.between || G.over || G.wait) return;
+  if (type.startsWith('opt:')) { const k = type.slice(4); CD.opts[k] = !CD.opts[k]; return render(); }   // interruptores locales (no son acciones)
   const t = CD.mod().validTargets(G, me, type);
-  if (t === null) return CD.input(type, null);            // la acción no necesita objetivo
+  if (t === null) return CD.go(type, null);               // la acción no necesita objetivo
   if (!t.length) return;
-  if (t.length === 1) return CD.input(type, t[0]);        // un solo objetivo posible
+  if (t.length === 1) return CD.go(type, t[0]);           // un solo objetivo posible
   CD.pending = CD.pending === type ? null : type; render();
 };
-CD.pick = function (slot) { if (CD.pending) CD.input(CD.pending, slot); };
+CD.pick = function (slot) { if (CD.pending) CD.go(CD.pending, slot); };
+// Tras elegir acción (y objetivo), el contrato puede pedir un dato más (p. ej. el distrito) con una ventana de elección.
+CD.go = async function (type, target) {
+  const G = CD.G, me = G.players[G.turn], M = CD.mod(), spec = M.extra ? M.extra(G, me, type, target) : null;
+  if (!spec) return CD.input(type, target);
+  if ('value' in spec) return CD.input(type, target, spec.value);
+  CD.pending = null; render();
+  const v = await CD.ask(spec); if (v == null) return;
+  CD.input(type, target, v);
+};
+CD.ask = function (spec) {
+  return new Promise(res => {
+    $$('choice-title').textContent = spec.title; $$('choice-text').textContent = spec.text || '';
+    const box = $$('choice-opts'); box.innerHTML = '';
+    spec.options.forEach(o => { const b = document.createElement('button'); b.className = 'opt'; b.innerHTML = o.label; b.disabled = !!o.disabled;
+      b.onclick = () => { $$('modal-choice').classList.add('hidden'); res(o.value); }; box.appendChild(b); });
+    $$('choice-cancel').onclick = () => { $$('modal-choice').classList.add('hidden'); res(null); };
+    $$('modal-choice').classList.remove('hidden');
+  });
+};

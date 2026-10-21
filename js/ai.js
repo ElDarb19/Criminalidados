@@ -3,7 +3,7 @@
 // Punto de extensión para el paso de objetos/eventos: AI.modifiers.
 const AI = {
   modifiers: [],                              // funciones (ctx, valor) => valor, se añadirán con Mercado Negro y Eventos
-  decide(G, me, contract) { return contract === 'rpg' ? this.rpg(G, me) : contract === 'exp' ? this.exp(G, me) : null; },
+  decide(G, me, contract) { return contract === 'rpg' ? this.rpg(G, me) : contract === 'exp' ? this.exp(G, me) : contract === 'maf' ? this.maf(G, me) : null; },
 
   rpg(G, me) {
     const foes = G.players.filter(p => p.alive && p.slot !== me.slot);
@@ -53,5 +53,29 @@ const AI = {
     // 5. Si va perdiendo, arriesga la bóveda (nunca huye); si no, saquea.
     if (behind && me.hp > 4) return { type:'deep' };
     return { type:'explore' };
+  },
+
+  // Imperio Criminal: cobra (casi siempre d12, que rinde más), expande, soborna y ataca al líder con redadas.
+  maf(G, me) {
+    const foes = G.players.filter(p => p !== me);
+    if (G.phase === 'roll') {
+      const rivalAvg = foes.reduce((s, f) => s + f.parcels.length, 0) / (foes.length || 1);
+      // "Lavar dinero" cuesta 1💵: solo compensa si yo tengo muchos distritos y no quiero regalar cobros a rivales fuertes.
+      const egoist = me.coins >= 3 && (me.parcels.length >= 4 || rivalAvg > me.parcels.length + 1) && Math.random() < .5;
+      const sides = Math.random() < .85 ? 12 : 6;
+      return { type: sides === 12 ? 'harvest12' : 'harvest6', extra:{ egoist } };
+    }
+    const cost = me.parcels.length + 1, canBuy = me.parcels.length < 6 && me.coins >= cost;
+    const leader = foes.slice().sort((x, y) => (y.prestige - x.prestige) || (y.parcels.length - x.parcels.length));
+    if (me.coins >= 5 && me.prestige + 2 >= G.winScore) return { type:'brew' };                       // remata la partida
+    // Con 4+ distritos el efectivo rinde más en influencia que en expandirse: soborna antes de comprar el 5.º/6.º.
+    if (me.coins >= 5 && me.parcels.length >= 4) return { type:'brew' };
+    if (canBuy) { const free = [1, 2, 3, 4, 5, 6].filter(i => !me.parcels.includes(i)); return { type:'buy', extra:free[Math.floor(Math.random() * free.length)] }; }
+    if (me.coins >= 5 && Math.random() < .6) return { type:'brew' };
+    if (me.coins >= 3) {                                                                               // redada contra el rival más peligroso
+      const t = leader.find(f => MAF.raidTargets(G, me).includes(f.slot));
+      if (t) { const d = t.parcels.filter(i => !(t.raids[i] > 0)); return { type:'raid', target:t.slot, extra:d[Math.floor(Math.random() * d.length)] }; }
+    }
+    return { type:'pass' };
   }
 };

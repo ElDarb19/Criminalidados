@@ -34,7 +34,7 @@ const EXP = {
       { type:'deep', label:'🏦 Forzar Bóveda', sub:'d20 ≥ 11 → d12 de botín' },
       { type:'repair', label:'🔧 Reforzar Cobertura', sub: this.party() ? (me.repairCooldown > 0 ? 'Espera ' + me.repairCooldown + ' rondas' : 'd4 · cada 5 rondas') : (me.repairUses >= 1 ? 'Agotado' : 'd4 · 1 por atraco'), disabled:!repairOk || me.hp >= me.max },
       { type:'sabotage', label:'💣 Lanzar Granada', sub:me.torpedoUses + '/' + mx + ' · d4 a un rival', disabled:me.torpedoUses >= mx || !foes.length },
-      { type:'surface', label:'🚗 Coche de Escape', sub:'Asegura 💰 ' + me.temp }
+      { type:'surface', label:'🚗 Coche de Escape', sub:'Asegura 💰 ' + me.temp, wide:true }
     ];
   },
   card(p) {
