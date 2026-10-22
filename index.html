@@ -64,7 +64,7 @@ window.addEventListener('error', function (e) {
       <button class="opt" data-g="pok" onclick="pickContract('pok')">Apuestas<br>Clandestinas</button>
     </div>
     <div id="party-box" class="hidden">
-      <div class="sub">Total de contratos (playlist)</div><input id="total" type="number" max="15" oninput="onTotal()">
+      <div class="sub">Victorias para ganar</div><input id="wins" type="number" min="1" max="10" oninput="onWins()">
       <div class="sub">Actividades a incluir</div>
       <div class="checks">
         <label><input type="checkbox" data-g="rpg" checked onchange="onPartyGames()">Guerra de Bandas (Combate Directo)</label>
@@ -119,6 +119,7 @@ window.addEventListener('error', function (e) {
 
 <div id="modal-over" class="modal-overlay hidden" style="z-index:3700"><div class="modal-content">
   <p style="letter-spacing:2px;color:var(--text-light)">FIN DEL CONTRATO</p><h2 id="over-text" style="font-family:Cinzel,serif"></h2><p id="over-sub" style="color:var(--text-light);font-size:.85rem"></p>
+  <div id="over-podium"></div>
   <button class="start" onclick="CD.exit()">VOLVER AL MENÚ</button>
 </div></div>
 
