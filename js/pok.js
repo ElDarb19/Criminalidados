@@ -49,7 +49,7 @@ const POK = {
   move(from, to, n) {                          // pasa n fichas de un jugador a otro y lo muestra
     from.tokens -= n; to.tokens += n;
     CD.float(to.slot, '+' + n + ' 🎰', 'loot'); CD.float(from.slot, '-' + n + ' 🎰', 'dmg');
-    if (from.tokens <= 0) { from.tokens = 0; from.alive = false; CD.log('💀 ' + from.name + ' se queda sin fichas y cae en bancarrota.'); }
+    if (from.tokens <= 0) { from.tokens = 0; from.alive = false; from.elimN = CD.G.elimCount = (CD.G.elimCount || 0) + 1; CD.log('💀 ' + from.name + ' se queda sin fichas y cae en bancarrota.'); }
   },
   async act(G, att, type, tSlot) {
     const def = G.players[tSlot];
@@ -80,9 +80,11 @@ const POK = {
     if (alive.length <= 1) this.finishGame(G, 'Último en pie');
   },
 
+  ranking(G) { return CD.rank(G.players, q => q.alive ? [1, q.tokens] : [0, q.elimN || 0], q => q.alive ? q.tokens + ' fichas' : 'En bancarrota'); },
+
   endByRounds(G) { this.finishGame(G, 'Límite de rondas'); },
   finishGame(G, why) {
-    if (G.over) return;
+    if (G.over || G.between) return;
     const alive = CD.alive(), max = Math.max(...alive.map(p => p.tokens)), top = alive.filter(p => p.tokens === max);
     CD.finish(top.length === 1 ? top[0].slot : null, why + ' — ' + G.players.map(p => p.name + ': ' + p.tokens).join(' · ') + (top.length > 1 ? ' (empate entre ' + top.map(p => p.name).join(', ') + ')' : ''));
   }

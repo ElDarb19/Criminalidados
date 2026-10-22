@@ -26,6 +26,7 @@ const MAF = {
     CD.log('🎲 Sorteo: empieza ' + G.players[G.turn].name + '.');
   },
   normalize(p) { p.parcels = p.parcels || []; p.raids = p.raids || {}; },     // Firebase elimina arreglos y objetos vacíos
+  ranking(G) { return CD.rank(G.players, p => [p.prestige || 0, p.coins || 0], p => (p.prestige || 0) + '/' + G.winScore + ' de influencia · ' + (p.coins || 0) + '💵'); },
   keepTurn: G => G.phase === 'action' && !G.over,          // tras recaudar, el mismo jugador hace su acción
 
   // ---- interfaz hacia el núcleo ----

@@ -24,7 +24,10 @@ const AI = {
       if (foes.length > 1 && h === lead) opts.forEach(o => { if (o.target === f.slot) o.v += .7; });
     }
     const frac = me.hp / me.max;
-    if (!me.blocked) opts.push({ type:'heal', target:null, v: frac < .3 ? 5.5 + (1 - frac) * 3 : frac < .5 ? 2.4 : 0.3 });
+    if (!me.blocked && me.hp < RPG.HP_CAP) {                                   // curarse rinde menos cerca del tope de salud
+      const room = Math.min(4.5, RPG.HP_CAP - me.hp) / 4.5;
+      opts.push({ type:'heal', target:null, v:(frac < .3 ? 5.5 + (1 - frac) * 3 : frac < .5 ? 2.4 : 0.3) * room });
+    }
     opts.forEach(o => { this.modifiers.forEach(m => { o.v = m({ G, me, foes, o }, o.v); }); o.v += Math.random() * .6; });
     opts.sort((a, b) => b.v - a.v);
     return opts[0];

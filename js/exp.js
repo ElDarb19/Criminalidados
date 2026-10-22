@@ -8,7 +8,7 @@ const EXP = {
   MAX_COB: 20, TRAP: 3, HEAVY: 6,
   party: () => CD.cfg.mode === 'party',
   maxGrenades() { return this.party() ? 1 : 3; },
-  head: G => G.maxDives === 1 ? 'ATRACO ÚNICO' : 'ATRACO ' + G.dive + '/' + G.maxDives,
+  head: G => !G.maxDives ? '' : G.maxDives === 1 ? 'ATRACO ÚNICO' : 'ATRACO ' + G.dive + '/' + G.maxDives,
 
   async init(G) {
     G.dive = 1; G.maxDives = this.party() ? 1 : 3;
@@ -22,6 +22,7 @@ const EXP = {
     CD.log('🎲 Sorteo: empieza ' + G.players[G.turn].name + '.');
   },
   async nextStage(G) { G.dive++; this.startDive(G); },
+  ranking(G) { return CD.rank(G.players, p => [p.secured || 0], p => (p.secured || 0) + ' de botín asegurado'); },
   onRound(G) { if (this.party()) G.players.forEach(p => { if (p.repairCooldown > 0) p.repairCooldown--; }); },
 
   // ---- interfaz hacia el núcleo ----
@@ -41,7 +42,7 @@ const EXP = {
     const state = p.alive ? (p.hp < 5 ? 'danger' : '') : (p.arrested ? 'dead' : 'done');
     const status = p.alive ? '🏦 Dentro' : p.arrested ? '🚨 Arrestado' : '✅ A salvo';
     return { pct:p.max ? p.hp / p.max * 100 : 0, color:p.hp <= 5 ? 'var(--accent-red)' : 'var(--accent-cyan)',
-      label:`${p.hp}/${p.max} COB · 💰 ${p.temp} · 🔒 ${p.secured}<br>${status}`, state, img:p.alive ? 'idle' : p.arrested ? 'lose' : 'win' };
+      label:`${p.hp || 0}/${p.max || 0} COB · 💰 ${p.temp || 0} · 🔒 ${p.secured || 0}<br>${status}`, state, img:p.alive ? 'idle' : p.arrested ? 'lose' : 'win' };
   },
 
   // ---- acciones ----

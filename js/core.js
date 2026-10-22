@@ -19,7 +19,10 @@ function charNext(el) { const l = (el.dataset.c || '').split('|'); l.shift(); if
 
 window.addEventListener('criminaldice:start', e => CD.start(e.detail));
 
-CD.mod = () => MODULES[CD.cfg.contract]();
+CD.mod = () => MODULES[CD.contract]();               // contrato en curso (en Modo Party va cambiando)
+CD.applyContractUI = function () {                         // tema de color y título según el contrato actual
+  document.body.className = 'theme-' + CD.contract; $$('g-title').textContent = GAME_TITLES[CD.contract];
+};
 CD.start = function (cfg) {
   if (CD.running) return; CD.running = true;      // evita relanzar la partida si el lobby cambia después de empezar
   CD.cfg = cfg; CD.auth = !cfg.online || S.host;
@@ -27,11 +30,10 @@ CD.start = function (cfg) {
   CD.base = cfg.online ? 'rooms/' + cfg.room + '/play' : null;
   CD.fxSeen = 0; CD.promptSeen = 0;
   $$('menu-screen').classList.add('hidden'); $$('game-screen').classList.remove('hidden');
-  document.body.className = 'theme-' + cfg.contract;
-  $$('g-title').textContent = GAME_TITLES[cfg.contract];
+  CD.playlist = cfg.mode === 'party' ? cfg.playlist : [cfg.contract]; CD.contract = CD.playlist[0]; CD.applyContractUI();
   if (CD.auth) {
     CD.G = { players:cfg.players.map(p => ({ slot:p.slot, name:p.name, color:p.color, bot:p.bot, alive:true, hp:0, max:0, poison:0, heals:0, blocked:false })),
-      turn:0, round:1, log:[], fx:null, prompt:null, over:false, result:null, wait:true, started:false };
+      turn:0, round:1, start:0, log:[], fx:null, prompt:null, over:false, result:null, wait:true, started:false, contract:CD.contract, pi:0, wins:{} };
     if (cfg.online) { db.ref(CD.base).remove(); db.ref(CD.base + '/actions').on('child_added', s => { CD.onRemote(s.val()); s.ref.remove(); }); }
     render(); setTimeout(async () => { await CD.mod().init(CD.G); CD.G.started = true; CD.G.wait = false; CD.publish(); render(); CD.next(); }, 600);
   } else {
@@ -109,8 +111,10 @@ CD.pump = async function () {
   CD.pumping = false;
 };
 CD.applySnapshot = function (st) {
+  const changed = !!(st.contract && st.contract !== CD.contract); if (changed) CD.contract = st.contract;
   const M = CD.mod(); st.players.forEach(p => { if (M.normalize) M.normalize(p); });   // Firebase borra arreglos/objetos vacíos
-  st.log = CD.gLog; CD.G = st;
+  st.log = CD.gLog; st.wins = st.wins || {}; CD.G = st;
+  if (changed) CD.applyContractUI();
   if (st.over && !CD.overSeen) { CD.overSeen = true; playSound('win'); }
   if (st.prompt && st.prompt.id > CD.promptSeen && st.prompt.slot === CD.me) {
     CD.promptSeen = st.prompt.id; askManual(st.prompt.sides, st.prompt.desc).then(v => CD.send({ type:'roll', slot:CD.me, value:v }));
@@ -171,10 +175,10 @@ CD.exec = async function (slot, type, target, extra) {
   if (G.over || G.wait || G.between || !p || p.slot !== slot) return;
   G.wait = true; CD.publish(); render();
   try { await CD.mod().act(G, p, type, target, extra); } catch (e) { console.error(e); }
-  CD.publish(); render(); await sleep(G.over ? 600 : 1500);     // momento para ver el daño sobre el personaje
+  CD.publish(); render(); await sleep(G.over || G.between ? 900 : 1500);     // momento para ver el daño sobre el personaje
   G.focus = null;
   const M = CD.mod();
-  if (!G.over && !(M.keepTurn && M.keepTurn(G))) CD.advance();     // algunos contratos tienen turnos de varias fases
+  if (!G.over && !G.between && !(M.keepTurn && M.keepTurn(G))) CD.advance();     // algunos contratos tienen turnos de varias fases
   G.wait = false; CD.publish(); render(); CD.next();
 };
 CD.advance = function () {
@@ -192,15 +196,54 @@ CD.advance = function () {
 };
 CD.next = function () {                       // los bots juegan solos
   const G = CD.G; if (!CD.auth || G.over || G.wait || G.between) return; const p = G.players[G.turn];
-  if (p.bot) setTimeout(() => { const a = AI.decide(G, p, CD.cfg.contract); if (a) CD.exec(p.slot, a.type, a.target, a.extra); }, 900);
+  if (p.bot) setTimeout(() => { const a = AI.decide(G, p, CD.contract); if (a) CD.exec(p.slot, a.type, a.target, a.extra); }, 900);
 };
+// Ordena jugadores por una clave (arreglo de números, mayor = mejor); los empates comparten puesto.
+CD.rank = function (players, key, text) {
+  const s = players.slice().sort((a, b) => { const x = key(a), y = key(b); for (let i = 0; i < x.length; i++) if (y[i] !== x[i]) return y[i] - x[i]; return 0; });
+  let place = 0, prev = null;
+  return s.map((p, i) => { const k = key(p).join(','); if (k !== prev) { place = i + 1; prev = k; } return { slot:p.slot, place, text:text(p) }; });
+};
+function podiumHtml(G, pod) {
+  const medal = { 1:'🥇', 2:'🥈', 3:'🥉' };
+  return pod.map(e => { const p = G.players[e.slot], L = charList(p, e.place === 1 ? 'win' : 'idle');
+    return `<div class="pod p${Math.min(e.place, 4)}" style="--pc:${COLORS[p.color]}"><span class="medal">${medal[e.place] || e.place + 'º'}</span>
+      <img src="${L[0]}" data-c="${L.join('|')}" onerror="charNext(this)" alt=""><div><b>${esc(p.name)}</b><small>${esc(e.text)}</small></div></div>`; }).join('');
+}
 CD.finish = function (winnerSlot, summary) {
-  const G = CD.G; G.over = true; G.result = { winner:winnerSlot, summary:summary || '' };
+  const G = CD.G;
+  if (CD.cfg.mode === 'party') return CD.partyResult(winnerSlot, summary);
+  G.over = true; G.result = { winner:winnerSlot, summary:summary || '', podium:CD.mod().ranking ? CD.mod().ranking(G) : null };
   playSound('win');
   CD.log(winnerSlot == null ? '🤝 Empate: nadie sobrevivió.' : '🏆 ' + G.players[winnerSlot].name + ' domina la ciudad.');
 };
+// ---------- Modo Party: marcador de victorias y paso al siguiente contrato ----------
+CD.partyResult = function (winnerSlot, summary) {
+  const G = CD.G, goal = CD.cfg.winsNeeded, name = GAME_TITLES[G.contract];
+  if (winnerSlot != null) G.wins[winnerSlot] = (G.wins[winnerSlot] || 0) + 1;
+  const board = G.players.map(p => (p.name + ': ' + (G.wins[p.slot] || 0) + '/' + goal));
+  CD.log(winnerSlot == null ? `🤝 ${name}: empate, nadie suma victoria.` : `🏅 ${G.players[winnerSlot].name} gana ${name}.`);
+  playSound('win');
+  if (winnerSlot != null && G.wins[winnerSlot] >= goal) {
+    G.over = true; G.result = { winner:winnerSlot, summary:'Campeón del Modo Party', podium:CD.rank(G.players, p => [G.wins[p.slot] || 0], p => (G.wins[p.slot] || 0) + ' de ' + goal + ' victorias') };
+    CD.log('🏆 ' + G.players[winnerSlot].name + ' llega a ' + goal + ' victorias y domina la ciudad.'); return;
+  }
+  const next = CD.playlist[(G.pi + 1) % CD.playlist.length];
+  G.between = { kind:'party', title:'CONTRATO COMPLETADO', button:'SIGUIENTE CONTRATO',
+    lines:[winnerSlot == null ? `${name}: empate, nadie suma victoria.` : `🏅 ${G.players[winnerSlot].name} gana ${name}.`, summary || '', 'Marcador (meta: ' + goal + ' victorias):'].filter(Boolean).concat(board, ['', 'Siguiente contrato: ' + GAME_TITLES[next]]) };
+};
+CD.nextContract = async function () {
+  const G = CD.G, pi = G.pi + 1;
+  CD.contract = CD.playlist[pi % CD.playlist.length];
+  CD.G = { players:G.players.map(p => ({ slot:p.slot, name:p.name, color:p.color, bot:p.bot, alive:true, hp:0, max:0, poison:0, heals:0, blocked:false })),
+    turn:0, round:1, start:0, log:G.log, fx:null, prompt:null, over:false, result:null, wait:true, started:false, contract:CD.contract, pi, wins:G.wins, between:null, focus:null };
+  CD.applyContractUI(); CD.log('🎬 ——— Contrato ' + (pi + 1) + ': ' + GAME_TITLES[CD.contract] + ' ———'); CD.lastSnap = null; CD.publish(); render();
+  await CD.mod().init(CD.G); CD.G.started = true; CD.G.wait = false; CD.publish(); render(); CD.next();
+};
 CD.nextStage = async function () {            // botón de la pantalla intermedia (solo anfitrión/local)
   const G = CD.G; if (!CD.auth || !G.between) return;
+  const party = G.between.kind === 'party';
+  if (party) return CD.nextContract();
   G.between = null; G.wait = true; CD.publish(); render();
   await CD.mod().nextStage(G); G.wait = false; CD.publish(); render(); CD.next();
 };
@@ -209,7 +252,7 @@ CD.exit = () => { if (CD.cfg.online && CD.auth) db.ref('rooms/' + CD.cfg.room).r
 // ---------- pantalla ----------
 function render() {
   const G = CD.G; if (!G) return; const M = CD.mod(), cur = G.players[G.turn];
-  $$('g-round').textContent = (M.head && M.head(G) ? M.head(G) + ' · ' : '') + 'RONDA ' + (M.rounds ? Math.min(G.round, M.rounds()) + '/' + M.rounds() : G.round);
+  $$('g-round').textContent = (CD.cfg.mode === 'party' ? 'CONTRATO ' + ((G.pi || 0) + 1) + ' · ' : '') + (M.head && M.head(G) ? M.head(G) + ' · ' : '') + 'RONDA ' + (M.rounds ? Math.min(G.round, M.rounds()) + '/' + M.rounds() : G.round);
   const mine = CD.canAct(cur) && !G.wait && !G.over && !G.between && G.started;
   const targets = CD.pending && mine ? (M.validTargets(G, cur, CD.pending) || []) : [];
   $$('g-players').innerHTML = G.players.map(p => {
@@ -217,7 +260,7 @@ function render() {
     const marked = G.focus && G.focus.target === p.slot && G.focus.att !== p.slot;
     return `<div class="pcard ${G.players[G.turn].slot === p.slot && !G.over && !G.between && p.alive ? 'turn' : ''} ${k.state} ${isT ? 'targetable' : ''} ${marked ? 'marked' : ''}" data-slot="${p.slot}" style="--pc:${COLORS[p.color]}" ${isT ? `onclick="CD.pick(${p.slot})"` : ''}>
       ${marked ? '<span class="mark">🎯</span>' : ''}<img src="${L[0]}" data-c="${L.join('|')}" onerror="charNext(this)" alt="">
-      <div><b>${esc(p.name)}</b>${p.bot ? ' 🤖' : ''}<div class="hp"><i style="width:${Math.max(0, Math.min(100, k.pct))}%;background:${k.color}"></i></div><small>${k.label}</small>${k.html || ''}</div></div>`; }).join('');
+      <div><b>${esc(p.name)}</b>${p.bot ? ' 🤖' : ''}<div class="hp">${(k.segs || [{ pct:k.pct, color:k.color }]).map(s => `<i style="width:${Math.max(0, Math.min(100, s.pct))}%;background:${s.color}"></i>`).join('')}</div><small>${k.label}</small>${k.html || ''}${CD.cfg.mode === 'party' ? `<div class="pw">🏅 ${(G.wins && G.wins[p.slot]) || 0}/${CD.cfg.winsNeeded} victorias</div>` : ''}</div></div>`; }).join('');
   $$('g-turn').textContent = G.over ? '' : !G.started ? 'Preparando el contrato…' : G.between ? '' : G.prompt ? '⏳ Esperando el dado de ' + G.players[G.prompt.slot].name :
     CD.pending ? '🎯 Elige a tu objetivo' : (mine ? '👉 Tu turno, ' + cur.name : 'Turno de ' + cur.name + (cur.bot ? ' (bot)' : ''));
   const box = $$('g-actions'); box.classList.toggle('hidden', !mine);
@@ -229,7 +272,7 @@ function render() {
     const b = $$('between-btn'); b.disabled = !CD.auth; b.textContent = CD.auth ? G.between.button : 'ESPERANDO AL ANFITRIÓN…';
   }
   $$('modal-over').classList.toggle('hidden', !G.over);
-  if (G.over) { $$('over-text').textContent = G.result.lost ? 'Partida interrumpida' : G.result.winner == null ? 'Empate' : '🏆 ' + G.players[G.result.winner].name; $$('over-sub').textContent = G.result.summary || ''; }
+  if (G.over) { $$('over-text').textContent = G.result.lost ? 'Partida interrumpida' : G.result.winner == null ? 'Empate' : '🏆 ' + G.players[G.result.winner].name; $$('over-sub').textContent = G.result.summary || ''; $$('over-podium').innerHTML = G.result.podium ? podiumHtml(G, G.result.podium) : ''; }
 }
 CD.choose = function (type) {                 // botón de acción
   const G = CD.G, me = G.players[G.turn]; if (G.between || G.over || G.wait) return;
