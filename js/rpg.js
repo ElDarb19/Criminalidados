@@ -23,7 +23,7 @@ const RPG = {
       let s = 10; for (let i = 0; i < 3; i++) s += await CD.roll(6, p, 'Salud inicial', 'idle');
       Object.assign(p, { hp:s, max:s, poison:0, heals:0, blocked:false, alive:true }); CD.publish(); render();
     }
-    G.turn = Math.floor(Math.random() * G.players.length);                 // sorteo del primer turno
+    G.turn = Math.floor(Math.random() * G.players.length); G.start = G.turn;                 // sorteo del primer turno
     CD.log('🎲 Sorteo: empieza ' + G.players[G.turn].name + '. ¡Empieza el tiroteo!');
   },
 

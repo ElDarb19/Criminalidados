@@ -3,7 +3,7 @@
 // Los invitados solo envían intenciones (acciones) y dibujan el estado recibido.
 const CD = { opts:{}, G:null, cfg:null, auth:true, me:-1, base:null, pending:null, fxSeen:0, promptSeen:0, rollResolve:null, busy:false };
 const GAME_TITLES = { rpg:'GUERRA DE BANDAS', exp:'EL GRAN ATRACO', maf:'IMPERIO CRIMINAL', pok:'APUESTAS CLANDESTINAS' };
-const MODULES = { rpg: () => RPG, exp: () => EXP, maf: () => MAF };           // cada contrato nuevo se registra aquí
+const MODULES = { rpg: () => RPG, exp: () => EXP, maf: () => MAF, pok: () => POK };           // cada contrato nuevo se registra aquí
 const $$ = id => document.getElementById(id);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
@@ -35,11 +35,11 @@ CD.start = function (cfg) {
     if (cfg.online) { db.ref(CD.base).remove(); db.ref(CD.base + '/actions').on('child_added', s => { CD.onRemote(s.val()); s.ref.remove(); }); }
     render(); setTimeout(async () => { await CD.mod().init(CD.G); CD.G.started = true; CD.G.wait = false; CD.publish(); render(); CD.next(); }, 600);
   } else {
-    db.ref(CD.base + '/state').on('value', s => {
-      if (s.val()) CD.onState(s.val());
-      else if (CD.G && CD.G.started && !CD.G.over) {     // el anfitrión se desconectó: la sala desaparece
-        CD.G.over = true; CD.G.result = { winner:null, lost:true, summary:'El anfitrión se desconectó y la partida terminó.' }; render();
-      }
+    db.ref(CD.base + '/ev').on('child_added', s => CD.enqueue(s.val()));
+    let hostSeen = false;                      // el anfitrión es el jefe 0: si su presencia desaparece, la sala se cerró
+    db.ref(CD.base + '/presence/0').on('value', s => {
+      if (s.val()) hostSeen = true;
+      else if (hostSeen && CD.G && !CD.G.over) { CD.G.over = true; CD.G.result = { winner:null, lost:true, summary:'El anfitrión se desconectó y la partida terminó.' }; render(); }
     });
   }
   if (cfg.online) CD.presence();
@@ -63,17 +63,25 @@ CD.dropPlayer = function (slot) {
 };
 
 // ---------- red ----------
-CD.publish = function () { if (CD.cfg.online && CD.auth) db.ref(CD.base + '/state').set(JSON.parse(JSON.stringify(CD.G))); };
+let evSeq = 0;
+CD.emit = function (k, d) {                                 // el anfitrión publica una secuencia ORDENADA de eventos (ev/000001, 000002…)
+  if (!CD.cfg.online || !CD.auth) return;
+  db.ref(CD.base + '/ev/' + ('000000' + (++evSeq)).slice(-6)).set({ k, d:JSON.parse(JSON.stringify(d === undefined ? null : d)) });
+};
+CD.publish = function () {                                  // foto del estado (sin log ni efectos); no se envía si no cambió
+  if (!CD.cfg.online || !CD.auth) return;
+  const { log, fx, floats, ...rest } = CD.G, s = JSON.stringify(rest);
+  if (s === CD.lastSnap) return; CD.lastSnap = s; CD.emit('state', rest);
+};
 CD.send = a => db.ref(CD.base + '/actions').push(Object.assign({ uid }, a));
 CD.onRemote = function (a) {
   const p = CD.cfg.players[a.slot]; if (!p || p.uid !== a.uid) return;           // solo el dueño del jefe puede actuar por él
   if (a.type === 'roll') { if (CD.rollResolve && CD.G.prompt && CD.G.prompt.slot === a.slot) CD.rollResolve(a.value); }
   else CD.exec(a.slot, a.type, a.target, a.extra);
 };
-let floatId = 0; CD.floatSeen = 0; CD.overSeen = false;
+CD.overSeen = false;
 CD.float = function (slot, text, kind) {                    // texto flotante sobre la tarjeta de un jugador
-  const G = CD.G; G.floats = (G.floats || []).slice(-7); G.floats.push({ id:++floatId, slot, text, kind });
-  CD.floatSeen = floatId; CD.publish(); showFloat(slot, text, kind);
+  CD.publish(); CD.emit('float', { slot, text, kind }); showFloat(slot, text, kind);
 };
 function showFloat(slot, text, kind) {
   const card = document.querySelector('.pcard[data-slot="' + slot + '"]'); if (!card) return;
@@ -84,11 +92,26 @@ function showFloat(slot, text, kind) {
   playSound(kind === 'heal' ? 'heal' : kind === 'loot' ? 'coin' : kind === 'crit' ? 'crit' : kind === 'dmg' ? 'hit' : 'roll');
   if (kind === 'crit') { const g = $$('game-screen'); g.classList.add('screen-shake'); setTimeout(() => g.classList.remove('screen-shake'), 350); }
 }
-CD.onState = function (st) {
-  CD.G = st;
-  (st.floats || []).forEach(f => { if (f.id > CD.floatSeen) { CD.floatSeen = f.id; showFloat(f.slot, f.text, f.kind); } });
+// ---- invitado: reproduce los eventos del anfitrión EN ORDEN, uno tras otro, sin solapar animaciones ----
+CD.q = []; CD.pumping = false; CD.gLog = [];
+CD.enqueue = function (ev) { if (!ev) return; CD.q.push(ev); if (!CD.pumping) CD.pump(); };
+CD.pump = async function () {
+  CD.pumping = true;
+  while (CD.q.length) {
+    const e = CD.q.shift(), late = CD.q.length > 14;          // muy atrasado (pestaña dormida o mala red): salta animaciones y se pone al día
+    try {
+      if (e.k === 'state') CD.applySnapshot(e.d);
+      else if (e.k === 'log') { CD.gLog.push(e.d); if (CD.gLog.length > 60) CD.gLog.shift(); if (CD.G) { CD.G.log = CD.gLog; render(); } }
+      else if (e.k === 'float') { if (!late) showFloat(e.d.slot, e.d.text, e.d.kind); }
+      else if (e.k === 'fx') { if (!late) await playFx(e.d); }
+    } catch (err) { console.error(err); }
+  }
+  CD.pumping = false;
+};
+CD.applySnapshot = function (st) {
+  const M = CD.mod(); st.players.forEach(p => { if (M.normalize) M.normalize(p); });   // Firebase borra arreglos/objetos vacíos
+  st.log = CD.gLog; CD.G = st;
   if (st.over && !CD.overSeen) { CD.overSeen = true; playSound('win'); }
-  if (st.fx && st.fx.id > CD.fxSeen) { CD.fxSeen = st.fx.id; playFx(st.fx); }
   if (st.prompt && st.prompt.id > CD.promptSeen && st.prompt.slot === CD.me) {
     CD.promptSeen = st.prompt.id; askManual(st.prompt.sides, st.prompt.desc).then(v => CD.send({ type:'roll', slot:CD.me, value:v }));
   }
@@ -108,7 +131,7 @@ CD.roll = async function (sides, p, desc, img, sound) {
     }
   } else val = 1 + Math.floor(Math.random() * sides);
   G.fx = { id:++fxId, sides, val, slot:p.slot, desc, img:img || 'idle', color:p.color, bot:p.bot, sound:sound || null, manual };
-  CD.publish(); const t = playFx(G.fx); render(); await t;
+  CD.publish(); CD.emit('fx', G.fx); const t = playFx(G.fx); render(); await t;
   return val;
 };
 function askManual(sides, desc) {
@@ -134,14 +157,14 @@ async function playFx(fx) {
 }
 
 // ---------- reglas generales ----------
-CD.log = t => { CD.G.log.push(t); if (CD.G.log.length > 60) CD.G.log.shift(); };
+CD.log = t => { CD.G.log.push(t); if (CD.G.log.length > 60) CD.G.log.shift(); CD.emit('log', t); };
 CD.alive = () => CD.G.players.filter(p => p.alive);
 CD.canAct = function (p) { return !!p && !p.bot && (CD.cfg.online ? p.slot === CD.me : true); };
 CD.input = function (type, target, extra) {
   const G = CD.G, p = G.players[G.turn];
   if (G.over || G.wait || G.between || !CD.canAct(p)) return;
   CD.pending = null; CD.opts = {};
-  if (CD.auth) CD.exec(p.slot, type, target, extra); else CD.send({ type, slot:p.slot, target, extra:extra === undefined ? null : extra });
+  if (CD.auth) CD.exec(p.slot, type, target, extra); else { CD.send({ type, slot:p.slot, target, extra:extra === undefined ? null : extra }); G.wait = true; render(); }
 };
 CD.exec = async function (slot, type, target, extra) {
   const G = CD.G, p = G.players[G.turn];
@@ -155,10 +178,16 @@ CD.exec = async function (slot, type, target, extra) {
   G.wait = false; CD.publish(); render(); CD.next();
 };
 CD.advance = function () {
-  const G = CD.G, n = G.players.length;
+  // Una ronda se completa cuando el turno vuelve a pasar por el jugador que empezó (G.start), no por el asiento 0:
+  // así, con primer turno aleatorio, todos juegan exactamente las mismas veces.
+  const G = CD.G, n = G.players.length, start = G.start || 0; let crossed = false;
   for (let k = 1; k <= n; k++) {
     const j = (G.turn + k) % n;
-    if (G.players[j].alive) { if (j <= G.turn) { G.round++; if (CD.mod().onRound) CD.mod().onRound(G); } G.turn = j; return; }
+    if (j === start) crossed = true;
+    if (G.players[j].alive) {
+      if (crossed) { G.round++; if (CD.mod().onRound) CD.mod().onRound(G); }
+      G.turn = j; if (CD.mod().onTurnStart) CD.mod().onTurnStart(G, G.players[j]); return;
+    }
   }
 };
 CD.next = function () {                       // los bots juegan solos
@@ -180,7 +209,7 @@ CD.exit = () => { if (CD.cfg.online && CD.auth) db.ref('rooms/' + CD.cfg.room).r
 // ---------- pantalla ----------
 function render() {
   const G = CD.G; if (!G) return; const M = CD.mod(), cur = G.players[G.turn];
-  $$('g-round').textContent = (M.head ? M.head(G) + ' · ' : '') + 'RONDA ' + G.round;
+  $$('g-round').textContent = (M.head && M.head(G) ? M.head(G) + ' · ' : '') + 'RONDA ' + (M.rounds ? Math.min(G.round, M.rounds()) + '/' + M.rounds() : G.round);
   const mine = CD.canAct(cur) && !G.wait && !G.over && !G.between && G.started;
   const targets = CD.pending && mine ? (M.validTargets(G, cur, CD.pending) || []) : [];
   $$('g-players').innerHTML = G.players.map(p => {

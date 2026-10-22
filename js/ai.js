@@ -3,7 +3,7 @@
 // Punto de extensión para el paso de objetos/eventos: AI.modifiers.
 const AI = {
   modifiers: [],                              // funciones (ctx, valor) => valor, se añadirán con Mercado Negro y Eventos
-  decide(G, me, contract) { return contract === 'rpg' ? this.rpg(G, me) : contract === 'exp' ? this.exp(G, me) : contract === 'maf' ? this.maf(G, me) : null; },
+  decide(G, me, contract) { return contract === 'rpg' ? this.rpg(G, me) : contract === 'exp' ? this.exp(G, me) : contract === 'maf' ? this.maf(G, me) : contract === 'pok' ? this.pok(G, me) : null; },
 
   rpg(G, me) {
     const foes = G.players.filter(p => p.alive && p.slot !== me.slot);
@@ -77,5 +77,36 @@ const AI = {
       if (t) { const d = t.parcels.filter(i => !(t.raids[i] > 0)); return { type:'raid', target:t.slot, extra:d[Math.floor(Math.random() * d.length)] }; }
     }
     return { type:'pass' };
+  },
+
+  // Apuestas Clandestinas: calcula el valor esperado de cada acción contra cada rival.
+  pok(G, me) {
+    const rivals = G.players.filter(p => p.alive && p !== me && p.tokens >= 1);
+    const rank = 1 + G.players.filter(p => p.alive && p !== me && p.tokens > me.tokens).length;           // 1 = voy primero
+    const lastRounds = G.round >= POK.MAX_ROUNDS - 1;
+    const opts = [];
+    for (const t of rivals) {
+      const T = t.tokens, kill = T <= 1 ? .4 : 0;                                                        // dejar a un rival sin fichas lo elimina
+      if (POK.validTargets(G, me, 'cheat').includes(t.slot)) {                                          // sin riesgo: siempre que pueda
+        let e = 0; for (let d = 1; d <= 4; d++) e += Math.min(d, T) / 4;
+        opts.push({ type:'cheat', target:t.slot, v:e + 1 + (T >= 5 ? .4 : 0) });
+      }
+      if (POK.validTargets(G, me, 'bet').includes(t.slot)) {
+        const risk = me.tokens <= 2 ? -1.2 : 0;                                                          // con 1-2 fichas, perder la apuesta es peligroso
+        opts.push({ type:'bet', target:t.slot, v:0 + kill + risk + (T >= me.tokens + 2 ? .3 : 0) });
+      }
+      if (POK.validTargets(G, me, 'slam').includes(t.slot)) {
+        let win = 0; for (let d = 1; d <= Math.min(12, T); d++) win += d / 12;                            // los robos mayores que sus fichas se anulan
+        let v = .5 * win - .5 * Math.min(3, me.tokens) + kill;
+        if (me.tokens <= 4) v -= 1.2;                                                                    // no jugarse la bancarrota
+        if (lastRounds) v += rank > 1 ? .8 : -1.2;                                                       // al final: arriesga quien va detrás, asegura quien va delante
+        opts.push({ type:'slam', target:t.slot, v });
+      }
+    }
+    if (!opts.length) return null;
+    opts.forEach(o => { this.modifiers.forEach(m => { o.v = m({ G, me, rivals, o }, o.v); }); o.v += Math.random() * .5; });
+    opts.sort((x, y) => y.v - x.v);
+    // Apunta al rival con más fichas cuando el valor es parecido (es de quien más se puede robar).
+    return opts[0];
   }
 };
