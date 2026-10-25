@@ -297,7 +297,6 @@ function buildConfig() {
   }
   const c = { room:S.room, online:online(), players, market:S.market, events:S.events, dice:S.dice,
     mode:S.party ? 'party' : 'single' };
-  if (S.market && !S.party) { c.startingMoney = SINGLE_CONTRACT_START_MONEY; c.marketMoments = MARKET_MOMENTS[S.contract]; }
   if (S.party) { const games = GAMES.filter(g => S.partyGames[g]); Object.assign(c, { games, winsNeeded:winsNeeded(), playlist:makePlaylist(games) }); }
   else c.contract = S.contract;
   return c;

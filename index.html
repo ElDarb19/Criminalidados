@@ -13,6 +13,7 @@
 <script defer src="menu.js"></script>
 <script defer src="js/audio.js"></script>
 <script defer src="js/core.js"></script>
+<script defer src="js/market.js"></script>
 <script defer src="js/rpg.js"></script>
 <script defer src="js/exp.js"></script>
 <script defer src="js/maf.js"></script>
@@ -90,6 +91,7 @@ window.addEventListener('error', function (e) {
 
 <section id="game-screen" class="hidden">
   <div class="ghead"><h2 id="g-title"></h2><div id="g-round"></div></div>
+  <div id="g-event" class="hidden"></div>
   <div id="g-turn"></div>
   <div id="g-players"></div>
   <div id="g-actions" class="hidden"></div>
@@ -112,8 +114,14 @@ window.addEventListener('error', function (e) {
   <div id="choice-opts" class="contracts"></div><button id="choice-cancel" class="btn-cancel">CANCELAR</button>
 </div></div>
 
+<div id="modal-market" class="modal-overlay hidden" style="z-index:3640"><div class="modal-content mk-body-wrap"><div class="mk-body"></div></div></div>
+
+<div id="modal-event" class="modal-overlay hidden" style="z-index:3900"><div class="modal-content" style="border-color:var(--accent-red)">
+  <p style="letter-spacing:3px;color:var(--text-light)">EVENTO DE CIUDAD</p><h2 id="ev-title" style="font-family:Cinzel,serif;color:var(--accent-red)"></h2><p id="ev-desc" style="color:var(--text-light)"></p>
+</div></div>
+
 <div id="modal-between" class="modal-overlay hidden" style="z-index:3650"><div class="modal-content">
-  <h2 id="between-title" style="font-family:Cinzel,serif"></h2><p id="between-text" style="color:var(--text-light);font-size:.9rem;line-height:1.6"></p>
+  <h2 id="between-title" style="font-family:Cinzel,serif"></h2><div id="between-podium"></div><p id="between-text" style="color:var(--text-light);font-size:.9rem;line-height:1.6"></p>
   <button id="between-btn" class="start" onclick="CD.nextStage()"></button>
 </div></div>
 
