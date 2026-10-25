@@ -20,6 +20,13 @@ function charNext(el) { const l = (el.dataset.c || '').split('|'); l.shift(); if
 window.addEventListener('criminaldice:start', e => CD.start(e.detail));
 
 CD.mod = () => MODULES[CD.contract]();               // contrato en curso (en Modo Party va cambiando)
+CD.beginContract = async function (G) {      // mercado (contrato único) → evento de ciudad → preparación → a jugar
+  if (MK.on() && !MK.party()) await CD.openMarket('MERCADO NEGRO', ['Compra antes del contrato · ' + CONTRACT_NAMES[CD.contract]]);
+  await MK.rollEvent(G);
+  await CD.mod().init(G);
+  MK.contractStart(G);
+  G.started = true; G.wait = false; CD.publish(); render(); CD.next();
+};
 CD.applyContractUI = function () {                         // tema de color y título según el contrato actual
   document.body.className = 'theme-' + CD.contract; $$('g-title').textContent = GAME_TITLES[CD.contract];
 };
@@ -35,7 +42,8 @@ CD.start = function (cfg) {
     CD.G = { players:cfg.players.map(p => ({ slot:p.slot, name:p.name, color:p.color, bot:p.bot, alive:true, hp:0, max:0, poison:0, heals:0, blocked:false })),
       turn:0, round:1, start:0, log:[], fx:null, prompt:null, over:false, result:null, wait:true, started:false, contract:CD.contract, pi:0, wins:{} };
     if (cfg.online) { db.ref(CD.base).remove(); db.ref(CD.base + '/actions').on('child_added', s => { CD.onRemote(s.val()); s.ref.remove(); }); }
-    render(); setTimeout(async () => { await CD.mod().init(CD.G); CD.G.started = true; CD.G.wait = false; CD.publish(); render(); CD.next(); }, 600);
+    if (MK.on()) MK.initEcon(CD.G);
+    render(); setTimeout(() => CD.beginContract(CD.G), 600);
   } else {
     db.ref(CD.base + '/ev').on('child_added', s => CD.enqueue(s.val()));
     let hostSeen = false;                      // el anfitrión es el jefe 0: si su presencia desaparece, la sala se cerró
@@ -61,6 +69,8 @@ CD.dropPlayer = function (slot) {
   const G = CD.G, p = G && G.players[slot]; if (!p || p.bot || G.over) return;
   p.bot = true; p.name += ' (desconectado)'; CD.log('📡 ' + p.name + ' perdió la conexión: un bot toma su lugar.');
   if (G.prompt && G.prompt.slot === slot && CD.rollResolve) CD.rollResolve(1 + Math.floor(Math.random() * G.prompt.sides));
+  if (G.ask && G.ask.slot === slot && CD.askResolve) CD.askResolve(null);
+  if (G.market && G.market.order.includes(slot)) { G.market.done[slot] = true; CD.marketCheck(); }
   CD.publish(); render(); if (!G.wait) CD.next();
 };
 
@@ -79,6 +89,9 @@ CD.send = a => db.ref(CD.base + '/actions').push(Object.assign({ uid }, a));
 CD.onRemote = function (a) {
   const p = CD.cfg.players[a.slot]; if (!p || p.uid !== a.uid) return;           // solo el dueño del jefe puede actuar por él
   if (a.type === 'roll') { if (CD.rollResolve && CD.G.prompt && CD.G.prompt.slot === a.slot) CD.rollResolve(a.value); }
+  else if (a.type === 'mk') CD.marketAct(a.slot, a.op, a.id);
+  else if (a.type === 'use') CD.useConsumable(a.slot);
+  else if (a.type === 'ans') { if (CD.askResolve && CD.G.ask && CD.G.ask.slot === a.slot) CD.askResolve(a.value === undefined ? null : a.value); }
   else CD.exec(a.slot, a.type, a.target, a.extra);
 };
 CD.overSeen = false;
@@ -106,6 +119,7 @@ CD.pump = async function () {
       else if (e.k === 'log') { CD.gLog.push(e.d); if (CD.gLog.length > 60) CD.gLog.shift(); if (CD.G) { CD.G.log = CD.gLog; render(); } }
       else if (e.k === 'float') { if (!late) showFloat(e.d.slot, e.d.text, e.d.kind); }
       else if (e.k === 'fx') { if (!late) await playFx(e.d); }
+      else if (e.k === 'banner') { if (!late) await showBanner(e.d.title, e.d.desc); }
     } catch (err) { console.error(err); }
   }
   CD.pumping = false;
@@ -113,9 +127,12 @@ CD.pump = async function () {
 CD.applySnapshot = function (st) {
   const changed = !!(st.contract && st.contract !== CD.contract); if (changed) CD.contract = st.contract;
   const M = CD.mod(); st.players.forEach(p => { if (M.normalize) M.normalize(p); });   // Firebase borra arreglos/objetos vacíos
+  st.players.forEach(p => { if (p.money != null) { p.contacts = p.contacts || []; p.stock = p.stock || []; } });
+  if (st.market) { st.market.order = st.market.order || []; st.market.done = st.market.done || {}; st.market.lines = st.market.lines || []; }
   st.log = CD.gLog; st.wins = st.wins || {}; CD.G = st;
   if (changed) CD.applyContractUI();
   if (st.over && !CD.overSeen) { CD.overSeen = true; playSound('win'); }
+  if (st.ask && st.ask.id > CD.askSeen && st.ask.slot === CD.me) { CD.askSeen = st.ask.id; CD.ask(st.ask.spec).then(v => CD.send({ type:'ans', slot:CD.me, value:v })); }
   if (st.prompt && st.prompt.id > CD.promptSeen && st.prompt.slot === CD.me) {
     CD.promptSeen = st.prompt.id; askManual(st.prompt.sides, st.prompt.desc).then(v => CD.send({ type:'roll', slot:CD.me, value:v }));
   }
@@ -124,10 +141,11 @@ CD.applySnapshot = function (st) {
 
 // ---------- dados ----------
 let fxId = 0, promptId = 0;
-CD.roll = async function (sides, p, desc, img, sound) {
+CD.roll = async function (sides, p, desc, img, sound, opt) {
   const G = CD.G, human = !p.bot, manual = CD.cfg.dice === 'real' && human;
-  let val;
-  if (manual) {
+  let val, forced = false;
+  if (G.started && p.force6 && sides === 6) { val = 6; forced = true; p.force6 = false; CD.log('🤝 ¡Soborno aplicado! El d6 de ' + p.name + ' queda en 6.'); }
+  else if (manual) {
     if (!CD.cfg.online || p.slot === CD.me) val = await askManual(sides, desc + ' · ' + p.name);
     else {
       G.prompt = { id:++promptId, slot:p.slot, sides, desc:desc + ' · ' + p.name }; CD.publish(); render();
@@ -136,6 +154,14 @@ CD.roll = async function (sides, p, desc, img, sound) {
   } else val = 1 + Math.floor(Math.random() * sides);
   G.fx = { id:++fxId, sides, val, slot:p.slot, desc, img:img || 'idle', color:p.color, bot:p.bot, sound:sound || null, manual };
   CD.publish(); CD.emit('fx', G.fx); const t = playFx(G.fx); render(); await t;
+  if (G.started) {                                            // objetos y eventos solo afectan a las tiradas de juego, no a las de preparación
+    val = MK.modRoll(p, sides, val, forced);
+    const cur = G.players[G.turn];
+    if (!(opt && opt.noPuro) && MK.on() && p.consumable === 'item_puro' && cur && cur.slot === p.slot && MK.compatible('item_puro', CD.contract) && await MK.offerPuro(p, sides, val)) {
+      p.consumable = null; CD.log('🚬 ' + p.name + ' usa el PURO DEL CAPO y repite el dado.'); CD.float(p.slot, '🚬 REPITE', 'status');
+      return CD.roll(sides, p, desc + ' (re-tirada)', img, sound, { noPuro:true });
+    }
+  }
   return val;
 };
 function askManual(sides, desc) {
@@ -178,7 +204,7 @@ CD.exec = async function (slot, type, target, extra) {
   CD.publish(); render(); await sleep(G.over || G.between ? 900 : 1500);     // momento para ver el daño sobre el personaje
   G.focus = null;
   const M = CD.mod();
-  if (!G.over && !G.between && !(M.keepTurn && M.keepTurn(G))) CD.advance();     // algunos contratos tienen turnos de varias fases
+  if (!G.over && !G.between && !(M.keepTurn && M.keepTurn(G))) { MK.turnEnd(G, p); if (!G.over && !G.between) CD.advance(); }     // algunos contratos tienen turnos de varias fases
   G.wait = false; CD.publish(); render(); CD.next();
 };
 CD.advance = function () {
@@ -195,10 +221,24 @@ CD.advance = function () {
   }
 };
 CD.next = function () {                       // los bots juegan solos
-  const G = CD.G; if (!CD.auth || G.over || G.wait || G.between) return; const p = G.players[G.turn];
-  if (p.bot) setTimeout(() => { const a = AI.decide(G, p, CD.contract); if (a) CD.exec(p.slot, a.type, a.target, a.extra); }, 900);
+  const G = CD.G; if (!CD.auth || G.over || G.wait || G.between || G.market) return; const p = G.players[G.turn];
+  if (!p.bot) return;
+  setTimeout(async () => {
+    const g = CD.G; if (g !== G || g.wait || g.over || g.between || g.market || g.players[g.turn] !== p) return;
+    if (MK.on() && p.consumable && AI.useItem && AI.useItem(g, p, CD.contract)) { await CD.useConsumable(p.slot); return; }   // usa su consumible y vuelve a decidir
+    const a = AI.decide(g, p, CD.contract); if (a) CD.exec(p.slot, a.type, a.target, a.extra);
+  }, 900);
 };
-// Ordena jugadores por una clave (arreglo de números, mayor = mejor); los empates comparten puesto.
+// Usar un consumible no gasta el turno.
+CD.useConsumable = async function (slot) {
+  const G = CD.G, p = G.players[slot];
+  if (!CD.auth || !p || G.over || G.wait || G.between || G.market || G.players[G.turn] !== p || !p.consumable || p.consumable === 'item_puro') return;
+  G.wait = true; CD.publish(); render();
+  try { await MK.use(G, p); } catch (e) { console.error(e); }
+  CD.publish(); render(); await sleep(900);
+  if (!G.over && !G.between && !p.alive) CD.advance();     // si el consumible lo eliminó, pasa el turno
+  G.wait = false; CD.publish(); render(); CD.next();
+};
 CD.rank = function (players, key, text) {
   const s = players.slice().sort((a, b) => { const x = key(a), y = key(b); for (let i = 0; i < x.length; i++) if (y[i] !== x[i]) return y[i] - x[i]; return 0; });
   let place = 0, prev = null;
@@ -221,6 +261,8 @@ CD.finish = function (winnerSlot, summary) {
 CD.partyResult = function (winnerSlot, summary) {
   const G = CD.G, goal = CD.cfg.winsNeeded, name = GAME_TITLES[G.contract];
   if (winnerSlot != null) G.wins[winnerSlot] = (G.wins[winnerSlot] || 0) + 1;
+  const M = CD.mod(), rank = M.ranking ? M.ranking(G) : null, rew = MK.on() && rank ? MK.settle(G, rank, winnerSlot) : null;
+  if (rew) CD.log('💲 Recompensas: ' + G.players.map(p => p.name + ' +' + rew[p.slot].amount).join(' · '));
   const board = G.players.map(p => (p.name + ': ' + (G.wins[p.slot] || 0) + '/' + goal));
   CD.log(winnerSlot == null ? `🤝 ${name}: empate, nadie suma victoria.` : `🏅 ${G.players[winnerSlot].name} gana ${name}.`);
   playSound('win');
@@ -229,16 +271,20 @@ CD.partyResult = function (winnerSlot, summary) {
     CD.log('🏆 ' + G.players[winnerSlot].name + ' llega a ' + goal + ' victorias y domina la ciudad.'); return;
   }
   const next = CD.playlist[(G.pi + 1) % CD.playlist.length];
-  G.between = { kind:'party', title:'CONTRATO COMPLETADO', button:'SIGUIENTE CONTRATO',
+  G.between = { kind:'party', title:'CONTRATO COMPLETADO', button:MK.on() ? 'IR AL MERCADO NEGRO' : 'SIGUIENTE CONTRATO',
+    podium:rank ? rank.map(e => Object.assign({}, e, { text:e.text + (rew ? ' · +' + rew[e.slot].amount + '💲' + rew[e.slot].note : '') })) : null,
     lines:[winnerSlot == null ? `${name}: empate, nadie suma victoria.` : `🏅 ${G.players[winnerSlot].name} gana ${name}.`, summary || '', 'Marcador (meta: ' + goal + ' victorias):'].filter(Boolean).concat(board, ['', 'Siguiente contrato: ' + GAME_TITLES[next]]) };
 };
 CD.nextContract = async function () {
-  const G = CD.G, pi = G.pi + 1;
-  CD.contract = CD.playlist[pi % CD.playlist.length];
-  CD.G = { players:G.players.map(p => ({ slot:p.slot, name:p.name, color:p.color, bot:p.bot, alive:true, hp:0, max:0, poison:0, heals:0, blocked:false })),
-    turn:0, round:1, start:0, log:G.log, fx:null, prompt:null, over:false, result:null, wait:true, started:false, contract:CD.contract, pi, wins:G.wins, between:null, focus:null };
+  const G = CD.G, pi = G.pi + 1, next = CD.playlist[pi % CD.playlist.length];
+  G.between = null; G.wait = true; CD.publish(); render();
+  if (MK.on()) await CD.openMarket('MERCADO NEGRO', ['Siguiente contrato: ' + CONTRACT_NAMES[next]]);
+  CD.contract = next;
+  CD.G = { players:G.players.map(p => Object.assign({ slot:p.slot, name:p.name, color:p.color, bot:p.bot, alive:true, hp:0, max:0, poison:0, heals:0, blocked:false },
+      MK.on() ? { money:p.money, contacts:p.contacts, consumable:p.consumable, stock:[], rerollCost:ECON.REROLL_BASE } : {})),
+    turn:0, round:1, start:0, log:G.log, fx:null, prompt:null, over:false, result:null, wait:true, started:false, contract:CD.contract, pi, wins:G.wins, between:null, focus:null, event:null };
   CD.applyContractUI(); CD.log('🎬 ——— Contrato ' + (pi + 1) + ': ' + GAME_TITLES[CD.contract] + ' ———'); CD.lastSnap = null; CD.publish(); render();
-  await CD.mod().init(CD.G); CD.G.started = true; CD.G.wait = false; CD.publish(); render(); CD.next();
+  await CD.beginContract(CD.G);
 };
 CD.nextStage = async function () {            // botón de la pantalla intermedia (solo anfitrión/local)
   const G = CD.G; if (!CD.auth || !G.between) return;
@@ -247,6 +293,37 @@ CD.nextStage = async function () {            // botón de la pantalla intermedi
   G.between = null; G.wait = true; CD.publish(); render();
   await CD.mod().nextStage(G); G.wait = false; CD.publish(); render(); CD.next();
 };
+// ---------- Mercado Negro (compras simultáneas online · por turnos en local) ----------
+CD.openMarket = async function (title, lines) {
+  const G = CD.G, humans = G.players.filter(p => !p.bot);
+  G.players.forEach(p => { p.stock = MK.newStock(); p.rerollCost = ECON.REROLL_BASE; });
+  G.market = { title, lines, order:humans.map(p => p.slot), cur:0, done:{} };
+  G.players.filter(p => p.bot).forEach(p => { AI.shop(G, p); MK.leave(p); });
+  CD.publish(); render();
+  if (!humans.length) { G.market = null; CD.publish(); render(); return; }
+  await new Promise(res => { CD.marketResolve = res; });
+  G.market = null; CD.publish(); render();
+};
+CD.marketAct = function (slot, op, id) {
+  const G = CD.G, m = G.market; if (!m) return; const p = G.players[slot];
+  if (!p || p.bot || m.done[slot] || (!CD.cfg.online && m.order[m.cur] !== slot)) return;
+  if (op === 'buy') MK.buy(p, id); else if (op === 'sell') MK.sell(p, id); else if (op === 'reroll') MK.reroll(p);
+  else if (op === 'done') { MK.leave(p); m.done[slot] = true; if (!CD.cfg.online) m.cur++; CD.marketCheck(); }
+  CD.publish(); render();
+};
+CD.marketCheck = function () { const m = CD.G.market; if (m && m.order.every(s => m.done[s]) && CD.marketResolve) { const r = CD.marketResolve; CD.marketResolve = null; r(); } };
+// Pregunta a un jugador concreto (en su propio dispositivo si es online).
+let askId = 0; CD.askSeen = 0;
+CD.askPlayer = async function (slot, spec) {
+  if (!CD.cfg.online || slot === CD.me) return CD.ask(spec);
+  CD.G.ask = { id:++askId, slot, spec }; CD.publish(); render();
+  const v = await new Promise(r => { CD.askResolve = r; }); CD.askResolve = null; CD.G.ask = null; return v;
+};
+// Anuncio a pantalla completa (eventos de ciudad).
+async function showBanner(title, desc) {
+  $$('ev-title').textContent = title; $$('ev-desc').textContent = desc; $$('modal-event').classList.remove('hidden'); playSound('crit'); await sleep(2800); $$('modal-event').classList.add('hidden');
+}
+CD.banner = async function (title, desc) { CD.emit('banner', { title, desc }); await showBanner(title, desc); };
 CD.exit = () => { if (CD.cfg.online && CD.auth) db.ref('rooms/' + CD.cfg.room).remove(); location.href = location.pathname; };
 
 // ---------- pantalla ----------
@@ -260,22 +337,27 @@ function render() {
     const marked = G.focus && G.focus.target === p.slot && G.focus.att !== p.slot;
     return `<div class="pcard ${G.players[G.turn].slot === p.slot && !G.over && !G.between && p.alive ? 'turn' : ''} ${k.state} ${isT ? 'targetable' : ''} ${marked ? 'marked' : ''}" data-slot="${p.slot}" style="--pc:${COLORS[p.color]}" ${isT ? `onclick="CD.pick(${p.slot})"` : ''}>
       ${marked ? '<span class="mark">🎯</span>' : ''}<img src="${L[0]}" data-c="${L.join('|')}" onerror="charNext(this)" alt="">
-      <div><b>${esc(p.name)}</b>${p.bot ? ' 🤖' : ''}<div class="hp">${(k.segs || [{ pct:k.pct, color:k.color }]).map(s => `<i style="width:${Math.max(0, Math.min(100, s.pct))}%;background:${s.color}"></i>`).join('')}</div><small>${k.label}</small>${k.html || ''}${CD.cfg.mode === 'party' ? `<div class="pw">🏅 ${(G.wins && G.wins[p.slot]) || 0}/${CD.cfg.winsNeeded} victorias</div>` : ''}</div></div>`; }).join('');
+      <div><b>${esc(p.name)}</b>${p.bot ? ' 🤖' : ''}${MK.boss() === p.slot ? ' 💀' : ''}<div class="hp">${(k.segs || [{ pct:k.pct, color:k.color }]).map(s => `<i style="width:${Math.max(0, Math.min(100, s.pct))}%;background:${s.color}"></i>`).join('')}</div><small>${k.label}</small>${k.html || ''}${MK.hud(p)}${CD.cfg.mode === 'party' ? `<div class="pw">🏅 ${(G.wins && G.wins[p.slot]) || 0}/${CD.cfg.winsNeeded} victorias</div>` : ''}</div></div>`; }).join('');
   $$('g-turn').textContent = G.over ? '' : !G.started ? 'Preparando el contrato…' : G.between ? '' : G.prompt ? '⏳ Esperando el dado de ' + G.players[G.prompt.slot].name :
     CD.pending ? '🎯 Elige a tu objetivo' : (mine ? '👉 Tu turno, ' + cur.name : 'Turno de ' + cur.name + (cur.bot ? ' (bot)' : ''));
   const box = $$('g-actions'); box.classList.toggle('hidden', !mine);
-  if (mine) box.innerHTML = M.ui(G, cur).map(b => `<button class="opt ${b.wide ? 'wide' : ''} ${CD.pending === b.type ? 'selected' : ''}" ${b.disabled ? 'disabled' : ''} onclick="CD.choose('${b.type}')">${b.label}<br><small>${b.sub}</small></button>`).join('');
+  if (mine) box.innerHTML = M.ui(G, cur).concat(MK.useBtn(cur) || []).map(b => `<button class="opt ${b.wide ? 'wide' : ''} ${CD.pending === b.type ? 'selected' : ''}" ${b.disabled ? 'disabled' : ''} onclick="CD.choose('${b.type}')">${b.label}<br><small>${b.sub}</small></button>`).join('');
   $$('g-log').innerHTML = G.log.slice().reverse().map(l => '<div>' + esc(l) + '</div>').join('');
   const bt = $$('modal-between'); bt.classList.toggle('hidden', !G.between);
   if (G.between) {
     $$('between-title').textContent = G.between.title; $$('between-text').innerHTML = G.between.lines.map(esc).join('<br>');
     const b = $$('between-btn'); b.disabled = !CD.auth; b.textContent = CD.auth ? G.between.button : 'ESPERANDO AL ANFITRIÓN…';
   }
+  const evd = G.event && G.event.code && EVENTS[G.event.code], chip = $$('g-event');
+  chip.classList.toggle('hidden', !evd); if (evd) chip.textContent = evd.title + (G.event.boss != null ? ' · ' + G.players[G.event.boss].name.toUpperCase() : '') + ' — ' + evd.desc;
+  MK.render();
+  $$('between-podium').innerHTML = G.between && G.between.podium ? podiumHtml(G, G.between.podium) : '';
   $$('modal-over').classList.toggle('hidden', !G.over);
   if (G.over) { $$('over-text').textContent = G.result.lost ? 'Partida interrumpida' : G.result.winner == null ? 'Empate' : '🏆 ' + G.players[G.result.winner].name; $$('over-sub').textContent = G.result.summary || ''; $$('over-podium').innerHTML = G.result.podium ? podiumHtml(G, G.result.podium) : ''; }
 }
 CD.choose = function (type) {                 // botón de acción
-  const G = CD.G, me = G.players[G.turn]; if (G.between || G.over || G.wait) return;
+  const G = CD.G, me = G.players[G.turn]; if (G.between || G.over || G.wait || G.market) return;
+  if (type === 'use') { if (CD.auth) CD.useConsumable(me.slot); else { CD.send({ type:'use', slot:me.slot }); G.wait = true; render(); } return; }
   if (type.startsWith('opt:')) { const k = type.slice(4); CD.opts[k] = !CD.opts[k]; return render(); }   // interruptores locales (no son acciones)
   const t = CD.mod().validTargets(G, me, type);
   if (t === null) return CD.go(type, null);               // la acción no necesita objetivo

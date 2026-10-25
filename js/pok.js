@@ -20,7 +20,10 @@ const POK = {
     CD.log(`🎲 ¡Se abren las mesas clandestinas! Todos inician con ${this.START_TOKENS} fichas.`);
     CD.log(`⚠️ Objetivo: desplumar a los rivales durante ${this.MAX_ROUNDS} rondas. Empieza ${G.players[G.turn].name}.`);
   },
-  onTurnStart(G, p) { if (p.tahurCD > 0) p.tahurCD--; },                    // la espera de la Trampa baja en cada turno propio
+  bust(G, q) {                                // bancarrota: sin fichas queda fuera
+    q.tokens = 0; q.alive = false; q.elimN = G.elimCount = (G.elimCount || 0) + 1; CD.log('💀 ' + q.name + ' se queda sin fichas y cae en bancarrota.');
+  },
+  onTurnStart(G, p) { if (p.tahurCD > 0) p.tahurCD--; if (p.alive && p.tokens <= 0) { this.bust(G, p); if (CD.alive().length <= 1) this.finishGame(G, 'Último en pie'); } },                    // la espera de la Trampa baja en cada turno propio
   onRound(G) { if (G.round > this.MAX_ROUNDS) this.endByRounds(G); },
 
   // ---- interfaz hacia el núcleo ----
@@ -47,7 +50,7 @@ const POK = {
 
   // ---- acciones ----
   move(from, to, n) {                          // pasa n fichas de un jugador a otro y lo muestra
-    from.tokens -= n; to.tokens += n;
+    from.tokens -= n; to.tokens += n; CD.G.lastNeg = { target:from.slot, amount:n, thief:to.slot };
     CD.float(to.slot, '+' + n + ' 🎰', 'loot'); CD.float(from.slot, '-' + n + ' 🎰', 'dmg');
     if (from.tokens <= 0) { from.tokens = 0; from.alive = false; from.elimN = CD.G.elimCount = (CD.G.elimCount || 0) + 1; CD.log('💀 ' + from.name + ' se queda sin fichas y cae en bancarrota.'); }
   },
@@ -59,6 +62,11 @@ const POK = {
       const r = await CD.roll(6, att, `Apuesta (gana con 4+) → ${def.name}`, 'pok_bet');
       CD.log(`🎰 ${att.name} arriesga 1 ficha contra ${def.name}…`);
       if (r >= 4) { this.move(def, att, Math.min(1, def.tokens)); CD.log(`✅ ¡Acierto! ${att.name} gana 1 ficha de ${def.name} (${att.name}: ${att.tokens} · ${def.name}: ${def.tokens}).`); }
+      else if (MK.has(att, 'contact_dinamita')) {                       // Tramposo de la Casa: el fallo propio perjudica al rival
+        const lost = Math.min(2, def.tokens); def.tokens -= lost; CD.float(def.slot, '-' + lost + ' 🎰', 'dmg'); CD.G.lastNeg = { target:def.slot, amount:lost, thief:null };
+        CD.log(`❌ Falla. 🧨 ${att.name} activa al Tramposo de la Casa: ${def.name} pierde ${lost} fichas.`);
+        if (def.tokens <= 0) { def.tokens = 0; def.alive = false; def.elimN = G.elimCount = (G.elimCount || 0) + 1; CD.log('💀 ' + def.name + ' se queda sin fichas y cae en bancarrota.'); }
+      }
       else { this.move(att, def, Math.min(1, att.tokens)); CD.log(`❌ Falla. ${def.name} gana 1 ficha de ${att.name} (${att.name}: ${att.tokens} · ${def.name}: ${def.tokens}).`); }
     } else if (type === 'slam') {
       const acc = await CD.roll(20, att, `Golpe a la Mesa (req. 11+) → ${def.name}`, 'pok_slam');
@@ -71,7 +79,8 @@ const POK = {
         else { this.move(def, att, win); CD.log(`🎉 ¡JACKPOT! ${att.name} arrasa la mesa y le roba ${win} fichas a ${def.name} (${att.name}: ${att.tokens} · ${def.name}: ${def.tokens}).`); }
       } else { const l = Math.min(3, att.tokens); this.move(att, def, l); CD.log(`💀 Sale mal. ${def.name} gana las ${l} fichas del riesgo (${att.name}: ${att.tokens} · ${def.name}: ${def.tokens}).`); }
     } else if (type === 'cheat') {
-      const s = await CD.roll(4, att, `Trampa de Tahúr → ${def.name}`, 'pok_cheat');
+      let s = await CD.roll(4, att, `Trampa de Tahúr → ${def.name}`, 'pok_cheat');
+      if (MK.has(att, 'contact_maton') && !att.matonUsed) { s += 2; att.matonUsed = true; CD.float(att.slot, '+2 MATÓN', 'crit'); CD.log(`🥊 ¡Matón a Sueldo! La primera Trampa de Tahúr de ${att.name} recibe +2.`); }
       att.tahurUses++; if (!this.party()) att.tahurCD = this.TAHUR_COOLDOWN;
       const n = Math.min(s, def.tokens); this.move(def, att, n);
       CD.log(`🎭 ¡TRAMPA! ${att.name} hace un juego de manos y roba ${n} fichas a ${def.name} (${att.name}: ${att.tokens} · ${def.name}: ${def.tokens}).`);

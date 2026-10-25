@@ -17,11 +17,22 @@ const EXP = {
   },
   startDive(G) {
     G.turn = Math.floor(Math.random() * G.players.length); G.start = G.turn; G.round = 1; G.focus = null;   // sorteo del primer turno en cada atraco
-    G.players.forEach(p => Object.assign(p, { max:this.MAX_COB, hp:this.MAX_COB, temp:0, alive:true, arrested:false, repairUses:0, repairCooldown:0, torpedoUses:0 }));
+    G.players.forEach(p => {
+      const m = this.MAX_COB + (MK.boss() === p.slot ? 10 : 0) - (MK.has(p, 'contact_prestamista') ? ECON.PRESTAMISTA_HP : 0);   // Carnicero +10 · Prestamista -4
+      Object.assign(p, { max:m, hp:m, temp:0, alive:true, arrested:false, repairUses:0, repairCooldown:0, torpedoUses:0, sec0:p.secured || 0 });
+    });
     CD.log('💰 ¡Inicia ' + (G.maxDives === 1 ? 'el Atraco Único' : 'el Atraco ' + G.dive + ' de ' + G.maxDives) + ' a la bóveda!');
     CD.log('🎲 Sorteo: empieza ' + G.players[G.turn].name + '.');
   },
-  async nextStage(G) { G.dive++; this.startDive(G); },
+  async nextStage(G) {                         // contrato único con Mercado Negro: dinero según el botín del atraco y tienda
+    if (MK.on() && !MK.party()) {
+      const gained = {}; G.players.forEach(p => { gained[p.slot] = (p.secured || 0) - (p.sec0 || 0); });
+      const rew = MK.expDiveReward(G, gained);
+      CD.log('💲 Botín del atraco ' + G.dive + ' convertido en dinero: ' + rew.map(x => G.players[x.slot].name + ' +' + x.amount).join(' · '));
+      await CD.openMarket('MERCADO NEGRO — tras el atraco ' + G.dive, ['Tu botín asegurado se convirtió en dinero (' + ECON.EXP_LOOT_RATE + '💲 por bolsa):'].concat(rew.map(x => G.players[x.slot].name + ': +' + x.amount + '💲')));
+    }
+    G.dive++; this.startDive(G);
+  },
   ranking(G) { return CD.rank(G.players, p => [p.secured || 0], p => (p.secured || 0) + ' de botín asegurado'); },
   onRound(G) { if (this.party()) G.players.forEach(p => { if (p.repairCooldown > 0) p.repairCooldown--; }); },
 
@@ -53,24 +64,35 @@ const EXP = {
 
     if (type === 'explore') {
       const r = await CD.roll(6, att, 'Saquear Cajas Fuertes', 'exp_boxes');
-      if (r <= 2) this.damage(att, this.TRAP, 'Trampa de seguridad', false);
-      else { const n = r === 6 ? 3 : 1; att.temp += n; CD.float(att.slot, '+' + n + ' 💰', 'loot'); CD.log(`💵 ${att.name} saca ${n} fajo(s) de billetes (lleva ${att.temp}).`); }
+      if (r <= 2) {
+        let trap = this.TRAP + (MK.eventsOn() && MK.ev() === 'purga' ? 2 : 0) + (MK.boss() === att.slot ? 1 : 0);          // Purga +2 · el Carnicero +1
+        if (MK.has(att, 'contact_dinamita')) { trap += 1; CD.log(`🧨 ¡Tramposo de la Casa! El fallo de ${att.name} se agrava en +1 daño.`); }
+        att.mult = 1; this.damage(att, trap, 'Trampa de seguridad', false);
+      }
+      else { const n = Math.round((r === 6 ? 3 : 1) * (att.mult || 1)); att.mult = 1; att.temp += n; CD.float(att.slot, '+' + n + ' 💰', 'loot'); CD.log(`💵 ${att.name} saca ${n} fajo(s) de billetes (lleva ${att.temp}).`); }
     } else if (type === 'deep') {
       const acc = await CD.roll(20, att, 'Destreza (11+)', 'exp_vault', 'fuse');
       if (acc >= 11) {
         const base = await CD.roll(12, att, 'Forzar Bóveda', 'exp_vault', 'dynamite');
         const crit = acc === 20 ? 2 : 0; if (crit) CD.log('🌟 ¡DESTREZA PERFECTA (d20 = 20)! +2 bolsas de botín extra.');
-        att.temp += base + crit; CD.float(att.slot, '+' + (base + crit) + ' 💰', crit ? 'crit' : 'loot');
-        CD.log(`💎 ¡La puerta cede! ${att.name} embolsa ${base + crit} bolsas (lleva ${att.temp}).`);
-      } else this.damage(att, this.HEAVY, 'Alarma pesada', true);
+        const loot = Math.round((base + crit) * (att.mult || 1)); att.mult = 1;                                             // Whisky: botín x2
+        att.temp += loot; CD.float(att.slot, '+' + loot + ' 💰', crit ? 'crit' : 'loot');
+        CD.log(`💎 ¡La puerta cede! ${att.name} embolsa ${loot} bolsas (lleva ${att.temp}).`);
+      } else { att.mult = 1; this.damage(att, this.HEAVY + (MK.boss() === att.slot ? 1 : 0), 'Alarma pesada', true); }
     } else if (type === 'repair') {
       if (this.party()) att.repairCooldown = 5; else att.repairUses++;
-      const h = await CD.roll(4, att, 'Reforzar Cobertura', 'exp_cover');
+      const h = MK.heal(att, await CD.roll(4, att, 'Reforzar Cobertura', 'exp_cover'));      // Ley Seca y Matasanos
       att.hp = Math.min(att.max, att.hp + h); CD.float(att.slot, '+' + h + ' COB', 'heal');
       CD.log(`🔧 ${att.name} se atrinchera y recupera ${h} de Cobertura (queda con ${att.hp}).`);
     } else if (type === 'sabotage') {
       att.torpedoUses++;
-      const d = await CD.roll(4, att, 'Lanzar Granada → ' + def.name, 'exp_grenade');
+      let d = await CD.roll(4, att, 'Lanzar Granada → ' + def.name, 'exp_grenade');
+      if (MK.has(att, 'contact_maton') && !att.matonUsed) { d += 2; att.matonUsed = true; CD.float(att.slot, '+2 MATÓN', 'crit'); CD.log(`🥊 ¡Matón a Sueldo! La primera granada de ${att.name} recibe +2.`); }
+      if (MK.eventsOn() && MK.ev() === 'purga') d += 2;                                  // Noche de Purga
+      if (MK.boss() === att.slot) d += 1;                                                // el Carnicero lanza con +1
+      if (MK.boss() === def.slot) d += 1;                                                // y recibe +1
+      d = MK.chofer(def, d);                                                             // Chófer de Huida
+      const real = Math.min(d, def.hp); def.tookDmg = true; G.lastNeg = { target:def.slot, amount:real, thief:att.slot };
       def.hp = Math.max(0, def.hp - d); CD.float(def.slot, '-' + d + ' COB', 'crit');
       CD.log(`💣 ¡SABOTAJE! ${att.name} lanza una granada a ${def.name}: -${d} COB (le quedan ${def.hp}).`);
       if (def.hp <= 0) this.arrest(def, '🚨 ¡Emboscada policial! ' + def.name + ' queda atrapado y pierde su botín.');
@@ -83,7 +105,7 @@ const EXP = {
     if (!G.players.some(p => p.alive)) this.endDive(G);
   },
   damage(p, n, why, heavy) {
-    p.hp = Math.max(0, p.hp - n); CD.float(p.slot, '-' + n + ' COB', heavy ? 'crit' : 'dmg');
+    p.hp = Math.max(0, p.hp - n); p.tookDmg = true; CD.float(p.slot, '-' + n + ' COB', heavy ? 'crit' : 'dmg');
     CD.log(`🚨 ${why}: ${p.name} pierde ${n} de Cobertura (le quedan ${p.hp}).`);
   },
   arrest(p, msg) { p.hp = 0; p.temp = 0; p.alive = false; p.arrested = true; CD.log(msg); },
@@ -95,7 +117,7 @@ const EXP = {
       CD.finish(top.length === 1 ? top[0].slot : null, 'Botín asegurado — ' + totals.join(' · ') + (top.length > 1 ? ' (empate entre ' + top.map(p => p.name).join(', ') + ')' : ''));
     } else {
       CD.log('🏁 Atraco ' + G.dive + ' completado. ' + totals.join(' · '));
-      G.between = { title:'ATRACO ' + G.dive + ' COMPLETADO', lines:['Botín asegurado hasta ahora:'].concat(totals), button:'SIGUIENTE ATRACO' };
+      G.between = { title:'ATRACO ' + G.dive + ' COMPLETADO', lines:['Botín asegurado hasta ahora:'].concat(totals), button:MK.on() && !MK.party() ? 'IR AL MERCADO NEGRO' : 'SIGUIENTE ATRACO' };
     }
   }
 };
