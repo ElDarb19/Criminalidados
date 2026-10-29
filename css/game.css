@@ -66,7 +66,10 @@
 .mk-works{color:#8fa3b8!important;font-style:italic}.mk-cost{color:var(--accent-loot);font-weight:800}
 .mk-item .opt{padding:8px 10px;font-size:.7rem}.mk-reroll{width:100%;margin-top:4px;padding:10px}.mk-empty{color:var(--text-light);font-size:.8rem}
 #modal-market .start{margin-top:14px}
+<<<<<<< HEAD
 .mk-tag{display:inline-block;font-size:.58rem;font-weight:800;letter-spacing:.5px;padding:1px 6px;border-radius:6px;vertical-align:middle}
 .mk-tag.pas{background:rgba(52,152,219,.25);color:#7fc4ff;border:1px solid #3498db}
 .mk-tag.act{background:rgba(230,126,34,.25);color:#ffb26b;border:1px solid #e67e22}
 .mk-legend{font-size:.68rem;color:var(--text-light);line-height:1.6;margin:8px 0 0}
+=======
+>>>>>>> 4372d87ec5ffeed0cf9d365b58620035087fc066

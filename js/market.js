@@ -28,7 +28,11 @@ const ITEMS = [
   { id:'contact_usurero', icon:'💰', name:'Inversionista Usurero', cost:150, kind:'p', desc:'Al salir de la tienda, +15% de interés sobre tu dinero (máx. 200).', incompatible:[], econ:true },
   { id:'contact_prestamista', icon:'🩸', name:'Prestamista Siniestro', cost:250, kind:'p', desc:'+150💲 al inicio de minijuego, pero -4 HP/COB máxima.', incompatible:['maf', 'pok'], econ:true },
   { id:'contact_extorsionador', icon:'💼', name:'Extorsionador de Barrio', cost:170, kind:'p', desc:'Ganas +4💲 por cada turno finalizado sin recibir daño.', incompatible:[], econ:true },
+<<<<<<< HEAD
   { id:'contact_maton', icon:'🥊', name:'Matón a Sueldo', cost:150, kind:'p', desc:'+2 al resultado del d4 de tu primera Lanzar Granada de CADA atraco (Atraco) y de tu primera Trampa de Tahúr (Apuestas).', incompatible:['rpg', 'maf'] },
+=======
+  { id:'contact_maton', icon:'🥊', name:'Matón a Sueldo', cost:150, kind:'p', desc:'En Lanzar Granada y Trampa de Tahúr, el primer d4/uso recibe +2 al resultado.', incompatible:['rpg', 'maf'] },
+>>>>>>> 4372d87ec5ffeed0cf9d365b58620035087fc066
   { id:'contact_chofer', icon:'🚗', name:'Chófer de Huida', cost:200, kind:'p', desc:'Si tu HP/COB está por debajo del 25%, recibes -2 daño.', incompatible:['maf', 'pok'] },
   { id:'contact_quimico', icon:'🧪', name:'Químico Corruptor', cost:190, kind:'p', desc:'En Guerra, un crítico envenena 3 rondas. En Imperio, un 20 en Sobornar Político permite una Redada extra.', incompatible:['exp', 'pok'] },
   { id:'contact_arquitecto', icon:'🏛️', name:'Red de Protección', cost:260, kind:'p', desc:'+10% a ingresos y curaciones. Bloquea la primera Redada o Infiltrar Soplón que recibas.', incompatible:['exp', 'pok'] },
@@ -57,7 +61,10 @@ const ITEM_VALUE = {
   item_adrenalina:{ rpg:.4, exp:.35 }, item_falsa_alarma:{ rpg:.4, exp:.1, maf:.2, pok:.5 }
 };
 const MAF_RAID_TARGETS = (G, me) => MAF.raidTargets(G, me);
+<<<<<<< HEAD
 const SHORT_NAMES = { rpg:'Guerra', exp:'Atraco', maf:'Imperio', pok:'Apuestas' };     // nombres cortos que se muestran en "Funciona en"
+=======
+>>>>>>> 4372d87ec5ffeed0cf9d365b58620035087fc066
 const CONTRACT_NAMES = { rpg:'Guerra de Bandas', exp:'El Gran Atraco', maf:'Imperio Criminal', pok:'Apuestas Clandestinas' };
 
 const MK = {
@@ -219,7 +226,11 @@ const MK = {
   // ---------- interfaz de la tienda ----------
   hud(p) {
     if (!this.on() || p.money == null) return '';
+<<<<<<< HEAD
     const chip = (id, cons) => { const it = ITEM_BY_ID[id]; return `<span class="mi ${this.compatible(id, CD.contract) ? '' : 'off'} ${cons ? 'cons' : ''}" title="${esc(it.name + ' [' + (it.kind === 'p' ? 'pasivo' : 'activo') + ']: ' + it.desc)}">${it.icon}</span>`; };
+=======
+    const chip = (id, cons) => { const it = ITEM_BY_ID[id]; return `<span class="mi ${this.compatible(id, CD.contract) ? '' : 'off'} ${cons ? 'cons' : ''}" title="${esc(it.name + ': ' + it.desc)}">${it.icon}</span>`; };
+>>>>>>> 4372d87ec5ffeed0cf9d365b58620035087fc066
     return `<div class="mhud">💲 ${p.money}${(p.contacts || []).map(id => chip(id)).join('')}${p.consumable ? chip(p.consumable, true) : ''}</div>`;
   },
   act(op, id) {                                 // clic del jugador en la tienda
@@ -237,15 +248,26 @@ const MK = {
       box.querySelector('.mk-body').innerHTML = head + `<p class="mk-wait">Esperando a los demás jugadores…<br>${st}</p>`; return;
     }
     const full = who.contacts.length >= ECON.MAX_PASSIVES, rate = who.contacts.includes('contact_desguace') ? ECON.SELL_DESGUACE : ECON.SELL;
+<<<<<<< HEAD
     const works = it => ['rpg', 'exp', 'maf', 'pok'].filter(c => this.compatible(it.id, c)).map(c => SHORT_NAMES[c]).join(' · ');
     const card = (it, mode) => `<div class="mk-item ${mode !== 'sell' && !this.compatible(it.id, CD.contract) && !this.party() ? 'off' : ''}"><div class="mk-ic">${it.icon}</div><div class="mk-tx"><b>${esc(it.name)}</b> <span class="mk-tag ${it.kind === 'p' ? 'pas' : 'act'}">${it.kind === 'p' ? 'PASIVO' : 'ACTIVO · 1 USO'}</span> <span class="mk-cost">${mode === 'sell' ? '+' + Math.floor(it.cost * rate) : it.cost}💲</span>
+=======
+    const works = it => ['rpg', 'exp', 'maf', 'pok'].filter(c => this.compatible(it.id, c)).map(c => CONTRACT_NAMES[c].split(' ')[0]).join(' · ');
+    const card = (it, mode) => `<div class="mk-item ${mode !== 'sell' && !this.compatible(it.id, CD.contract) && !this.party() ? 'off' : ''}"><div class="mk-ic">${it.icon}</div><div class="mk-tx"><b>${esc(it.name)}</b> <span class="mk-cost">${mode === 'sell' ? '+' + Math.floor(it.cost * rate) : it.cost}💲</span>
+>>>>>>> 4372d87ec5ffeed0cf9d365b58620035087fc066
       <small>${esc(it.desc)}</small><small class="mk-works">Funciona en: ${works(it)}</small></div>
       <button class="opt" onclick="MK.act('${mode}','${it.id}')" ${mode === 'buy' && (who.money < it.cost || (it.kind === 'p' ? full : !!who.consumable)) ? 'disabled' : ''}>${mode === 'buy' ? (it.kind === 'p' && full ? 'LLENO' : it.kind === 'c' && who.consumable ? 'SLOT OCUPADO' : 'COMPRAR') : 'VENDER'}</button></div>`;
     const inv = who.contacts.map(id => card(ITEM_BY_ID[id], 'sell')).join('') + (who.consumable ? card(ITEM_BY_ID[who.consumable], 'sell') : '') || '<p class="mk-empty">Sin objetos todavía.</p>';
     const stock = who.stock.map(id => card(ITEM_BY_ID[id], 'buy')).join('') || '<p class="mk-empty">Tienda vacía: renueva la tienda.</p>';
+<<<<<<< HEAD
     box.querySelector('.mk-body').innerHTML = head + `<div class="mk-wallet"><b>${esc(who.name)}</b> · 💲 ${who.money} · Pasivos ${who.contacts.length}/${ECON.MAX_PASSIVES} · Activo ${who.consumable ? '1/1' : '0/1'}</div>
       <p class="mk-legend"><span class="mk-tag pas">PASIVO</span> contacto que funciona solo, mientras lo tengas (máx. ${ECON.MAX_PASSIVES}) · <span class="mk-tag act">ACTIVO</span> consumible de un solo uso: lo activas tú en tu turno y se gasta (máx. 1)</p>
       <h3>EN VENTA</h3>${stock}<button class="opt mk-reroll" onclick="MK.act('reroll')" ${who.money < who.rerollCost ? 'disabled' : ''}>🔄 Renovar tienda (${who.rerollCost}💲)</button>
       <h3>TUS OBJETOS (PASIVOS Y ACTIVOS)</h3>${inv}<button class="start" onclick="MK.act('done')">${CD.cfg.online ? 'LISTO' : 'TERMINAR COMPRA'}</button>`;
+=======
+    box.querySelector('.mk-body').innerHTML = head + `<div class="mk-wallet"><b>${esc(who.name)}</b> · 💲 ${who.money} · Contactos ${who.contacts.length}/${ECON.MAX_PASSIVES} · Consumible ${who.consumable ? '1/1' : '0/1'}</div>
+      <h3>EN VENTA</h3>${stock}<button class="opt mk-reroll" onclick="MK.act('reroll')" ${who.money < who.rerollCost ? 'disabled' : ''}>🔄 Renovar tienda (${who.rerollCost}💲)</button>
+      <h3>TUS OBJETOS</h3>${inv}<button class="start" onclick="MK.act('done')">${CD.cfg.online ? 'LISTO' : 'TERMINAR COMPRA'}</button>`;
+>>>>>>> 4372d87ec5ffeed0cf9d365b58620035087fc066
   }
 };

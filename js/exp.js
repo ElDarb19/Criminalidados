@@ -19,7 +19,11 @@ const EXP = {
     G.turn = Math.floor(Math.random() * G.players.length); G.start = G.turn; G.round = 1; G.focus = null;   // sorteo del primer turno en cada atraco
     G.players.forEach(p => {
       const m = this.MAX_COB + (MK.boss() === p.slot ? 10 : 0) - (MK.has(p, 'contact_prestamista') ? ECON.PRESTAMISTA_HP : 0);   // Carnicero +10 · Prestamista -4
+<<<<<<< HEAD
       Object.assign(p, { max:m, hp:m, temp:0, alive:true, arrested:false, repairUses:0, repairCooldown:0, torpedoUses:0, matonUsed:false, sec0:p.secured || 0 });   // el Matón vuelve a estar disponible en cada atraco
+=======
+      Object.assign(p, { max:m, hp:m, temp:0, alive:true, arrested:false, repairUses:0, repairCooldown:0, torpedoUses:0, sec0:p.secured || 0 });
+>>>>>>> 4372d87ec5ffeed0cf9d365b58620035087fc066
     });
     CD.log('💰 ¡Inicia ' + (G.maxDives === 1 ? 'el Atraco Único' : 'el Atraco ' + G.dive + ' de ' + G.maxDives) + ' a la bóveda!');
     CD.log('🎲 Sorteo: empieza ' + G.players[G.turn].name + '.');
