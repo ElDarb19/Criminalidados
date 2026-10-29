@@ -26,6 +26,7 @@ const MAF = {
     CD.log('🎲 Sorteo: empieza ' + G.players[G.turn].name + '.');
   },
   normalize(p) { p.parcels = p.parcels || []; p.raids = p.raids || {}; },     // Firebase elimina arreglos y objetos vacíos
+  ranking(G) { return CD.rank(G.players, p => [p.prestige || 0, p.coins || 0], p => (p.prestige || 0) + '/' + G.winScore + ' de influencia · ' + (p.coins || 0) + '💵'); },
   keepTurn: G => G.phase === 'action' && !G.over,          // tras recaudar, el mismo jugador hace su acción
 
   // ---- interfaz hacia el núcleo ----
@@ -72,14 +73,20 @@ const MAF = {
       const sides = type === 'harvest6' ? 6 : 12, egoist = !!(extra && extra.egoist) && att.coins >= 1;
       const res = await CD.roll(sides, att, 'Recaudación ' + (sides === 6 ? 'Segura (d6)' : 'Arriesgada (d12)'), sides === 6 ? 'maf_safe' : 'maf_risk');
       if (egoist) { att.coins -= 1; CD.log(`🔥 ${att.name} paga 1💵 y LAVA DINERO (solo él cobra).`); }
-      const gain = sides === 12 ? 3 : 1; let paid = [];
+      const insp = MK.eventsOn() && MK.ev() === 'inspectores';
+      if (insp && sides === 6 && Math.random() < 0.5) { CD.float(att.slot, '🕵️ INSPECCIÓN', 'miss'); CD.log('🕵️ ¡GUERRA DE INSPECTORES! Inspección sorpresa: nadie cobra en esta recaudación.'); G.phase = 'action'; return; }
+      const paid = [];
       if (sides === 12 && res > 6) CD.log(`🚓 Cobro en el distrito [${res}]: demasiada vigilancia policial, nadie cobra.`);
-      else for (const p of egoist ? [att] : G.players) {
-        if (!p.parcels.includes(res)) continue;
-        if (p.raids[res] > 0) { CD.log(`❌ ${p.name} falla en el distrito [${res}] (en redada).`); continue; }
-        p.coins += gain; paid.push(p.name); CD.float(p.slot, '+' + gain + ' 💵', 'loot');
+      else {
+        for (const p of egoist ? [att] : G.players) {
+          if (!p.parcels.includes(res)) continue;
+          if (p.raids[res] > 0) { CD.log(`❌ ${p.name} falla en el distrito [${res}] (en redada).`); continue; }
+          let gain = (sides === 12 ? 3 : 1) * (insp ? 2 : 1);                                             // Inspectores: recaudación x2
+          if (MK.has(p, 'contact_arquitecto')) gain = MK.pct(gain, 0.10);                              // Red de Protección: +10% (redondeo sin sesgo)
+          p.coins += gain; paid.push(p.name + ' +' + gain + '💵'); CD.float(p.slot, '+' + gain + ' 💵', 'loot');
+        }
+        CD.log(`🎲 Cobro en el distrito [${res}]: ` + (paid.length ? paid.join(', ') : 'nadie cobra') + '.');
       }
-      if (!(sides === 12 && res > 6)) CD.log(`🎲 Cobro en el distrito [${res}]: ` + (paid.length ? paid.map(n => n + ' +' + gain + '💵').join(', ') : 'nadie cobra') + '.');
       G.phase = 'action'; return;
     }
     // --- fase de acción ---
@@ -96,16 +103,37 @@ const MAF = {
       att.prestige = Math.min(G.winScore, att.prestige + pts); CD.float(att.slot, '+' + pts + ' INFLUENCIA', 'heal');
       CD.log(`🎩 ${r === 20 ? '¡CONTROL POLÍTICO TOTAL!' : r <= 9 ? 'Soborno menor' : 'Trato jugoso'} (sacó ${r}). ${att.name} gana +${pts} Influencia (${att.prestige}/${G.winScore}).`);
       if (att.prestige >= G.winScore) { CD.finish(att.slot, 'Dominio Total — ' + G.players.map(p => p.name + ': ' + p.prestige).join(' · ')); return; }
+      if (r === 20 && MK.has(att, 'contact_quimico')) await this.extraRaid(G, att);
     } else if (type === 'raid') {
       const t = G.players[tSlot];
       if (!t || t === att || att.coins < 3 || this.active(t) >= 3 || !t.parcels.includes(extra) || t.raids[extra] > 0) return;
-      const turns = await CD.roll(4, att, 'Duración de la Redada → ' + t.name, 'maf_raid');
-      att.coins -= 3; t.raids[extra] = turns; skipTick = true;
-      CD.float(t.slot, 'REDADA [' + extra + ']', 'crit');
-      CD.log(`🚨 ¡SOPLO! ${att.name} envía una redada al Distrito [${extra}] de ${t.name} por ${turns} turnos.`);
+      const blk = MK.block(t, 'la Redada de ' + att.name);
+      if (blk) { if (blk.kind === 'bunker') att.coins = Math.max(0, att.coins - 3); CD.log(blk.text); skipTick = true; }     // el búnker cuesta la redada; la policía la intercepta gratis
+      else {
+        const turns = await CD.roll(4, att, 'Duración de la Redada → ' + t.name, 'maf_raid');
+        att.coins -= 3; t.raids[extra] = turns; skipTick = true;
+        CD.float(t.slot, 'REDADA [' + extra + ']', 'crit');
+        CD.log(`🚨 ¡SOPLO! ${att.name} envía una redada al Distrito [${extra}] de ${t.name} por ${turns} turnos.`);
+      }
     } else if (type === 'pass') CD.log(`⏳ ${att.name} no hace movimientos y guarda su Efectivo (${att.coins}💵).`);
     else return;
     this.endTurn(G, skipTick);
+  },
+  async extraRaid(G, att) {                    // Químico Corruptor: un 20 al sobornar permite una redada gratis
+    const ts = this.raidTargets(G, att); if (!ts.length) return;
+    let tSlot, d;
+    if (att.bot) { const pick = AI.mafRaid(G, att); if (!pick) return; tSlot = pick.target; d = pick.extra; }
+    else {
+      tSlot = ts.length === 1 ? ts[0] : await CD.askPlayer(att.slot, { title:'🧪 REDADA EXTRA', text:'¡Sacaste 20! Elige a quién enviar una redada gratis.', options:ts.map(s => ({ label:G.players[s].name, value:s })) });
+      if (tSlot == null) return;
+      d = await CD.askPlayer(att.slot, this.extra(G, att, 'raid', tSlot)); if (d == null) return;
+    }
+    const t = G.players[tSlot]; if (!t || !t.parcels.includes(d) || t.raids[d] > 0) return;
+    const blk = MK.block(t, 'la Redada Extra de ' + att.name);
+    if (blk) { CD.log(blk.text); return; }
+    const turns = await CD.roll(4, att, 'Redada del Químico → ' + t.name, 'maf_raid');
+    t.raids[d] = turns; CD.float(t.slot, 'REDADA [' + d + ']', 'crit');
+    CD.log(`🧪 ¡El Químico Corruptor de ${att.name} lanza una redada extra al Distrito [${d}] de ${t.name} por ${turns} turnos!`);
   },
   endTurn(G, skipTick) {                       // las redadas pierden 1 al acabar cualquier turno (salvo el de su lanzamiento)
     if (!skipTick) G.players.forEach(p => { Object.keys(p.raids).forEach(d => { if (p.raids[d] > 0 && --p.raids[d] === 0) { delete p.raids[d]; CD.log(`🏢 El Distrito [${d}] de ${p.name} reabre sus puertas.`); } }); });

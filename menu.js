@@ -47,7 +47,7 @@ const S = {
   mode:'local', room:null, host:true, humans:1, bots:1,
   players: ['Color_R','Color_B','Color_G','Color_P'].map((c,i) => ({ name:'Capo ' + (i+1), color:c, uid:null })),
   contract:'rpg', party:false, market:false, events:false,
-  partyGames:{ rpg:true, exp:true, maf:true, pok:true }, total:6, dice:'virtual'
+  partyGames:{ rpg:true, exp:true, maf:true, pok:true }, partyWins:4, dice:'virtual'
 };
 let lobbyRef = null;
 
@@ -55,8 +55,18 @@ let lobbyRef = null;
 const online = () => S.mode === 'online';
 const canHost = () => !online() || S.host;
 const partyCount = () => GAMES.filter(g => S.partyGames[g]).length;
-const minTotal = () => partyCount() + 2;           // 4 contratos -> 6 (ejemplo del diseño)
-const winsNeeded = () => Math.floor(S.total / 2) + 1; // 6 -> 4
+const winsNeeded = () => S.partyWins;                // victorias que hay que conseguir para ganar el Modo Party
+// Lista de reproducción en "bolsas" barajadas: cada bolsa trae todos los contratos elegidos una vez (sin repetir el último seguido).
+// Si las victorias para ganar son MENOS que los contratos elegidos, salen al azar solo algunos; si son IGUAL O MÁS, se juegan todos al menos una vez.
+function makePlaylist(games) {
+  const out = [];
+  while (out.length < 60) {
+    const bag = games.slice().sort(() => Math.random() - .5);
+    if (out.length && bag.length > 1 && bag[0] === out[out.length - 1]) bag.push(bag.shift());
+    out.push(...bag);
+  }
+  return out;
+}
 const usedByHumans = except => S.players.slice(0, S.humans).filter((p,i) => i !== except).map(p => p.color);
 function botColors() {
   const free = COLOR_KEYS.filter(c => !usedByHumans(-1).includes(c));
@@ -127,7 +137,7 @@ function listen() {
     const c = l.config;
     if (!S.host) {   // el invitado refleja la configuración del anfitrión
       Object.assign(S, { humans:c.humans, bots:c.bots, contract:c.contract, party:c.party, market:c.market,
-        events:c.events, total:c.total, dice:c.dice, partyGames:Object.assign({}, c.partyGames) });
+        events:c.events, partyWins:c.partyWins, dice:c.dice, partyGames:Object.assign({}, c.partyGames) });
     }
     for (let i = 0; i < 4; i++) {
       const p = (l.players || {})[i];
@@ -156,7 +166,7 @@ function copyLink() {
 }
 function cfgFromState() {
   return { humans:S.humans, bots:S.bots, contract:S.contract, party:S.party, market:S.market, events:S.events,
-    total:S.total, dice:S.dice, partyGames:Object.assign({}, S.partyGames) };
+    partyWins:S.partyWins, dice:S.dice, partyGames:Object.assign({}, S.partyGames) };
 }
 function pushConfig() { if (online() && S.host && lobbyRef) lobbyRef.child('config').set(cfgFromState()); }
 
@@ -222,6 +232,7 @@ function onColor(i, c) {
 
 // ---------- contrato ----------
 function applyTheme() {
+  if (typeof CD !== 'undefined' && CD.running) return;                    // durante la partida el tema lo controla el juego
   const g = S.party ? 'rpg' : S.contract;
   document.body.className = 'theme-' + g;
 }
@@ -229,26 +240,24 @@ function pickContract(g) { if (!canHost()) return; S.contract = g; renderAll(); 
 function onToggles() {
   if (!canHost()) { renderAll(); return; }
   S.party = $('t-party').checked; S.market = $('t-market').checked; S.events = $('t-events').checked;
-  if (S.party) S.total = Math.max(S.total, minTotal());
   renderAll(); pushConfig();
 }
 function onPartyGames() {
   if (!canHost()) { renderAll(); return; }
   document.querySelectorAll('#party-box input[data-g]').forEach(c => S.partyGames[c.dataset.g] = c.checked);
   if (partyCount() === 0) { S.partyGames.rpg = true; }   // mínimo un contrato
-  S.total = Math.max(S.total, minTotal());
   renderAll(); pushConfig();
 }
-function onTotal() {
+function onWins() {
   if (!canHost()) return;
-  const v = parseInt($('total').value, 10);
+  const v = parseInt($('wins').value, 10);
   if (isNaN(v)) return;
-  S.total = Math.min(15, v); updatePartyHint(); pushConfig();
+  S.partyWins = Math.min(10, Math.max(1, v)); updatePartyHint(); pushConfig();
 }
 function updatePartyHint() {
-  const low = S.total < minTotal();
-  $('party-hint').textContent = low ? 'Mínimo ' + minTotal() + ' contratos para que se juegue cada actividad al menos una vez.'
-    : 'El primero en ganar ' + winsNeeded() + ' victorias dominará la ciudad.';
+  const n = partyCount(), w = S.partyWins;
+  $('party-hint').textContent = 'El primero en ganar ' + w + ' contratos dominará la ciudad. ' +
+    (w < n ? 'Saldrán al azar algunos de los ' + n + ' contratos marcados.' : 'Se jugará cada contrato marcado al menos una vez.');
 }
 function setDice(d) { if (!canHost()) return; S.dice = d; renderAll(); pushConfig(); }
 
@@ -258,8 +267,8 @@ function renderContract() {
   $('party-box').classList.toggle('hidden', !S.party);
   document.querySelectorAll('#single-box .opt').forEach(b => b.classList.toggle('selected', b.dataset.g === S.contract));
   document.querySelectorAll('#party-box input[data-g]').forEach(c => c.checked = S.partyGames[c.dataset.g]);
-  $('total').min = minTotal();
-  if (document.activeElement !== $('total')) $('total').value = Math.max(S.total, S.party ? 0 : S.total);
+  $('wins').min = 1;
+  if (document.activeElement !== $('wins')) $('wins').value = S.partyWins;
   updatePartyHint();
   $('contract-card').classList.toggle('locked', !canHost());
   $('dice-card').classList.toggle('locked', !canHost());
@@ -288,8 +297,7 @@ function buildConfig() {
   }
   const c = { room:S.room, online:online(), players, market:S.market, events:S.events, dice:S.dice,
     mode:S.party ? 'party' : 'single' };
-  if (S.market && !S.party) { c.startingMoney = SINGLE_CONTRACT_START_MONEY; c.marketMoments = MARKET_MOMENTS[S.contract]; }
-  if (S.party) Object.assign(c, { games:GAMES.filter(g => S.partyGames[g]), totalContracts:S.total, winsNeeded:winsNeeded() });
+  if (S.party) { const games = GAMES.filter(g => S.partyGames[g]); Object.assign(c, { games, winsNeeded:winsNeeded(), playlist:makePlaylist(games) }); }
   else c.contract = S.contract;
   return c;
 }
@@ -303,8 +311,8 @@ function startGame() {
     if (!S.room) return say('start-msg', 'Crea una sala primero.');
     for (let i = 0; i < S.humans; i++) if (!S.players[i].uid) return say('start-msg', 'Faltan jugadores por unirse a la sala.');
   }
-  if (S.party || !IMPLEMENTED.includes(S.contract)) return say('start-msg', 'El Modo Party todavía está en construcción: por ahora elige un contrato individual.');
-  if (S.party && S.total < minTotal()) return say('start-msg', 'El total de contratos debe ser al menos ' + minTotal() + '.');
+  if (!S.party && !IMPLEMENTED.includes(S.contract)) return say('start-msg', 'Ese contrato todavía está en construcción.');
+  if (S.party && GAMES.some(g => S.partyGames[g] && !IMPLEMENTED.includes(g))) return say('start-msg', 'Alguno de los contratos elegidos todavía está en construcción.');
   const c = buildConfig();
   if (online() && lobbyRef) lobbyRef.update({ status:'STARTING', config:Object.assign(cfgFromState(), { final:c }) });
   emitStart(c);
