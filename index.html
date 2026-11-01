@@ -4,7 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Criminal Dice</title>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Limelight&family=Oswald:wght@400;500;600;700&family=Special+Elite&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#0b0a08">
 <link rel="stylesheet" href="menu.css">
 <link rel="stylesheet" href="css/game.css">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -29,7 +31,7 @@ window.addEventListener('error', function (e) {
   b.textContent += '⚠ ' + e.message + (e.filename ? ' — ' + e.filename.split('/').slice(-2).join('/') + ':' + e.lineno : '') + '\n';
 });
 </script>
-<button class="btn-guide-trigger" onclick="openManualGuide()">📖 MANUAL DEL CAPO</button>
+<button class="btn-guide-trigger" onclick="openManualGuide()">MANUAL DEL CAPO</button>
 <main id="menu-screen" class="menu">
   <!-- Reemplazable por <img src="logo.png"> -->
   <h1 id="game-title" class="title">CRIMINAL DICE</h1>
@@ -59,10 +61,10 @@ window.addEventListener('error', function (e) {
     <label class="switch">Mercado Negro<input type="checkbox" id="t-market" onchange="onToggles()"><i class="slider"></i></label>
     <label class="switch">Eventos de Ciudad<input type="checkbox" id="t-events" onchange="onToggles()"><i class="slider"></i></label>
     <div id="single-box" class="contracts">
-      <button class="opt selected" data-g="rpg" onclick="pickContract('rpg')">Guerra de<br>Bandas</button>
-      <button class="opt" data-g="exp" onclick="pickContract('exp')">El Gran<br>Atraco</button>
-      <button class="opt" data-g="maf" onclick="pickContract('maf')">Imperio<br>Criminal</button>
-      <button class="opt" data-g="pok" onclick="pickContract('pok')">Apuestas<br>Clandestinas</button>
+      <button class="opt selected" data-g="rpg" onclick="pickContract('rpg')">Guerra de<br>Bandas<small>Combate directo</small></button>
+      <button class="opt" data-g="exp" onclick="pickContract('exp')">El Gran<br>Atraco<small>Tentar a la suerte</small></button>
+      <button class="opt" data-g="maf" onclick="pickContract('maf')">Imperio<br>Criminal<small>Gestión territorial</small></button>
+      <button class="opt" data-g="pok" onclick="pickContract('pok')">Apuestas<br>Clandestinas<small>Póker y riesgo</small></button>
     </div>
     <div id="party-box" class="hidden">
       <div class="sub">Victorias para ganar</div><input id="wins" type="number" min="1" max="10" oninput="onWins()">
@@ -104,29 +106,29 @@ window.addEventListener('error', function (e) {
 </div></div>
 
 <div id="modal-roll" class="modal-overlay hidden" style="z-index:3600"><div class="modal-content">
-  <h2 style="font-family:Cinzel,serif">Tira tu dado físico</h2><p id="manual-desc" style="color:var(--theme-accent)"></p>
+  <h2 style="font-family:var(--font-display)">Tira tu dado físico</h2><p id="manual-desc" style="color:var(--theme-accent)"></p>
   <input id="manual-input" type="number" min="1" placeholder="Resultado"><div id="manual-err" class="err"></div>
   <button id="manual-ok" class="start">CONFIRMAR DADO</button>
 </div></div>
 
 <div id="modal-choice" class="modal-overlay hidden" style="z-index:3660"><div class="modal-content">
-  <h2 id="choice-title" style="font-family:Cinzel,serif"></h2><p id="choice-text" style="color:var(--text-light);font-size:.85rem"></p>
+  <h2 id="choice-title" style="font-family:var(--font-display)"></h2><p id="choice-text" style="color:var(--text-light);font-size:.85rem"></p>
   <div id="choice-opts" class="contracts"></div><button id="choice-cancel" class="btn-cancel">CANCELAR</button>
 </div></div>
 
 <div id="modal-market" class="modal-overlay hidden" style="z-index:3640"><div class="modal-content mk-body-wrap"><div class="mk-body"></div></div></div>
 
 <div id="modal-event" class="modal-overlay hidden" style="z-index:3900"><div class="modal-content" style="border-color:var(--accent-red)">
-  <p style="letter-spacing:3px;color:var(--text-light)">EVENTO DE CIUDAD</p><h2 id="ev-title" style="font-family:Cinzel,serif;color:var(--accent-red)"></h2><p id="ev-desc" style="color:var(--text-light)"></p>
+  <p style="letter-spacing:3px;color:var(--text-light)">EVENTO DE CIUDAD</p><h2 id="ev-title" style="font-family:var(--font-display);color:var(--accent-red)"></h2><p id="ev-desc" style="color:var(--text-light)"></p>
 </div></div>
 
 <div id="modal-between" class="modal-overlay hidden" style="z-index:3650"><div class="modal-content">
-  <h2 id="between-title" style="font-family:Cinzel,serif"></h2><div id="between-podium"></div><p id="between-text" style="color:var(--text-light);font-size:.9rem;line-height:1.6"></p>
+  <h2 id="between-title" style="font-family:var(--font-display)"></h2><div id="between-podium"></div><p id="between-text" style="color:var(--text-light);font-size:.9rem;line-height:1.6"></p>
   <button id="between-btn" class="start" onclick="CD.nextStage()"></button>
 </div></div>
 
 <div id="modal-over" class="modal-overlay hidden" style="z-index:3700"><div class="modal-content">
-  <p style="letter-spacing:2px;color:var(--text-light)">FIN DEL CONTRATO</p><h2 id="over-text" style="font-family:Cinzel,serif"></h2><p id="over-sub" style="color:var(--text-light);font-size:.85rem"></p>
+  <p style="letter-spacing:2px;color:var(--text-light)">FIN DEL CONTRATO</p><h2 id="over-text" style="font-family:var(--font-display)"></h2><p id="over-sub" style="color:var(--text-light);font-size:.85rem"></p>
   <div id="over-podium"></div>
   <button class="start" onclick="CD.exit()">VOLVER AL MENÚ</button>
 </div></div>
@@ -134,7 +136,7 @@ window.addEventListener('error', function (e) {
 <!-- MODAL MANUAL DEL CAPO -->
   <div id="modal-manual-guide" class="modal-overlay hidden">
     <div class="modal-content" style="max-width: 900px; width: 95vw;">
-      <h2 style="color: var(--accent-gold);">📖 Manual del Capo</h2>
+      <h2 style="color: var(--gold-2);">Manual del Capo</h2>
       
       <div class="tab-header">
         <button class="tab-btn active" id="tab-btn-1" onclick="switchManualTab(1)">⚡ PARTY</button>
