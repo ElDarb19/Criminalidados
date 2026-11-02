@@ -112,22 +112,42 @@ async function joinRoom() {
   let snap; try { snap = await ref.once('value'); } catch (e) { return say('net-msg', netError(e)); }
   const lobby = snap.val();
   if (!lobby) return say('net-msg', 'Esa sala no existe.');
-  if (lobby.status !== 'LOBBY') return say('net-msg', 'La partida ya comenzó.');
+  if (lobby.status !== 'LOBBY') return rejoinRoom(code, lobby);
   const humans = lobby.config.humans;
   const pl = lobby.players || {};
   let slot = -1;
   for (let i = 0; i < humans; i++) if (!pl[i]) { slot = i; break; }
   if (slot < 0) return say('net-msg', 'La sala está llena (el anfitrión debe subir el número de jugadores).');
   const taken = Object.values(pl).map(p => p.color);
-  const mine = { name:'Capo ' + (slot + 1), color:COLOR_KEYS.find(c => !taken.includes(c)), uid };
+  const rk = Math.random().toString(36).slice(2, 12);       // llave para recuperar el asiento si se cierra la pestaña
+  const mine = { name:'Capo ' + (slot + 1), color:COLOR_KEYS.find(c => !taken.includes(c)), uid, rk };
   let tx; try { tx = await ref.child('players/' + slot).transaction(cur => cur ? undefined : mine); } catch (e) { return say('net-msg', netError(e)); }
   if (!tx.committed) return say('net-msg', 'Otro jugador tomó ese lugar justo ahora. Intenta de nuevo.');
+  try { localStorage.setItem('cd-seat', JSON.stringify({ room:code, slot, rk })); } catch (e) {}
   S.room = code; S.host = false; lobbyRef = ref;
   ref.child('players/' + slot).onDisconnect().remove();
   history.replaceState(null, '', '?room=' + code);
   $('room-code').textContent = code;
   $('create-box').classList.remove('hidden'); $('join-box').classList.add('hidden');
   say('net-msg', 'Conectado a la sala ' + code); listen();
+}
+
+// Volver a una partida en curso: por el mismo usuario (recargar la pestaña) o por la llave guardada al unirse.
+async function rejoinRoom(code, lobby) {
+  const fin = lobby.config && lobby.config.final;
+  if (!fin) return say('net-msg', 'La partida ya comenzó.');
+  let seat = null; try { seat = JSON.parse(localStorage.getItem('cd-seat') || 'null'); } catch (e) {}
+  let p = fin.players.find(x => !x.bot && x.uid === uid), claim = false;
+  if (!p && seat && seat.room === code) { const q = fin.players[seat.slot]; if (q && !q.bot && q.rk && q.rk === seat.rk) { p = q; claim = true; } }
+  if (!p) return say('net-msg', 'La partida ya comenzó.');
+  try {   // se vuelve a anotar en el lobby (lo exigen las reglas de Firebase) y, si cambió de usuario, reclama su asiento con la llave
+    await db.ref('rooms/' + code + '/lobby/players/' + p.slot).set({ name:p.name, color:p.color, uid, rk:p.rk || null });
+    if (claim) await db.ref('rooms/' + code + '/play/actions').push({ uid, type:'claim', slot:p.slot, rk:p.rk });
+  } catch (e) { return say('net-msg', netError(e)); }
+  S.room = code; S.host = false;
+  history.replaceState(null, '', '?room=' + code);
+  say('net-msg', 'Reconectando a la partida…');
+  emitStart(Object.assign({}, fin, { seat:p.slot, rejoin:true }));
 }
 
 function listen() {
@@ -292,7 +312,7 @@ function buildConfig() {
   const players = [];
   for (let i = 0; i < total; i++) {
     const bot = i >= S.humans;
-    players.push({ slot:i, bot, uid:bot ? null : (S.players[i].uid || null), name:bot ? 'Bot ' + (i - S.humans + 1) : S.players[i].name.trim() || 'Capo ' + (i+1),
+    players.push({ slot:i, bot, uid:bot ? null : (S.players[i].uid || null), rk:bot ? null : (S.players[i].rk || null), name:bot ? 'Bot ' + (i - S.humans + 1) : S.players[i].name.trim() || 'Capo ' + (i+1),
       color:bot ? botCols[i - S.humans] : S.players[i].color });
   }
   const c = { room:S.room, online:online(), players, market:S.market, events:S.events, dice:S.dice,
@@ -319,6 +339,7 @@ function startGame() {
 }
 function emitStart(c) {
   const cfg = c.final || c;
+  if (lobbyRef) lobbyRef.off();          // ya en partida: el lobby deja de importar (y un corte del anfitrión no debe sacar a nadie)
   window.CD_CONFIG = cfg;
   window.dispatchEvent(new CustomEvent('criminaldice:start', { detail:cfg }));
 }

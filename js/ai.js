@@ -36,8 +36,13 @@ const AI = {
     const foes = G.players.filter(p => p.alive && p !== me);                 // rivales aún dentro del banco
     const mx = EXP.maxGrenades(), grenades = me.torpedoUses < mx;
     const repairOk = (EXP.party() ? me.repairCooldown <= 0 : me.repairUses < 1) && me.hp < me.max;
-    const best = Math.max(0, ...G.players.filter(p => p !== me).map(p => p.secured + p.temp));   // el rival más fuerte
-    const behind = me.secured + me.temp <= best;
+    const total = p => p.secured + p.temp, mine = total(me);
+    const best = Math.max(0, ...G.players.filter(p => p !== me).map(total));   // el rival más fuerte
+    const behind = mine <= best;
+    // Lo que cada rival aún podría llegar a tener: los que ya huyeron están fijos; los de dentro pueden seguir
+    // saqueando más o menos en proporción a su Cobertura (≈1 botín por cada punto que gastan en trampas).
+    const reach = Math.max(0, ...G.players.filter(p => p !== me).map(p => p.alive ? total(p) + Math.max(0, p.hp - 3) * .6 : p.secured));
+    const safeLead = mine > reach;                                            // ventaja que ya no pueden alcanzar
     // 1. Sabotaje: contra el rival que más botín arriesga; si está casi arrestado, el golpe es letal para su botín.
     if (grenades && foes.length) {
       const t = foes.slice().sort((x, y) => (y.temp + (y.hp <= 4 ? 3 : 0)) - (x.temp + (x.hp <= 4 ? 3 : 0)))[0];
@@ -48,12 +53,25 @@ const AI = {
     if (me.hp <= 6 && repairOk) return { type:'repair' };
     // 3. Con poca Cobertura y botín en las manos, asegura antes de arriesgarse a que la arresten.
     if (me.hp <= 3 && me.temp > 0) return { type:'surface' };
-    // 4. Si algún rival aún puede lanzar granadas, llevar mucho botín encima es peligroso: huye si va ganando.
-    const threatened = foes.some(f => f.torpedoUses < mx), tax = MK.eventsOn() && MK.ev() === 'comisionado';        // el Comisionado confisca 10% cada turno
-    if (me.temp >= (tax ? 3 : threatened ? 4 : 5) && !behind) return { type:'surface' };
+    const tax = MK.eventsOn() && MK.ev() === 'comisionado';                  // el Comisionado confisca 10% cada turno
     if (tax && me.temp >= 4) return { type:'surface' };
-    // 5. Si va perdiendo, arriesga la bóveda (nunca huye); si no, saquea.
-    if (behind && me.hp > 4) return { type:'deep' };
+    // 4. Peligro real: el peor golpe que puede venir (granada de un rival con cargas, o una trampa) y si lo dejaría arrestado.
+    const bombers = foes.filter(f => f.torpedoUses < mx);
+    const purga = MK.eventsOn() && MK.ev() === 'purga' ? 2 : 0;
+    const hit = bombers.length ? 4 + purga + (MK.boss() === me.slot || bombers.some(f => MK.boss() === f.slot) ? 1 : 0) : 0;
+    const exposed = me.hp <= Math.max(hit, EXP.TRAP + purga);            // un solo golpe más y lo atrapan
+    const lastDive = G.dive >= G.maxDives;
+    if (me.temp > 0) {
+      // Nadie puede alcanzarlo: no tiene sentido arriesgar (salvo en un atraco previo sin rivales dentro: sigue sumando para los siguientes).
+      if (safeLead && (foes.length || lastDive)) return { type:'surface' };
+      // Va por delante pero un golpe lo deja sin nada: asegura.
+      if (exposed && (!behind || me.temp >= 5)) return { type:'surface' };
+      // Con poca Cobertura ya no puede forzar la bóveda; si va ganando y lleva algo valioso, se retira a tiempo.
+      if (me.hp <= 6 && !behind && me.temp >= 3) return { type:'surface' };
+    }
+    // 5. Sigue dentro: fuerza la bóveda si le hace falta mucho y aguanta un fallo (-6) con margen; si no, saquea.
+    const need = Math.max(best, reach) - mine;
+    if (me.hp > 6 + Math.max(hit, 3) && (need >= 4 || behind && me.hp >= 14)) return { type:'deep' };
     return { type:'explore' };
   },
 

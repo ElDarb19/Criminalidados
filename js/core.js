@@ -33,7 +33,7 @@ CD.applyContractUI = function () {                         // tema de color y t�
 CD.start = function (cfg) {
   if (CD.running) return; CD.running = true;      // evita relanzar la partida si el lobby cambia después de empezar
   CD.cfg = cfg; CD.auth = !cfg.online || S.host;
-  CD.me = cfg.online ? (cfg.players.find(p => p.uid === uid) || { slot:-1 }).slot : -1;
+  CD.me = !cfg.online ? -1 : cfg.seat != null ? cfg.seat : (cfg.players.find(p => p.uid === uid) || { slot:-1 }).slot;
   CD.base = cfg.online ? 'rooms/' + cfg.room + '/play' : null;
   CD.fxSeen = 0; CD.promptSeen = 0;
   $$('menu-screen').classList.add('hidden'); $$('game-screen').classList.remove('hidden');
@@ -45,29 +45,67 @@ CD.start = function (cfg) {
     if (MK.on()) MK.initEcon(CD.G);
     render(); setTimeout(() => CD.beginContract(CD.G), 600);
   } else {
-    db.ref(CD.base + '/ev').on('child_added', s => CD.enqueue(s.val()));
-    let hostSeen = false;                      // el anfitrión es el jefe 0: si su presencia desaparece, la sala se cerró
+    if (cfg.rejoin) CD.catchUp(); else db.ref(CD.base + '/ev').on('child_added', s => CD.enqueue(s.val()));
+    let hostSeen = false, hostTimer = null;    // el anfitrión es el jefe 0: si su presencia no vuelve, la sala se cerró
     db.ref(CD.base + '/presence/0').on('value', s => {
-      if (s.val()) hostSeen = true;
-      else if (hostSeen && CD.G && !CD.G.over) { CD.G.over = true; CD.G.result = { winner:null, lost:true, summary:'El anfitrión se desconectó y la partida terminó.' }; render(); }
+      if (s.val()) { hostSeen = true; clearTimeout(hostTimer); hostTimer = null; }
+      else if (hostSeen && !hostTimer) hostTimer = setTimeout(() => {
+        if (CD.G && !CD.G.over) { CD.G.over = true; CD.G.result = { winner:null, lost:true, summary:'El anfitrión se desconectó y la partida terminó.' }; render(); }
+      }, DROP_GRACE);
     });
   }
   if (cfg.online) CD.presence();
 };
 
-// ---------- presencia: si un jugador online se desconecta, un bot toma su lugar ----------
+// ---------- presencia: si un jugador online pierde la conexión, un bot lo cubre hasta que vuelva ----------
+const DROP_GRACE = 20000;   // ms sin conexión antes de pasarle el control a un bot (cortes breves, pantalla bloqueada…)
 CD.presence = function () {
-  if (CD.me >= 0) { const r = db.ref(CD.base + '/presence/' + CD.me); r.set(true); r.onDisconnect().remove(); }
+  if (CD.me >= 0) {
+    const r = db.ref(CD.base + '/presence/' + CD.me), seat = db.ref('rooms/' + CD.cfg.room + '/lobby/players/' + CD.me); let on = false;
+    const here = () => {
+      // El invitado vuelve a anotarse en el lobby (las reglas de Firebase solo dejan escribir a quien figura ahí) y marca su presencia.
+      if (!CD.auth) { const p = CD.cfg.players[CD.me]; seat.onDisconnect().remove(); seat.set({ name:p.name, color:p.color, uid, rk:p.rk || null }).catch(() => {}); }
+      r.onDisconnect().remove(); r.set(true).catch(() => {});
+    };
+    // Tras un corte, Firebase ya ejecutó los onDisconnect: hay que volver a anotarse en CADA reconexión.
+    db.ref('.info/connected').on('value', s => { on = !!s.val(); if (on) { here(); if (CD.auth) CD.keepRoom(); } });
+    r.on('value', s => { if (on && !s.val()) here(); });            // por si la borró un corte del anfitrión
+  }
   if (!CD.auth) return;
-  const seen = {};
+  const seen = {}, timers = {};
   db.ref(CD.base + '/presence').on('value', s => {
     const v = s.val() || {};
-    CD.cfg.players.forEach(p => { if (p.bot || p.slot === CD.me) return; if (v[p.slot]) seen[p.slot] = true; else if (seen[p.slot]) { seen[p.slot] = false; CD.dropPlayer(p.slot); } });
+    CD.cfg.players.forEach(p => {
+      if (p.bot || p.slot === CD.me) return;
+      if (v[p.slot]) { clearTimeout(timers[p.slot]); timers[p.slot] = null; seen[p.slot] = true; CD.restorePlayer(p.slot); }
+      else if (seen[p.slot] && !timers[p.slot]) timers[p.slot] = setTimeout(() => { timers[p.slot] = null; CD.dropPlayer(p.slot); }, DROP_GRACE);
+    });
   });
+};
+// El anfitrión mantiene viva la sala: un corte suyo dispara el onDisconnect que la borra, así que al volver la reconstruye.
+CD.keepRoom = function () {
+  const room = db.ref('rooms/' + CD.cfg.room); room.onDisconnect().remove();
+  const h = CD.cfg.players[0];
+  room.child('lobby').update({ status:'STARTING', hostUid:uid, 'players/0':{ name:h.name, color:h.color, uid }, 'config/final':JSON.parse(JSON.stringify(CD.cfg)) }).catch(() => {});
+};
+CD.restorePlayer = function (slot) {
+  const G = CD.G, p = G && G.players[slot]; if (!p || !p.dropped || G.over) return;
+  p.bot = false; p.dropped = false; p.name = CD.cfg.players[slot].name;
+  CD.log('📡 ' + p.name + ' volvió a conectarse y retoma el control.');
+  CD.publish(); render();
+};
+// Invitado que vuelve tras recargar: toma el último estado y la bitácora sin repetir animaciones, y sigue desde ahí.
+CD.catchUp = async function () {
+  const ev = db.ref(CD.base + '/ev'), s = await ev.once('value'); let last = null, st = null;
+  s.forEach(c => { const e = c.val() || {}; last = c.key;
+    if (e.k === 'state') st = e.d; else if (e.k === 'log') { CD.gLog.push(e.d); if (CD.gLog.length > 60) CD.gLog.shift(); } });
+  if (st) CD.applySnapshot(st);
+  (last ? ev.orderByKey().startAfter(last) : ev).on('child_added', c => CD.enqueue(c.val()));
+  CD.send({ type:'sync', slot:CD.me });                      // pide al anfitrión una foto fresca del estado
 };
 CD.dropPlayer = function (slot) {
   const G = CD.G, p = G && G.players[slot]; if (!p || p.bot || G.over) return;
-  p.bot = true; p.name += ' (desconectado)'; CD.log('📡 ' + p.name + ' perdió la conexión: un bot toma su lugar.');
+  p.bot = true; p.dropped = true; p.name += ' (desconectado)'; CD.log('📡 ' + p.name + ' perdió la conexión: un bot toma su lugar hasta que vuelva.');
   if (G.prompt && G.prompt.slot === slot && CD.rollResolve) CD.rollResolve(1 + Math.floor(Math.random() * G.prompt.sides));
   if (G.ask && G.ask.slot === slot && CD.askResolve) CD.askResolve(null);
   if (G.market && G.market.order.includes(slot)) { G.market.done[slot] = true; CD.marketCheck(); }
@@ -87,8 +125,11 @@ CD.publish = function () {                                  // foto del estado (
 };
 CD.send = a => db.ref(CD.base + '/actions').push(Object.assign({ uid }, a));
 CD.onRemote = function (a) {
-  const p = CD.cfg.players[a.slot]; if (!p || p.uid !== a.uid) return;           // solo el dueño del jefe puede actuar por él
-  if (a.type === 'roll') { if (CD.rollResolve && CD.G.prompt && CD.G.prompt.slot === a.slot) CD.rollResolve(a.value); }
+  const p = CD.cfg.players[a.slot];
+  if (a.type === 'claim') { if (p && !p.bot && p.rk && a.rk === p.rk && a.uid) p.uid = a.uid; return; }   // vuelve desde otra pestaña con su llave
+  if (!p || p.uid !== a.uid) return;                                               // solo el dueño del jefe puede actuar por él
+  if (a.type === 'sync') { CD.lastSnap = null; CD.publish(); }
+  else if (a.type === 'roll') { if (CD.rollResolve && CD.G.prompt && CD.G.prompt.slot === a.slot) CD.rollResolve(a.value); }
   else if (a.type === 'mk') CD.marketAct(a.slot, a.op, a.id);
   else if (a.type === 'use') CD.useConsumable(a.slot);
   else if (a.type === 'ans') { if (CD.askResolve && CD.G.ask && CD.G.ask.slot === a.slot) CD.askResolve(a.value === undefined ? null : a.value); }
@@ -224,7 +265,7 @@ CD.next = function () {                       // los bots juegan solos
   const G = CD.G; if (!CD.auth || G.over || G.wait || G.between || G.market) return; const p = G.players[G.turn];
   if (!p.bot) return;
   setTimeout(async () => {
-    const g = CD.G; if (g !== G || g.wait || g.over || g.between || g.market || g.players[g.turn] !== p) return;
+    const g = CD.G; if (g !== G || g.wait || g.over || g.between || g.market || g.players[g.turn] !== p || !p.bot) return;   // !p.bot: el jugador volvió a conectarse
     if (MK.on() && p.consumable && AI.useItem && AI.useItem(g, p, CD.contract)) { await CD.useConsumable(p.slot); return; }   // usa su consumible y vuelve a decidir
     const a = AI.decide(g, p, CD.contract); if (a) CD.exec(p.slot, a.type, a.target, a.extra);
   }, 900);
@@ -280,7 +321,7 @@ CD.nextContract = async function () {
   G.between = null; G.wait = true; CD.publish(); render();
   if (MK.on()) await CD.openMarket('MERCADO NEGRO', ['Siguiente contrato: ' + CONTRACT_NAMES[next]]);
   CD.contract = next;
-  CD.G = { players:G.players.map(p => Object.assign({ slot:p.slot, name:p.name, color:p.color, bot:p.bot, alive:true, hp:0, max:0, poison:0, heals:0, blocked:false },
+  CD.G = { players:G.players.map(p => Object.assign({ slot:p.slot, name:p.name, color:p.color, bot:p.bot, dropped:!!p.dropped, alive:true, hp:0, max:0, poison:0, heals:0, blocked:false },
       MK.on() ? { money:p.money, contacts:p.contacts, consumable:p.consumable, stock:[], rerollCost:ECON.REROLL_BASE } : {})),
     turn:0, round:1, start:0, log:G.log, fx:null, prompt:null, over:false, result:null, wait:true, started:false, contract:CD.contract, pi, wins:G.wins, between:null, focus:null, event:null };
   CD.applyContractUI(); CD.log('🎬 ——— Contrato ' + (pi + 1) + ': ' + GAME_TITLES[CD.contract] + ' ———'); CD.lastSnap = null; CD.publish(); render();
