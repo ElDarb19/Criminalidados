@@ -7,12 +7,15 @@ const MODULES = { rpg: () => RPG, exp: () => EXP, maf: () => MAF, pok: () => POK
 const $$ = id => document.getElementById(id);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
-// Los bots usan la carpeta assets/characters/Bot/ cuando exista; si no, su color; y como último recurso None/.
-const BOT_FOLDER = 'Bot';
+// Sprites: assets/characters/<Personaje>/<color>/<pose>.png. Los jefes humanos son "Mafioso" y los bots "Bot"
+// (un robot disfrazado de mafioso). Para añadir un personaje: crea su carpeta con las subcarpetas de color.
+// Los objetos iguales para todos (mapa, maletín, billetes, monedas, fichas) están en assets/characters/None/.
+const SHARED_SPRITES = ['maf_bribe', 'maf_buy', 'maf_risk', 'maf_safe', 'pok_bet', 'pok_slam'];
+const charOf = p => p.bot ? 'Bot' : 'Mafioso';
 function charList(p, img) {
-  const f = []; if (p.bot) f.push(BOT_FOLDER + '/' + img);
-  f.push(p.color + '/' + img, 'None/' + img, 'None/idle');
-  return f.map(x => 'assets/characters/' + x + '.png');
+  if (SHARED_SPRITES.includes(img)) return ['assets/characters/None/' + img + '.png'];
+  const c = charOf(p);
+  return [c + '/' + p.color + '/' + img, 'Mafioso/None/' + img, 'Mafioso/None/idle'].map(x => 'assets/characters/' + x + '.png');
 }
 const charSrc = (p, img) => charList(p, img)[0];
 function charNext(el) { const l = (el.dataset.c || '').split('|'); l.shift(); if (!l.length) { el.onerror = null; return; } el.dataset.c = l.join('|'); el.src = l[0]; }

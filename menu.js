@@ -28,7 +28,7 @@ function netError(e) {
   return 'Error de conexión (' + (c || (e && e.message) || 'desconocido') + ').';
 }
 
-// Colores = carpetas de assets/characters/. Para agregar uno nuevo: crea su carpeta y añádelo aquí.
+// Colores = subcarpetas de cada personaje en assets/characters/ (Mafioso/, Bot/). Para agregar uno nuevo: crea su carpeta en cada personaje y añádelo aquí.
 const COLORS = { Color_R:'#e74c3c', Color_B:'#3498db', Color_G:'#2ecc71', Color_P:'#ff8fc7', Color_Pu:'#9b59b6', Color_W:'#ecf0f1' };
 // Ajustable: dinero inicial del Mercado Negro cuando se juega un único contrato (en Party se usa la economía normal).
 const SINGLE_CONTRACT_START_MONEY = 300;
@@ -231,7 +231,7 @@ function renderSlots() {
     if (document.activeElement !== inp) inp.value = nm;
     inp.disabled = !mine;
     el.querySelector('.avatar').style.setProperty('--pc', COLORS[color] || '#555');
-    const img = el.querySelector('img'); const src = 'assets/characters/' + color + '/idle.png';
+    const img = el.querySelector('img'); const src = 'assets/characters/' + (isBot ? 'Bot/' : 'Mafioso/') + color + '/idle.png';
     if (!img.src.endsWith(src)) { img.style.visibility = 'visible'; img.onerror = () => { img.style.visibility = 'hidden'; }; img.src = src; }
     el.querySelectorAll('.sw').forEach(b => {
       const c = b.title; b.classList.toggle('sel', c === color);
