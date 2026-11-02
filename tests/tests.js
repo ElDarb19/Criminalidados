@@ -1,0 +1,112 @@
+// ===== Pruebas automáticas de Criminal Dice =====
+// Carga el juego real en un iframe, cambia el dado por resultados fijos y comprueba reglas, IA y archivos.
+// Para añadir una prueba: test('nombre', async () => { ... ok(condición, 'mensaje') ... }).
+const tests = [];
+const test = (name, fn) => tests.push({ name, fn });
+function ok(cond, msg) { if (!cond) throw new Error(msg || 'falló la comprobación'); }
+function eq(got, want, what) { if (got !== want) throw new Error(`${what}: se esperaba ${want} y salió ${got}`); }
+
+let W, E;                                          // ventana del juego y acceso a sus variables globales
+const COLORS6 = ['Color_R', 'Color_B', 'Color_G', 'Color_P', 'Color_Pu', 'Color_W'];
+
+// Prepara una partida de prueba sin red ni animaciones. players: [{ bot }, ...]
+function game(contract, players, mode) {
+  const CD = E('CD');
+  CD.cfg = { online:false, mode:mode || 'single', market:false, events:false, dice:'virtual',
+    players:players.map((p, i) => Object.assign({ slot:i, name:'Jefe ' + (i + 1), color:COLORS6[i], char:'Mafioso', bot:false }, p)) };
+  CD.contract = contract; CD.G = CD.freshGame(CD.cfg.players); CD.G.started = true; CD.G.turn = 0;
+  return CD.G;
+}
+// El dado devuelve estos valores en orden (y falla si se piden más de la cuenta).
+function dice(...vals) { E('CD').roll = async (sides, p, desc) => { if (!vals.length) throw new Error('dado de más: ' + desc); return vals.shift(); }; }
+
+// ---------- El Gran Atraco ----------
+async function exp() { const G = game('exp', [{}, {}]); await E('EXP').init(G); G.turn = 0; return G; }
+test('Atraco · Saquear con 1-2 es trampa: -3 de Cobertura', async () => { const G = await exp(); dice(2); await E('EXP').act(G, G.players[0], 'explore'); eq(G.players[0].hp, 17, 'Cobertura'); eq(G.players[0].temp, 0, 'botín'); });
+test('Atraco · Saquear con 3-5 da +1 y con 6 da +3', async () => { const G = await exp(), p = G.players[0]; dice(4); await E('EXP').act(G, p, 'explore'); dice(6); await E('EXP').act(G, p, 'explore'); eq(p.temp, 4, 'botín'); });
+test('Atraco · Forzar Bóveda falla con menos de 11: -6', async () => { const G = await exp(); dice(10); await E('EXP').act(G, G.players[0], 'deep'); eq(G.players[0].hp, 14, 'Cobertura'); });
+test('Atraco · Forzar Bóveda con 11+ da el d12, y con 20 suma +2', async () => { const G = await exp(), p = G.players[0]; dice(11, 5); await E('EXP').act(G, p, 'deep'); eq(p.temp, 5, 'botín'); dice(20, 5); await E('EXP').act(G, p, 'deep'); eq(p.temp, 12, 'botín con crítico'); });
+test('Atraco · El Coche de Escape asegura el botín y saca al jefe', async () => { const G = await exp(), p = G.players[0]; p.temp = 7; dice(); await E('EXP').act(G, p, 'surface'); eq(p.secured, 7, 'asegurado'); eq(p.temp, 0, 'en mano'); eq(p.alive, false, 'sigue dentro'); });
+test('Atraco · Con Cobertura 0 lo arrestan y pierde el botín en mano', async () => { const G = await exp(), p = G.players[0]; p.hp = 3; p.temp = 9; dice(1); await E('EXP').act(G, p, 'explore'); ok(p.arrested, 'no fue arrestado'); eq(p.temp, 0, 'botín en mano'); });
+
+// ---------- Apuestas Clandestinas ----------
+function pok() { const G = game('pok', [{}, {}, {}]); G.players.forEach(p => Object.assign(p, { tokens:8, tahurUses:0, tahurCD:0 })); return G; }
+test('Apuestas · La Apuesta Básica gana 1 ficha con 4+', async () => { const G = pok(); dice(4); await E('POK').act(G, G.players[0], 'bet', 1); eq(G.players[0].tokens, 9, 'atacante'); eq(G.players[1].tokens, 7, 'rival'); });
+test('Apuestas · La Apuesta Básica pierde 1 ficha con 3 o menos', async () => { const G = pok(); dice(3); await E('POK').act(G, G.players[0], 'bet', 1); eq(G.players[0].tokens, 7, 'atacante'); eq(G.players[1].tokens, 9, 'rival'); });
+test('Apuestas · El Golpe a la Mesa fallido entrega 3 fichas', async () => { const G = pok(); dice(10); await E('POK').act(G, G.players[0], 'slam', 1); eq(G.players[0].tokens, 5, 'atacante'); eq(G.players[1].tokens, 11, 'rival'); });
+test('Apuestas · Un golpe mayor que las fichas del rival se anula', async () => { const G = pok(); G.players[1].tokens = 2; dice(15, 5); await E('POK').act(G, G.players[0], 'slam', 1); eq(G.players[0].tokens, 8, 'atacante'); eq(G.players[1].tokens, 2, 'rival'); });
+
+// ---------- Guerra de Bandas ----------
+function rpg() { const G = game('rpg', [{}, {}, {}]); G.players.forEach(p => Object.assign(p, { hp:20, max:20, heals:0, blocked:false, poison:0 })); return G; }
+test('Bandas · La Ráfaga Tommy Gun quita el d6', async () => { const G = rpg(); dice(4); await E('RPG').act(G, G.players[0], 'quick', 1); eq(G.players[1].hp, 16, 'salud del rival'); });
+test('Bandas · Un disparo mayor que la salud restante se anula', async () => { const G = rpg(); G.players[1].hp = 3; dice(5); await E('RPG').act(G, G.players[0], 'quick', 1); eq(G.players[1].hp, 3, 'salud del rival'); });
+test('Bandas · El Francotirador falla con menos de 11', async () => { const G = rpg(); dice(10); await E('RPG').act(G, G.players[0], 'strong', 1); eq(G.players[1].hp, 20, 'salud del rival'); });
+test('Bandas · El Médico no pasa del tope de 35', async () => { const G = rpg(), p = G.players[0]; p.hp = 33; dice(8); await E('RPG').act(G, p, 'heal'); eq(p.hp, 35, 'salud'); });
+test('Bandas · Tres curaciones seguidas bloquean el Médico', async () => { const G = rpg(), p = G.players[0]; p.hp = 5; dice(1, 1, 1); for (let i = 0; i < 3; i++) await E('RPG').act(G, p, 'heal'); ok(p.blocked, 'el médico no quedó bloqueado'); });
+
+// ---------- Imperio Criminal ----------
+function maf() { const G = game('maf', [{}, {}]); G.phase = 'roll'; G.winScore = 15; G.players.forEach((p, i) => Object.assign(p, { parcels:[i + 3], raids:{}, coins:0, prestige:0 })); return G; }
+test('Imperio · Recaudación d6 en tu distrito cobra 1💵', async () => { const G = maf(); dice(3); await E('MAF').act(G, G.players[0], 'harvest6', null, { egoist:false }); eq(G.players[0].coins, 1, 'efectivo'); });
+test('Imperio · Recaudación d12 con 7+ no cobra nadie', async () => { const G = maf(); dice(8); await E('MAF').act(G, G.players[0], 'harvest12', null, { egoist:false }); eq(G.players[0].coins + G.players[1].coins, 0, 'efectivo total'); });
+
+// ---------- IA de los bots ----------
+test('IA · Decide una acción válida en los 4 contratos', async () => {
+  const AI = E('AI'), valid = { rpg:['quick', 'strong', 'heal', 'poison'], exp:['explore', 'deep', 'repair', 'sabotage', 'surface'], maf:['harvest6', 'harvest12'], pok:['bet', 'slam', 'cheat'] };
+  const states = { rpg:rpg(), exp:await exp(), maf:maf(), pok:pok() };
+  for (const c of Object.keys(valid)) { E('CD').contract = c; E('CD').G = states[c]; const a = AI.decide(states[c], states[c].players[0], c); ok(a && valid[c].includes(a.type), c + ': acción inválida ' + JSON.stringify(a)); }
+});
+test('IA · En el Atraco no huye por ir 1 arriba si todos tienen 20 de Cobertura', async () => {
+  const G = await exp(); Object.assign(G.players[0], { temp:5, torpedoUses:3, repairUses:1 }); Object.assign(G.players[1], { temp:4, torpedoUses:3 });
+  for (let i = 0; i < 30; i++) ok(E('AI').exp(G, G.players[0]).type !== 'surface', 'huyó demasiado pronto');
+});
+test('IA · El bot cauteloso asegura con 6 de botín; el apostador sigue', async () => {
+  const G = await exp(), me = G.players[0]; Object.assign(me, { temp:6, torpedoUses:3, repairUses:1, persona:'cauteloso' }); Object.assign(G.players[1], { temp:2, torpedoUses:3 });
+  eq(E('AI').exp(G, me).type, 'surface', 'cauteloso'); me.persona = 'apostador'; ok(E('AI').exp(G, me).type !== 'surface', 'el apostador huyó');
+});
+
+// ---------- Modo Party, personalidades y estadísticas ----------
+test('Party · Con victorias ≥ contratos, todos se juegan al menos una vez', async () => {
+  for (let i = 0; i < 20; i++) { const l = W.makePlaylist(['rpg', 'exp', 'maf']); eq(new Set(l.slice(0, 3)).size, 3, 'contratos distintos en la primera vuelta'); }
+});
+test('Bots · Tres bots reciben tres personalidades distintas', async () => {
+  const G = game('rpg', [{}, { bot:true }, { bot:true }, { bot:true }]); eq(new Set(G.players.filter(p => p.bot).map(p => p.persona)).size, 3, 'personalidades distintas');
+});
+test('Expediente · El daño se anota a quien ataca y a quien lo recibe', async () => {
+  const G = rpg(); G.wait = false; dice(4); await E('CD').exec(0, 'quick', 1); const s = G.stats;
+  eq(s[0].dealt, 4, 'daño causado'); eq(s[1].taken, 4, 'daño recibido'); eq(s[0].acts, 1, 'acciones');
+});
+
+// ---------- Archivos ----------
+test('Sprites · Existen las 21 poses de los 3 personajes en los 6 colores', async () => {
+  const poses = ['idle', 'win', 'lose', 'exp_boxes', 'exp_cover', 'exp_getaway', 'exp_grenade', 'exp_vault', 'maf_bribe', 'maf_buy', 'maf_harvest', 'maf_raid', 'maf_risk', 'maf_safe', 'pok_bet', 'pok_cheat', 'pok_slam', 'rpg_doctor', 'rpg_rat', 'rpg_sniper', 'rpg_tommy'];
+  const missing = [];
+  for (const who of [{ char:'Mafioso' }, { char:'Mafiosa' }, { bot:true }]) for (const color of COLORS6) for (const img of poses) {
+    const u = new URL(W.charList(Object.assign({ color }, who), img)[0], W.location.href); const r = await fetch(u, { method:'HEAD' }); if (!r.ok) missing.push(u.pathname);
+  }
+  ok(!missing.length, 'faltan ' + missing.length + ': ' + missing.slice(0, 5).join(', '));
+});
+
+// ---------- ejecución ----------
+async function run() {
+  const frame = document.getElementById('game');
+  try {
+    for (let i = 0; i < 100; i++) {                                              // espera a que el juego termine de cargar (hasta 10 s)
+      const d = frame.contentDocument; if (d && d.readyState === 'complete' && typeof frame.contentWindow.charList === 'function') break;
+      await new Promise(r => setTimeout(r, 100));
+    }
+    await new Promise(r => setTimeout(r, 300));
+    W = frame.contentWindow; E = s => W.eval(s); E('CD');
+  }
+  catch (e) { document.getElementById('summary').textContent = '⚠️ No se pudo acceder al juego: abre esta página desde el mismo servidor que el juego (no como archivo local).'; return; }
+  W.render = () => {}; W.playSound = () => {}; W.musicSet = () => {};          // sin pantalla, sonido ni música
+  const list = document.getElementById('results'); let pass = 0;
+  for (const t of tests) {
+    const li = document.createElement('li');
+    try { await t.fn(); li.className = 'ok'; li.textContent = '✓ ' + t.name; pass++; }
+    catch (e) { li.className = 'bad'; li.innerHTML = '✗ ' + t.name + '<small></small>'; li.querySelector('small').textContent = e.message; }
+    list.appendChild(li);
+  }
+  const s = document.getElementById('summary'), all = pass === tests.length;
+  s.className = all ? 'ok' : 'bad'; s.textContent = (all ? '✅ ' : '❌ ') + pass + ' de ' + tests.length + ' pruebas correctas';
+}
+run();

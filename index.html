@@ -21,6 +21,8 @@
 <script defer src="js/maf.js"></script>
 <script defer src="js/pok.js"></script>
 <script defer src="js/ai.js"></script>
+<script defer src="js/expediente.js"></script>
+<script defer src="js/tutorial.js"></script>
 </head>
 <body class="theme-rpg">
 <div id="err-banner" style="display:none;position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#7b1d14;color:#fff;font:12px/1.4 monospace;padding:8px 12px;white-space:pre-wrap"></div>
@@ -89,6 +91,7 @@ window.addEventListener('error', function (e) {
 
   <div id="start-msg" class="msg"></div>
   <button id="btn-start" class="start" onclick="startGame()">¡COMENZAR!</button>
+  <button id="btn-tutorial" class="opt tut-btn" type="button" onclick="TUT.start()">🎓 TUTORIAL · Aprende a jugar en 2 minutos</button>
 </main>
 
 <button id="btn-music" class="btn-music" type="button" onclick="musicToggle()" aria-pressed="true">🎵 Música</button>
@@ -134,10 +137,19 @@ window.addEventListener('error', function (e) {
   <p style="letter-spacing:2px;color:var(--text-light)">FIN DEL CONTRATO</p><h2 id="over-text" style="font-family:var(--font-display)"></h2><p id="over-sub" style="color:var(--text-light);font-size:.85rem"></p>
   <div id="over-podium"></div>
   <div id="over-actions">
+    <button id="over-file" class="start" onclick="FILE.open()">📁 VER EXPEDIENTE</button>
     <button id="over-rematch" class="start" onclick="CD.rematch()">🔁 REVANCHA</button>
     <p id="over-wait" class="hidden">Esperando a que el anfitrión pida la revancha…</p>
     <button class="start" onclick="CD.exit()">VOLVER AL MENÚ</button>
   </div>
+</div></div>
+
+<div id="modal-file" class="modal-overlay hidden" style="z-index:3750"><div class="modal-content file-wrap">
+  <p class="file-kicker">DEPARTAMENTO DE POLICÍA · ARCHIVO CONFIDENCIAL</p>
+  <h2 class="file-title">Expediente de la partida</h2>
+  <div id="file-cards"></div>
+  <p id="file-msg" role="status"></p>
+  <div class="file-actions"><button class="start" onclick="FILE.copy()">📋 COPIAR RESUMEN</button><button class="btn-cancel" onclick="FILE.close()">CERRAR</button></div>
 </div></div>
 
 <!-- MODAL MANUAL DEL CAPO -->

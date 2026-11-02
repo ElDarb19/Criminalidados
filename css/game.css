@@ -81,6 +81,46 @@
 .float.react{font-size:2rem;text-shadow:0 2px 8px rgba(0,0,0,.8)}
 .float.react.txt{font-family:var(--font-display);font-size:1.3rem;color:var(--gold-3)}
 
+/* tutorial jugable */
+.tut-btn{display:block;width:100%;margin-top:10px}
+body.tutorial #game-screen{padding-bottom:200px}
+#coach{position:fixed;left:0;right:0;bottom:12px;margin:0 auto;z-index:3300;width:min(520px,calc(100vw - 32px));
+  background:linear-gradient(180deg,#e9dfc7,#d9cba8);color:#1d1810;border:1px solid var(--gold-dark);border-radius:var(--radius);padding:12px 14px;
+  box-shadow:0 12px 30px rgba(0,0,0,.55);animation:cd-fadeup .3s ease both}
+.coach-kicker{margin:0 0 4px;font-family:var(--font-type);font-size:.7rem;letter-spacing:2px;color:#6b5220}
+#coach-text{margin:0 0 10px;font-family:var(--font-type);font-size:.88rem;line-height:1.45}
+.coach-btns{display:flex;justify-content:space-between;gap:8px}
+.coach-btns button{min-height:44px;padding:0 14px;border-radius:var(--radius-sm);font-family:var(--font-ui);font-size:.85rem;letter-spacing:1.5px;cursor:pointer}
+.coach-next{background:#1d1810;color:var(--gold-3);border:1px solid #1d1810}
+.coach-skip{background:transparent;color:#6b5220;border:1px solid rgba(60,45,20,.4)}
+.coach-focus{outline:2px solid var(--gold-2);outline-offset:4px;border-radius:6px;animation:coach-pulse 1.6s ease-in-out infinite}
+@keyframes coach-pulse{0%,100%{box-shadow:0 0 0 0 rgba(228,199,126,.0)}50%{box-shadow:0 0 22px 4px rgba(228,199,126,.45)}}
+@media (prefers-reduced-motion:reduce){.coach-focus{animation:none}#coach{animation:none}}
+
+/* expediente policial de fin de partida */
+.file-wrap{max-width:760px;width:96vw;max-height:92vh;overflow-y:auto;background:linear-gradient(180deg,#e9dfc7,#d9cba8);color:#1d1810;border-color:#8a6a26}
+.file-kicker{font-family:var(--font-type);font-size:.7rem;letter-spacing:3px;color:#6b5220;margin:0 0 4px}
+#modal-file .file-title{font-family:var(--font-display);font-weight:400;color:#2a2116;text-shadow:none;margin:0 0 14px}
+#file-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;text-align:left}
+.mug{display:grid;grid-template-columns:96px 1fr;gap:10px;background:rgba(255,255,255,.35);border:1px solid rgba(60,45,20,.35);border-left:5px solid var(--pc);border-radius:4px;padding:10px;
+  box-shadow:0 2px 0 rgba(60,45,20,.15);animation:cd-fadeup .4s ease both}
+.mug:nth-child(2){animation-delay:.08s}.mug:nth-child(3){animation-delay:.16s}.mug:nth-child(4){animation-delay:.24s}
+.mug-photo{position:relative;height:118px;background:repeating-linear-gradient(0deg,rgba(40,30,15,.25) 0 1px,transparent 1px 12px),#c9bb98;border:1px solid rgba(60,45,20,.4);
+  display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
+.mug-photo img{width:96px;height:96px;image-rendering:pixelated;margin-bottom:16px}
+.mug-plate{position:absolute;bottom:2px;left:4px;right:4px;background:#1d1810;color:#e9dfc7;font-family:var(--font-type);font-size:.6rem;text-align:center;letter-spacing:1px;padding:2px 0}
+.mug-body h3{margin:0;font-family:var(--font-ui);font-size:1.05rem;letter-spacing:1px;color:#1d1810}
+.mug-body small{font-family:var(--font-type);color:#6b5220;font-size:.72rem}
+.mug-stats{list-style:none;margin:6px 0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:1px 8px;font-family:var(--font-type);font-size:.72rem;color:#3a2f20}
+.mug-stats b{font-family:var(--font-ui);font-size:.9rem;color:#1d1810}
+.mug-titles{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0}
+.mug-titles span{background:#1d1810;color:var(--gold-3);border-radius:10px;padding:1px 8px;font-size:.68rem;font-family:var(--font-ui);letter-spacing:.5px}
+.mug-nemesis{margin:4px 0 0;font-family:var(--font-type);font-size:.72rem;color:#7a1f1f}
+#file-msg{font-family:var(--font-type);font-size:.8rem;color:#2f6b34;min-height:1.2em;margin:10px 0 0}
+.file-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:8px}
+.file-actions .btn-cancel{color:#1d1810;border-color:rgba(60,45,20,.5)}
+@media (max-width:420px){#file-cards{grid-template-columns:1fr}.mug{grid-template-columns:80px 1fr}.mug-photo img{width:80px;height:80px}}
+
 /* revancha */
 #over-actions{display:flex;flex-direction:column;gap:8px}
 #over-wait{color:var(--cream-3);font-family:var(--font-type);font-size:.8rem;margin:6px 0 0}

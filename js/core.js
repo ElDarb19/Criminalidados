@@ -171,7 +171,33 @@ CD.onRemote = function (a) {
 };
 CD.overSeen = false;
 CD.float = function (slot, text, kind) {                    // texto flotante sobre la tarjeta de un jugador
+  CD.track(slot, text, kind);
   CD.publish(); CD.emit('float', { slot, text, kind }); showFloat(slot, text, kind);
+};
+
+// ---------- estadísticas para el Expediente de fin de partida (solo las cuenta el anfitrión) ----------
+// Se leen de los textos flotantes que ya muestra cada contrato, así no hay que tocar sus reglas.
+CD.stat = function (slot) {
+  const G = CD.G; G.stats = G.stats || {};
+  const s = G.stats[slot] = G.stats[slot] || { acts:0, rolls:0, nat20:0, nat1:0, dealt:0, taken:0, gained:0, healed:0, misses:0, hitBy:{} };
+  s.hitBy = s.hitBy || {}; return s;
+};
+CD.track = function (slot, text, kind) {
+  const G = CD.G; if (!G || !G.started || G.over) return;
+  const att = G.players[G.turn], m = /^([+-])(\d+)/.exec(String(text)), s = CD.stat(slot);
+  if (kind === 'miss' && att && att.slot !== slot) { CD.stat(att.slot).misses++; return; }
+  if (!m) return;
+  const n = +m[2];
+  if (m[1] === '-') {
+    s.taken += n;
+    if (att && att.slot !== slot && kind !== 'status') { CD.stat(att.slot).dealt += n; s.hitBy[att.slot] = (s.hitBy[att.slot] || 0) + 1; }
+  } else if (!/💲|MATÓN|CRÍTICO|DISTRITO/.test(text)) {
+    if (kind === 'heal' && !/INFLUENCIA|🎰/.test(text)) s.healed += n; else s.gained += n;
+  }
+};
+CD.trackRoll = function (p, sides, val) {
+  const G = CD.G; if (!G || !G.started || G.over) return;
+  const s = CD.stat(p.slot); s.rolls++; if (sides === 20 && val === 20) s.nat20++; if (val === 1) s.nat1++;
 };
 function showFloat(slot, text, kind) {
   const card = document.querySelector('.pcard[data-slot="' + slot + '"]'); if (!card) return;
@@ -254,7 +280,8 @@ CD.roll = async function (sides, p, desc, img, sound, opt) {
       val = await new Promise(r => { CD.rollResolve = r; }); CD.rollResolve = null; G.prompt = null;
     }
   } else val = 1 + Math.floor(Math.random() * sides);
-  G.fx = { id:++fxId, sides, val, slot:p.slot, desc, img:img || 'idle', color:p.color, bot:p.bot, sound:sound || null, manual };
+  CD.trackRoll(p, sides, val);
+  G.fx = { id:++fxId, sides, val, slot:p.slot, desc, img:img || 'idle', color:p.color, char:p.char || 'Mafioso', bot:p.bot, sound:sound || null, manual };
   CD.publish(); CD.emit('fx', G.fx); const t = playFx(G.fx); render(); await t;
   if (G.started) {                                            // objetos y eventos solo afectan a las tiradas de juego, no a las de preparación
     val = MK.modRoll(p, sides, val, forced);
@@ -276,7 +303,7 @@ function askManual(sides, desc) {
 }
 async function playFx(fx) {
   const box = $$('fx'), d = 'assets/D' + fx.sides + '/';
-  const list = charList({ bot:fx.bot, color:fx.color }, fx.img), im = $$('fx-char');
+  const list = charList({ bot:fx.bot, color:fx.color, char:fx.char }, fx.img), im = $$('fx-char');
   $$('fx-title').textContent = fx.desc; im.dataset.c = list.join('|'); im.onerror = function () { charNext(this); }; im.src = list[0];
   if (fx.sound) playSound(fx.sound);
   $$('d-shadow').style.backgroundImage = fx.sides > 6 ? `url('${d}Sombra.png')` : 'none';
@@ -302,6 +329,7 @@ CD.exec = async function (slot, type, target, extra) {
   const G = CD.G, p = G.players[G.turn];
   if (G.over || G.wait || G.between || !p || p.slot !== slot) return;
   G.wait = true; CD.publish(); render();
+  if (G.started) CD.stat(slot).acts++;
   try { await CD.mod().act(G, p, type, target, extra); } catch (e) { console.error(e); }
   CD.publish(); render(); await sleep(G.over || G.between ? 900 : 1500);     // momento para ver el daño sobre el personaje
   G.focus = null;
@@ -384,7 +412,7 @@ CD.nextContract = async function () {
   CD.contract = next;
   CD.G = { players:G.players.map(p => Object.assign({ slot:p.slot, name:p.name, color:p.color, char:p.char, bot:p.bot, dropped:!!p.dropped, persona:p.persona || null, alive:true, hp:0, max:0, poison:0, heals:0, blocked:false },
       MK.on() ? { money:p.money, contacts:p.contacts, consumable:p.consumable, stock:[], rerollCost:ECON.REROLL_BASE } : {})),
-    turn:0, round:1, start:0, log:G.log, fx:null, prompt:null, over:false, result:null, wait:true, started:false, contract:CD.contract, pi, wins:G.wins, between:null, focus:null, event:null };
+    turn:0, round:1, start:0, log:G.log, fx:null, prompt:null, over:false, result:null, wait:true, started:false, contract:CD.contract, pi, wins:G.wins, stats:G.stats || {}, between:null, focus:null, event:null };   // las estadísticas suman todo el Modo Party
   CD.applyContractUI(); CD.log('🎬 ——— Contrato ' + (pi + 1) + ': ' + GAME_TITLES[CD.contract] + ' ———'); CD.lastSnap = null; CD.publish(); render();
   await CD.beginContract(CD.G);
 };
@@ -460,6 +488,7 @@ function render() {
     $$('over-wait').classList.toggle('hidden', CD.auth || !!G.result.lost); }
   $$('g-react').classList.toggle('hidden', !(CD.cfg.online && CD.me >= 0) || G.result && G.result.lost);
   musicSet(G.over && !G.result.lost ? 'victoria' : CD.contract);         // música del contrato (o de victoria al final)
+  if (CD.cfg.tutorial) TUT.update();
 }
 CD.choose = function (type) {                 // botón de acción
   const G = CD.G, me = G.players[G.turn]; if (G.between || G.over || G.wait || G.market) return;
