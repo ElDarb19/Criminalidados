@@ -35,6 +35,8 @@ const SINGLE_CONTRACT_START_MONEY = 300;
 // Momentos de Mercado Negro en un único contrato: antes de empezar (y en El Gran Atraco, también tras la inmersión 1 y la 3).
 const MARKET_MOMENTS = { rpg:['inicio'], maf:['inicio'], pok:['inicio'], exp:['inicio','tras_inmersion_1','tras_inmersion_3'] };
 const COLOR_KEYS = Object.keys(COLORS);
+// Personajes seleccionables = carpetas de assets/characters/ (cada una con sus subcarpetas de color). Para añadir uno, agrégalo aquí.
+const CHARACTERS = [{ key:'Mafioso', label:'Mafioso' }, { key:'Mafiosa', label:'Mafiosa' }];
 const GAMES = ['rpg','exp','maf','pok'];
 const IMPLEMENTED = ['rpg', 'exp', 'maf', 'pok'];   // contratos ya migrados a 4 jugadores; añade aquí cada uno al terminarlo
 const GAME_NAMES = { rpg:'Guerra de Bandas', exp:'El Gran Atraco', maf:'Imperio Criminal', pok:'Apuestas Clandestinas' };
@@ -45,7 +47,7 @@ let uid = 'local-' + Math.random().toString(36).slice(2, 10);   // se reemplaza 
 
 const S = {
   mode:'local', room:null, host:true, humans:1, bots:1,
-  players: ['Color_R','Color_B','Color_G','Color_P'].map((c,i) => ({ name:'Capo ' + (i+1), color:c, uid:null })),
+  players: ['Color_R','Color_B','Color_G','Color_P'].map((c,i) => ({ name:'Capo ' + (i+1), color:c, char:'Mafioso', uid:null })),
   contract:'rpg', party:false, market:false, events:false,
   partyGames:{ rpg:true, exp:true, maf:true, pok:true }, partyWins:4, dice:'virtual'
 };
@@ -120,7 +122,7 @@ async function joinRoom() {
   if (slot < 0) return say('net-msg', 'La sala está llena (el anfitrión debe subir el número de jugadores).');
   const taken = Object.values(pl).map(p => p.color);
   const rk = Math.random().toString(36).slice(2, 12);       // llave para recuperar el asiento si se cierra la pestaña
-  const mine = { name:'Capo ' + (slot + 1), color:COLOR_KEYS.find(c => !taken.includes(c)), uid, rk };
+  const mine = { name:'Capo ' + (slot + 1), color:COLOR_KEYS.find(c => !taken.includes(c)), char:'Mafioso', uid, rk };
   let tx; try { tx = await ref.child('players/' + slot).transaction(cur => cur ? undefined : mine); } catch (e) { return say('net-msg', netError(e)); }
   if (!tx.committed) return say('net-msg', 'Otro jugador tomó ese lugar justo ahora. Intenta de nuevo.');
   try { localStorage.setItem('cd-seat', JSON.stringify({ room:code, slot, rk })); } catch (e) {}
@@ -161,7 +163,7 @@ function listen() {
     }
     for (let i = 0; i < 4; i++) {
       const p = (l.players || {})[i];
-      S.players[i] = p ? Object.assign({}, p) : { name:'Capo ' + (i+1), color:S.players[i].color, uid:null };
+      S.players[i] = p ? Object.assign({ char:'Mafioso' }, p) : { name:'Capo ' + (i+1), color:S.players[i].color, char:'Mafioso', uid:null };
     }
     renderAll();
     if (l.status === 'STARTING' && !S.host && c && c.final) emitStart(l.config);   // espera a tener la configuración final
@@ -213,8 +215,11 @@ function renderSlots() {
   for (let i = 0; i < 4; i++) {
     let el = box.children[i];
     if (!el) { el = document.createElement('div'); el.className = 'slot'; box.appendChild(el); el.innerHTML =
-      '<div class="avatar"><img alt=""></div><div><small></small><input type="text" maxlength="16"><div class="swatches"></div></div>';
+      '<div class="avatar"><img alt=""></div><div><small></small><input type="text" maxlength="16"><div class="chars" role="group" aria-label="Personaje"></div><div class="swatches"></div></div>';
       el.querySelector('input').addEventListener('input', e => onName(i, e.target.value));
+      const ch = el.querySelector('.chars');
+      CHARACTERS.forEach(c => { const b = document.createElement('button'); b.type = 'button'; b.className = 'char-btn'; b.dataset.char = c.key;
+        b.textContent = c.label; b.onclick = () => onChar(i, c.key); ch.appendChild(b); });
       const sw = el.querySelector('.swatches');
       COLOR_KEYS.forEach(c => { const b = document.createElement('button'); b.className = 'sw'; b.style.setProperty('--c', COLORS[c]);
         b.title = c; b.onclick = () => onColor(i, c); sw.appendChild(b); }); }
@@ -231,8 +236,11 @@ function renderSlots() {
     if (document.activeElement !== inp) inp.value = nm;
     inp.disabled = !mine;
     el.querySelector('.avatar').style.setProperty('--pc', COLORS[color] || '#555');
-    const img = el.querySelector('img'); const src = 'assets/characters/' + (isBot ? 'Bot/' : 'Mafioso/') + color + '/idle.png';
+    const who = isBot ? 'Bot' : (p.char || 'Mafioso');
+    const img = el.querySelector('img'); const src = 'assets/characters/' + who + '/' + color + '/idle.png';
     if (!img.src.endsWith(src)) { img.style.visibility = 'visible'; img.onerror = () => { img.style.visibility = 'hidden'; }; img.src = src; }
+    const chars = el.querySelector('.chars'); chars.classList.toggle('hidden', isBot);            // los bots siempre son el robot
+    chars.querySelectorAll('.char-btn').forEach(b => { const on = b.dataset.char === who; b.classList.toggle('sel', on); b.setAttribute('aria-pressed', on); b.disabled = !mine; });
     el.querySelectorAll('.sw').forEach(b => {
       const c = b.title; b.classList.toggle('sel', c === color);
       b.disabled = !mine || usedByHumans(i).includes(c);   // colores en uso, bloqueados
@@ -242,6 +250,11 @@ function renderSlots() {
 function onName(i, v) {
   S.players[i].name = v;
   if (online() && lobbyRef) lobbyRef.child('players/' + i + '/name').set(v);
+}
+function onChar(i, k) {
+  S.players[i].char = k;
+  if (online() && lobbyRef) lobbyRef.child('players/' + i + '/char').set(k);
+  renderAll();
 }
 function onColor(i, c) {
   if (usedByHumans(i).includes(c)) return;
@@ -312,7 +325,7 @@ function buildConfig() {
   const players = [];
   for (let i = 0; i < total; i++) {
     const bot = i >= S.humans;
-    players.push({ slot:i, bot, uid:bot ? null : (S.players[i].uid || null), rk:bot ? null : (S.players[i].rk || null), name:bot ? 'Bot ' + (i - S.humans + 1) : S.players[i].name.trim() || 'Capo ' + (i+1),
+    players.push({ slot:i, bot, uid:bot ? null : (S.players[i].uid || null), rk:bot ? null : (S.players[i].rk || null), char:bot ? 'Bot' : (S.players[i].char || 'Mafioso'), name:bot ? 'Bot ' + (i - S.humans + 1) : S.players[i].name.trim() || 'Capo ' + (i+1),
       color:bot ? botCols[i - S.humans] : S.players[i].color });
   }
   const c = { room:S.room, online:online(), players, market:S.market, events:S.events, dice:S.dice,

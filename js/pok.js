@@ -36,8 +36,8 @@ const POK = {
   ui(G, me) {
     const t = type => !this.validTargets(G, me, type).length;
     return [
-      { type:'bet', label:'🎰 Apuesta Básica', sub:'Arriesgas 1🎰 · d6 gana con 4+', disabled:t('bet') },
-      { type:'slam', label:'💥 Golpe a la Mesa', sub:'Arriesgas 3🎰 · d20 ≥ 11, luego d12', disabled:t('slam') },
+      { type:'bet', label:'🎰 Apuesta Básica', sub:'Arriesgas 1🎰 · d6 gana con 4+', odds:'50% ganas', disabled:t('bet') },
+      { type:'slam', label:'💥 Golpe a la Mesa', sub:'Arriesgas 3🎰 · d20 ≥ 11, luego d12', odds:'50% ganas', disabled:t('slam') },
       { type:'cheat', label:'🎭 Trampa de Tahúr', sub: this.party() ? (me.tahurUses >= 1 ? 'Agotado' : '1 por partida · d4 de robo') : (me.tahurCD > 0 ? 'Espera ' + me.tahurCD + ' rondas' : 'Sin riesgo · d4 de robo'), disabled:t('cheat'), wide:true }
     ];
   },

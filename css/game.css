@@ -63,6 +63,27 @@
 #g-actions .opt small{color:var(--cream-2)}
 #g-actions button:disabled{opacity:.35;cursor:not-allowed}
 #g-actions .opt.wide{grid-column:1/-1;min-height:70px;font-size:1.15rem;letter-spacing:2px;border-color:var(--theme-accent)}
+/* probabilidad base de la acción: etiqueta tipo sello */
+#g-actions .odds{display:block;width:fit-content;margin:6px auto 0;padding:2px 8px;border:1px solid var(--theme-accent);border-radius:10px;color:var(--theme-accent-2);
+  font-family:var(--font-type);font-size:.7rem;letter-spacing:.5px;background:rgba(0,0,0,.25)}
+#g-actions .opt.selected .odds{color:var(--ink);border-color:var(--ink)}
+
+/* personalidad del bot en su tarjeta */
+.persona{display:inline-block;margin-left:4px;padding:0 6px;border:1px solid var(--line);border-radius:8px;font-family:var(--font-type);font-size:.68rem;font-weight:400;color:var(--cream-2);vertical-align:middle}
+
+/* reacciones rápidas (online) */
+#g-react{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:4px 0 12px}
+#g-react button{min-width:44px;min-height:44px;padding:0 10px;background:var(--ink-2);color:var(--cream);border:1px solid rgba(233,223,199,.18);border-radius:22px;
+  font-family:var(--font-ui);font-size:1.1rem;letter-spacing:1px;cursor:pointer;transition:transform .15s,border-color .2s}
+#g-react button.txt{font-size:.8rem}
+#g-react button:hover:not(:disabled){border-color:var(--theme-accent);transform:translateY(-1px)}
+#g-react button:disabled{opacity:.4;cursor:wait}
+.float.react{font-size:2rem;text-shadow:0 2px 8px rgba(0,0,0,.8)}
+.float.react.txt{font-family:var(--font-display);font-size:1.3rem;color:var(--gold-3)}
+
+/* revancha */
+#over-actions{display:flex;flex-direction:column;gap:8px}
+#over-wait{color:var(--cream-3);font-family:var(--font-type);font-size:.8rem;margin:6px 0 0}
 
 /* registro: máquina de escribir */
 #g-log{position:relative;background:rgba(11,10,8,.7);border:1px solid var(--line-2);border-top:1px dashed rgba(233,223,199,.25);border-radius:var(--radius-sm);padding:10px 12px;

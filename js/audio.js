@@ -33,6 +33,47 @@ function tone(ctx, type, freqs, dur, vol, delay = 0) {
   o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t + dur);
 }
 
+// ===== Música ambiente =====
+// Guarda los archivos en assets/audios/musica/ con ESTOS nombres exactos (mp3) y el juego los usa solo:
+//   menu.mp3      → menú principal            rpg.mp3 → Guerra de Bandas      exp.mp3 → El Gran Atraco
+//   maf.mp3       → Imperio Criminal          pok.mp3 → Apuestas Clandestinas
+//   victoria.mp3  → pantalla final (opcional: si no está, sigue la música del contrato)
+// Si falta alguno, ese momento queda en silencio. Suenan en bucle y cambian con un fundido suave.
+const MUSIC = { menu:'menu', rpg:'rpg', exp:'exp', maf:'maf', pok:'pok', victoria:'victoria' };
+const MUSIC_DIR = 'assets/audios/musica/', MUSIC_VOL = 0.35;
+const MUS = { el:null, key:null, want:null, on:true, unlocked:false, avail:{} };
+try { MUS.on = localStorage.getItem('cd-music') !== 'off'; } catch (e) {}
+Object.keys(MUSIC).forEach(k => {                                 // detecta qué pistas existen
+  MUS.avail[k] = null;
+  fetch(MUSIC_DIR + MUSIC[k] + '.mp3', { method:'HEAD' }).then(r => { MUS.avail[k] = r.ok; if (r.ok && MUS.want === k) musicPlay(k); }).catch(() => { MUS.avail[k] = false; });
+});
+function musicFade(el, to, ms, done) {
+  const from = el.volume, t0 = performance.now();
+  const step = () => { const p = Math.min(1, (performance.now() - t0) / ms); el.volume = from + (to - from) * p; if (p < 1) requestAnimationFrame(step); else if (done) done(); };
+  requestAnimationFrame(step);
+}
+function musicPlay(key) {
+  if (!MUS.on || !MUS.unlocked || MUS.avail[key] !== true || MUS.key === key) return;
+  const old = MUS.el; if (old) musicFade(old, 0, 900, () => old.pause());
+  const el = new Audio(MUSIC_DIR + MUSIC[key] + '.mp3'); el.loop = true; el.volume = 0;
+  MUS.el = el; MUS.key = key; el.play().then(() => musicFade(el, MUSIC_VOL, 1200)).catch(() => { MUS.key = null; });
+}
+// Pide la música de un momento del juego ('menu', un contrato o 'victoria'). Si esa pista no existe, sigue la actual.
+function musicSet(key) {
+  if (MUS.avail[key] === false) return;
+  MUS.want = key; musicPlay(key);
+}
+function musicToggle() {
+  MUS.on = !MUS.on; try { localStorage.setItem('cd-music', MUS.on ? 'on' : 'off'); } catch (e) {}
+  if (!MUS.on && MUS.el) { const el = MUS.el; MUS.el = null; MUS.key = null; musicFade(el, 0, 400, () => el.pause()); }
+  if (MUS.on && MUS.want) musicPlay(MUS.want);
+  musicButton();
+}
+function musicButton() { const b = document.getElementById('btn-music'); if (!b) return; b.textContent = MUS.on ? '🎵 Música' : '🔇 Música'; b.setAttribute('aria-pressed', MUS.on); }
+// Los navegadores solo dejan sonar música después de que el usuario toca la pantalla.
+['pointerdown', 'keydown', 'touchstart'].forEach(ev => window.addEventListener(ev, () => { if (!MUS.unlocked) { MUS.unlocked = true; if (MUS.want) musicPlay(MUS.want); } }, { passive:true }));
+document.addEventListener('DOMContentLoaded', () => { musicButton(); if (!MUS.want) musicSet('menu'); });
+
 function playSound(name) {
   if (SND.muted) return;
   const ctx = audioCtx(); if (!ctx) return;

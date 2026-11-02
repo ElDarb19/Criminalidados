@@ -65,6 +65,12 @@ $idleHex = @{}; for ($y = 0; $y -lt $H; $y++) { for ($x = 0; $x -lt $W; $x++) { 
 $cols.Values | ForEach-Object { $idleHex[$_.TrimStart('#').ToUpper()] = 1 }         # corbatas de todos los colores
 $hurt = @{ '7F558F'='A'; '80408B'='A'; '950C28'='Q'; '831414'='Q' }                  # moretones -> grietas · sangre -> aceite
 $hatHex = @{ '0C0C0C'=1; '252525'=1; '151515'=1; '000000'=1; '0F0F0F'=1; '161616'=1 }
+$ties = $cols.Values | ForEach-Object { C $_ }
+function IsChar($pc, $ph) {                     # color del Mafioso (incluye tonos casi iguales a la corbata, que el dibujo original tiene sueltos)
+  if ($idleHex.ContainsKey($ph)) { return $true }
+  foreach ($t in $ties) { if ([math]::Abs($pc.R - $t.R) + [math]::Abs($pc.G - $t.G) + [math]::Abs($pc.B - $t.B) -le 30) { return $true } }
+  $false
+}
 function Paint($bmp, $ops, $dx, $dy, $pal) {
   foreach ($o in $ops) { for ($j = 0; $j -lt $o[2].Length; $j++) { $ch = [string]$o[2][$j]; $x = $o[1] + $j + $dx; $y = $o[0] + $dy
     if ($ch -ne '.' -and $x -ge 0 -and $x -lt 64 -and $y -ge 0 -and $y -lt 64) { $bmp.SetPixel($x, $y, $pal[$ch]) } } }
@@ -97,6 +103,10 @@ $carOver = @(
   @(15, 45, 'AA'), @(16, 44, 'AYXA'), @(17, 44, 'AXXA'), @(18, 45, 'AA'), @(19, 45, 'ON'),            # antena
   @(24, 31, 'DDDDD'), @(25, 30, 'DDDDDDD'), @(26, 31, 'MYMYM'), @(27, 31, 'MMMMM'), @(28, 31, 'NANAN')   # el robot al volante
 )
+function RestoreGlass($bmp) {                   # cristal original de la ventanilla delantera (filas 24-28, columnas 29-37)
+  $g = @('BBBBBBBBB', 'BBEEBBBEB', 'BEEBBBEEB', 'EEBBBEEBB', 'BBBBBEBBB'); $c = @{ B=(C '#151515'); E=(C '#212121') }
+  for ($r = 0; $r -lt 5; $r++) { for ($i = 0; $i -lt 9; $i++) { $bmp.SetPixel(29 + $i, 24 + $r, $c[[string]$g[$r][$i]]) } }
+}
 function MakeCar($from, $to, $tc, $pal) {
   $src = New-Object System.Drawing.Bitmap $from; $out = New-Object System.Drawing.Bitmap $src
   $body = '{0:X2}{1:X2}{2:X2}' -f $tc.R, $tc.G, $tc.B
@@ -118,6 +128,7 @@ function MakeCar($from, $to, $tc, $pal) {
     if ($grp) { $cx = [int][math]::Floor((($grp | Measure-Object -Minimum).Minimum + ($grp | Measure-Object -Maximum).Maximum) / 2)
       foreach ($yy in 44, 45) { $out.SetPixel($cx, $yy, $pal['Y']); $out.SetPixel($cx + 1, $yy, $pal['X']) } }
   }
+  RestoreGlass $out                                                       # quita al Mafioso del volante antes de sentar al robot
   Paint $out $carOver 0 0 $pal
   $out.Save($to, [System.Drawing.Imaging.ImageFormat]::Png); $src.Dispose(); $out.Dispose()
 }
@@ -148,7 +159,7 @@ foreach ($k in 'Color_R','Color_B','Color_G','Color_P','Color_Pu','Color_W') {
       $ph = & $hex $pc
       if ($hurt.ContainsKey($ph)) { $out.SetPixel($px, $py, $pl[$hurt[$ph]]) }
       elseif ($cfg.hat -and $y -le 22 -and $pc.ToArgb() -ne $ic.ToArgb() -and $hatHex.ContainsKey($ph)) { }   # conserva el sombrero ladeado
-      elseif ($pc.ToArgb() -eq $ic.ToArgb() -or $idleHex.ContainsKey($ph)) { $out.SetPixel($px, $py, $r) }
+      elseif ($pc.ToArgb() -eq $ic.ToArgb() -or (IsChar $pc $ph)) { $out.SetPixel($px, $py, $r) }
       # cualquier otro color es un objeto delante del personaje: se queda
     } }
     if ($cfg.fx) { Paint $out $cfg.fx $dx $dy $pl }

@@ -91,12 +91,15 @@ window.addEventListener('error', function (e) {
   <button id="btn-start" class="start" onclick="startGame()">¡COMENZAR!</button>
 </main>
 
+<button id="btn-music" class="btn-music" type="button" onclick="musicToggle()" aria-pressed="true">🎵 Música</button>
+
 <section id="game-screen" class="hidden">
   <div class="ghead"><h2 id="g-title"></h2><div id="g-round"></div></div>
   <div id="g-event" class="hidden"></div>
   <div id="g-turn"></div>
   <div id="g-players"></div>
   <div id="g-actions" class="hidden"></div>
+  <div id="g-react" class="hidden" role="group" aria-label="Reacciones rápidas"></div>
   <div id="g-log"></div>
 </section>
 
@@ -130,7 +133,11 @@ window.addEventListener('error', function (e) {
 <div id="modal-over" class="modal-overlay hidden" style="z-index:3700"><div class="modal-content">
   <p style="letter-spacing:2px;color:var(--text-light)">FIN DEL CONTRATO</p><h2 id="over-text" style="font-family:var(--font-display)"></h2><p id="over-sub" style="color:var(--text-light);font-size:.85rem"></p>
   <div id="over-podium"></div>
-  <button class="start" onclick="CD.exit()">VOLVER AL MENÚ</button>
+  <div id="over-actions">
+    <button id="over-rematch" class="start" onclick="CD.rematch()">🔁 REVANCHA</button>
+    <p id="over-wait" class="hidden">Esperando a que el anfitrión pida la revancha…</p>
+    <button class="start" onclick="CD.exit()">VOLVER AL MENÚ</button>
+  </div>
 </div></div>
 
 <!-- MODAL MANUAL DEL CAPO -->

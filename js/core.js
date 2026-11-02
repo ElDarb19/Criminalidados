@@ -7,15 +7,19 @@ const MODULES = { rpg: () => RPG, exp: () => EXP, maf: () => MAF, pok: () => POK
 const $$ = id => document.getElementById(id);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
-// Sprites: assets/characters/<Personaje>/<color>/<pose>.png. Los jefes humanos son "Mafioso" y los bots "Bot"
-// (un robot disfrazado de mafioso). Para añadir un personaje: crea su carpeta con las subcarpetas de color.
+// Sprites: assets/characters/<Personaje>/<color>/<pose>.png. Cada jefe humano elige su personaje en el menú
+// (Mafioso, Mafiosa…) y los bots son siempre "Bot" (un robot disfrazado de mafioso).
+// Para añadir un personaje: crea su carpeta con las subcarpetas de color y regístralo en CHARACTERS (menu.js).
 // Los objetos iguales para todos (mapa, maletín, billetes, monedas, fichas) están en assets/characters/None/.
 const SHARED_SPRITES = ['maf_bribe', 'maf_buy', 'maf_risk', 'maf_safe', 'pok_bet', 'pok_slam'];
-const charOf = p => p.bot ? 'Bot' : 'Mafioso';
+const COLOR_SPRITES = ['exp_getaway'];                 // objetos del color del jugador: si el personaje no tiene el suyo, usa el del Mafioso
+const CHAR_POSES = {};                                 // personajes nuevos con poses incompletas, p. ej. { Detective:['idle'] }: el resto se muestra con su idle
+const charOf = p => p.bot ? 'Bot' : (p.char || 'Mafioso');
 function charList(p, img) {
   if (SHARED_SPRITES.includes(img)) return ['assets/characters/None/' + img + '.png'];
-  const c = charOf(p);
-  return [c + '/' + p.color + '/' + img, 'Mafioso/None/' + img, 'Mafioso/None/idle'].map(x => 'assets/characters/' + x + '.png');
+  const c = charOf(p), has = !CHAR_POSES[c] || CHAR_POSES[c].includes(img);
+  const first = has ? c + '/' + p.color + '/' + img : COLOR_SPRITES.includes(img) ? 'Mafioso/' + p.color + '/' + img : c + '/' + p.color + '/idle';
+  return [first, 'Mafioso/None/' + img, 'Mafioso/None/idle'].map(x => 'assets/characters/' + x + '.png');
 }
 const charSrc = (p, img) => charList(p, img)[0];
 function charNext(el) { const l = (el.dataset.c || '').split('|'); l.shift(); if (!l.length) { el.onerror = null; return; } el.dataset.c = l.join('|'); el.src = l[0]; }
@@ -42,8 +46,8 @@ CD.start = function (cfg) {
   $$('menu-screen').classList.add('hidden'); $$('game-screen').classList.remove('hidden');
   CD.playlist = cfg.mode === 'party' ? cfg.playlist : [cfg.contract]; CD.contract = CD.playlist[0]; CD.applyContractUI();
   if (CD.auth) {
-    CD.G = { players:cfg.players.map(p => ({ slot:p.slot, name:p.name, color:p.color, bot:p.bot, alive:true, hp:0, max:0, poison:0, heals:0, blocked:false })),
-      turn:0, round:1, start:0, log:[], fx:null, prompt:null, over:false, result:null, wait:true, started:false, contract:CD.contract, pi:0, wins:{} };
+    CD.G = CD.freshGame(cfg.players);
+    CD.announcePersonas();
     if (cfg.online) { db.ref(CD.base).remove(); db.ref(CD.base + '/actions').on('child_added', s => { CD.onRemote(s.val()); s.ref.remove(); }); }
     if (MK.on()) MK.initEcon(CD.G);
     render(); setTimeout(() => CD.beginContract(CD.G), 600);
@@ -57,7 +61,33 @@ CD.start = function (cfg) {
       }, DROP_GRACE);
     });
   }
-  if (cfg.online) CD.presence();
+  if (cfg.online) { CD.presence(); buildReactBar(); }
+};
+CD.freshGame = players => {
+  const styles = Object.keys(PERSONAS).sort(() => Math.random() - .5); let n = 0;      // cada bot recibe una personalidad (distintas mientras alcancen)
+  return { players:players.map(p => ({ slot:p.slot, name:p.name, color:p.color, char:p.char || 'Mafioso', bot:p.bot, dropped:!!p.dropped,
+      persona:p.bot && !p.dropped ? styles[n++ % styles.length] : null, alive:true, hp:0, max:0, poison:0, heals:0, blocked:false })),
+    turn:0, round:1, start:0, log:[], fx:null, prompt:null, over:false, result:null, wait:true, started:false, contract:CD.contract, pi:0, wins:{} };
+};
+CD.announcePersonas = function () {
+  CD.G.players.filter(p => p.persona).forEach(p => { const s = PERSONAS[p.persona]; CD.log(`🤖 ${p.name} juega como ${s.label} ${s.icon}: ${s.desc}`); });
+};
+
+// ---------- revancha: el anfitrión (o el dispositivo local) reinicia con los mismos jefes, en la misma sala ----------
+CD.rematch = function () {
+  const old = CD.G, cfg = CD.cfg; if (!CD.auth || !old || !old.over || CD.rematching) return; CD.rematching = true;
+  if (cfg.mode === 'party') cfg.playlist = makePlaylist(cfg.games);                  // nuevo sorteo de contratos
+  CD.playlist = cfg.mode === 'party' ? cfg.playlist : [cfg.contract]; CD.contract = CD.playlist[0];
+  const away = cfg.online ? CD.presenceNow || {} : null;
+  const players = old.players.map(p => {                                            // quien ya no está conectado empieza cubierto por un bot
+    const base = cfg.players[p.slot], gone = away && !base.bot && p.slot !== CD.me && !away[p.slot];
+    return Object.assign({}, base, gone ? { bot:true, dropped:true, name:base.name + ' (desconectado)' } : {});
+  });
+  CD.G = CD.freshGame(players); CD.lastSnap = null; CD.overSeen = false;
+  if (MK.on()) MK.initEcon(CD.G);
+  CD.applyContractUI(); CD.log('🔁 ¡REVANCHA! Los mismos jefes vuelven a las calles.'); CD.announcePersonas();
+  if (cfg.online) CD.keepRoom();                                                     // la sala guarda la nueva configuración (para reconexiones)
+  CD.publish(); render(); setTimeout(() => { CD.rematching = false; CD.beginContract(CD.G); }, 600);
 };
 
 // ---------- presencia: si un jugador online pierde la conexión, un bot lo cubre hasta que vuelva ----------
@@ -67,7 +97,7 @@ CD.presence = function () {
     const r = db.ref(CD.base + '/presence/' + CD.me), seat = db.ref('rooms/' + CD.cfg.room + '/lobby/players/' + CD.me); let on = false;
     const here = () => {
       // El invitado vuelve a anotarse en el lobby (las reglas de Firebase solo dejan escribir a quien figura ahí) y marca su presencia.
-      if (!CD.auth) { const p = CD.cfg.players[CD.me]; seat.onDisconnect().remove(); seat.set({ name:p.name, color:p.color, uid, rk:p.rk || null }).catch(() => {}); }
+      if (!CD.auth) { const p = CD.cfg.players[CD.me]; seat.onDisconnect().remove(); seat.set({ name:p.name, color:p.color, char:p.char || 'Mafioso', uid, rk:p.rk || null }).catch(() => {}); }
       r.onDisconnect().remove(); r.set(true).catch(() => {});
     };
     // Tras un corte, Firebase ya ejecutó los onDisconnect: hay que volver a anotarse en CADA reconexión.
@@ -77,7 +107,7 @@ CD.presence = function () {
   if (!CD.auth) return;
   const seen = {}, timers = {};
   db.ref(CD.base + '/presence').on('value', s => {
-    const v = s.val() || {};
+    const v = s.val() || {}; CD.presenceNow = v;
     CD.cfg.players.forEach(p => {
       if (p.bot || p.slot === CD.me) return;
       if (v[p.slot]) { clearTimeout(timers[p.slot]); timers[p.slot] = null; seen[p.slot] = true; CD.restorePlayer(p.slot); }
@@ -132,6 +162,7 @@ CD.onRemote = function (a) {
   if (a.type === 'claim') { if (p && !p.bot && p.rk && a.rk === p.rk && a.uid) p.uid = a.uid; return; }   // vuelve desde otra pestaña con su llave
   if (!p || p.uid !== a.uid) return;                                               // solo el dueño del jefe puede actuar por él
   if (a.type === 'sync') { CD.lastSnap = null; CD.publish(); }
+  else if (a.type === 'react') CD.broadcastReact(a.slot, a.e);
   else if (a.type === 'roll') { if (CD.rollResolve && CD.G.prompt && CD.G.prompt.slot === a.slot) CD.rollResolve(a.value); }
   else if (a.type === 'mk') CD.marketAct(a.slot, a.op, a.id);
   else if (a.type === 'use') CD.useConsumable(a.slot);
@@ -151,6 +182,31 @@ function showFloat(slot, text, kind) {
   playSound(kind === 'heal' ? 'heal' : kind === 'loot' ? 'coin' : kind === 'crit' ? 'crit' : kind === 'dmg' ? 'hit' : 'roll');
   if (kind === 'crit') { const g = $$('game-screen'); g.classList.add('screen-shake'); setTimeout(() => g.classList.remove('screen-shake'), 350); }
 }
+// ---- reacciones rápidas (online): cualquiera las envía, el anfitrión las reparte a todos ----
+const REACTIONS = ['😏', '💣', '🤝', '💸', '😡', '🔥', '¡Traición!'];
+CD.lastReact = {};
+CD.react = function (e) {
+  if (!CD.cfg.online || CD.me < 0 || !REACTIONS.includes(e)) return;
+  const bar = $$('g-react'); bar.querySelectorAll('button').forEach(b => { b.disabled = true; });   // pausa breve para evitar spam
+  setTimeout(() => bar.querySelectorAll('button').forEach(b => { b.disabled = false; }), 1500);
+  if (CD.auth) CD.broadcastReact(CD.me, e); else CD.send({ type:'react', slot:CD.me, e });
+};
+CD.broadcastReact = function (slot, e) {                     // solo el anfitrión: valida, limita y reenvía
+  const now = Date.now(); if (!REACTIONS.includes(e) || now - (CD.lastReact[slot] || 0) < 1000) return;
+  CD.lastReact[slot] = now; CD.emit('react', { slot, e }); showReact(slot, e);
+};
+function showReact(slot, e) {
+  const card = document.querySelector('.pcard[data-slot="' + slot + '"]'); if (!card) return;
+  const r = card.getBoundingClientRect(), s = document.createElement('div');
+  s.className = 'float react' + (e.length > 2 ? ' txt' : ''); s.textContent = e;
+  s.style.left = (r.left + r.width * 0.75) + 'px'; s.style.top = (r.top + r.height / 3) + 'px';
+  document.body.appendChild(s); setTimeout(() => s.remove(), 1700);
+}
+function buildReactBar() {
+  const bar = $$('g-react'); if (bar.childElementCount) return;
+  REACTIONS.forEach(e => { const b = document.createElement('button'); b.type = 'button'; b.textContent = e; if (e.length > 2) b.className = 'txt';
+    b.setAttribute('aria-label', 'Reaccionar ' + e); b.onclick = () => CD.react(e); bar.appendChild(b); });
+}
 // ---- invitado: reproduce los eventos del anfitrión EN ORDEN, uno tras otro, sin solapar animaciones ----
 CD.q = []; CD.pumping = false; CD.gLog = [];
 CD.enqueue = function (ev) { if (!ev) return; CD.q.push(ev); if (!CD.pumping) CD.pump(); };
@@ -162,6 +218,7 @@ CD.pump = async function () {
       if (e.k === 'state') CD.applySnapshot(e.d);
       else if (e.k === 'log') { CD.gLog.push(e.d); if (CD.gLog.length > 60) CD.gLog.shift(); if (CD.G) { CD.G.log = CD.gLog; render(); } }
       else if (e.k === 'float') { if (!late) showFloat(e.d.slot, e.d.text, e.d.kind); }
+      else if (e.k === 'react') { if (!late) showReact(e.d.slot, e.d.e); }
       else if (e.k === 'fx') { if (!late) await playFx(e.d); }
       else if (e.k === 'banner') { if (!late) await showBanner(e.d.title, e.d.desc); }
     } catch (err) { console.error(err); }
@@ -176,6 +233,7 @@ CD.applySnapshot = function (st) {
   st.log = CD.gLog; st.wins = st.wins || {}; CD.G = st;
   if (changed) CD.applyContractUI();
   if (st.over && !CD.overSeen) { CD.overSeen = true; playSound('win'); }
+  if (!st.over) CD.overSeen = false;                         // tras una revancha, el próximo final vuelve a sonar
   if (st.ask && st.ask.id > CD.askSeen && st.ask.slot === CD.me) { CD.askSeen = st.ask.id; CD.ask(st.ask.spec).then(v => CD.send({ type:'ans', slot:CD.me, value:v })); }
   if (st.prompt && st.prompt.id > CD.promptSeen && st.prompt.slot === CD.me) {
     CD.promptSeen = st.prompt.id; askManual(st.prompt.sides, st.prompt.desc).then(v => CD.send({ type:'roll', slot:CD.me, value:v }));
@@ -324,7 +382,7 @@ CD.nextContract = async function () {
   G.between = null; G.wait = true; CD.publish(); render();
   if (MK.on()) await CD.openMarket('MERCADO NEGRO', ['Siguiente contrato: ' + CONTRACT_NAMES[next]]);
   CD.contract = next;
-  CD.G = { players:G.players.map(p => Object.assign({ slot:p.slot, name:p.name, color:p.color, bot:p.bot, dropped:!!p.dropped, alive:true, hp:0, max:0, poison:0, heals:0, blocked:false },
+  CD.G = { players:G.players.map(p => Object.assign({ slot:p.slot, name:p.name, color:p.color, char:p.char, bot:p.bot, dropped:!!p.dropped, persona:p.persona || null, alive:true, hp:0, max:0, poison:0, heals:0, blocked:false },
       MK.on() ? { money:p.money, contacts:p.contacts, consumable:p.consumable, stock:[], rerollCost:ECON.REROLL_BASE } : {})),
     turn:0, round:1, start:0, log:G.log, fx:null, prompt:null, over:false, result:null, wait:true, started:false, contract:CD.contract, pi, wins:G.wins, between:null, focus:null, event:null };
   CD.applyContractUI(); CD.log('🎬 ——— Contrato ' + (pi + 1) + ': ' + GAME_TITLES[CD.contract] + ' ———'); CD.lastSnap = null; CD.publish(); render();
@@ -381,11 +439,11 @@ function render() {
     const marked = G.focus && G.focus.target === p.slot && G.focus.att !== p.slot;
     return `<div class="pcard ${G.players[G.turn].slot === p.slot && !G.over && !G.between && p.alive ? 'turn' : ''} ${k.state} ${isT ? 'targetable' : ''} ${marked ? 'marked' : ''}" data-slot="${p.slot}" style="--pc:${COLORS[p.color]}" ${isT ? `onclick="CD.pick(${p.slot})"` : ''}>
       ${marked ? '<span class="mark">🎯</span>' : ''}<img src="${L[0]}" data-c="${L.join('|')}" onerror="charNext(this)" alt="">
-      <div><b>${esc(p.name)}</b>${p.bot ? ' 🤖' : ''}${MK.boss() === p.slot ? ' 💀' : ''}<div class="hp">${(k.segs || [{ pct:k.pct, color:k.color }]).map(s => `<i style="width:${Math.max(0, Math.min(100, s.pct))}%;background:${s.color}"></i>`).join('')}</div><small>${k.label}</small>${k.html || ''}${MK.hud(p)}${CD.cfg.mode === 'party' ? `<div class="pw">🏅 ${(G.wins && G.wins[p.slot]) || 0}/${CD.cfg.winsNeeded} victorias</div>` : ''}</div></div>`; }).join('');
+      <div><b>${esc(p.name)}</b>${p.bot ? ' 🤖' : ''}${p.bot && PERSONAS[p.persona] ? ` <span class="persona" title="${PERSONAS[p.persona].label}: ${PERSONAS[p.persona].desc}">${PERSONAS[p.persona].icon} ${PERSONAS[p.persona].label}</span>` : ''}${MK.boss() === p.slot ? ' 💀' : ''}<div class="hp">${(k.segs || [{ pct:k.pct, color:k.color }]).map(s => `<i style="width:${Math.max(0, Math.min(100, s.pct))}%;background:${s.color}"></i>`).join('')}</div><small>${k.label}</small>${k.html || ''}${MK.hud(p)}${CD.cfg.mode === 'party' ? `<div class="pw">🏅 ${(G.wins && G.wins[p.slot]) || 0}/${CD.cfg.winsNeeded} victorias</div>` : ''}</div></div>`; }).join('');
   $$('g-turn').textContent = G.over ? '' : !G.started ? 'Preparando el contrato…' : G.between ? '' : G.prompt ? '⏳ Esperando el dado de ' + G.players[G.prompt.slot].name :
     CD.pending ? '🎯 Elige a tu objetivo' : (mine ? '👉 Tu turno, ' + cur.name : 'Turno de ' + cur.name + (cur.bot ? ' (bot)' : ''));
   const box = $$('g-actions'); box.classList.toggle('hidden', !mine);
-  if (mine) box.innerHTML = M.ui(G, cur).concat(MK.useBtn(cur) || []).map(b => `<button class="opt ${b.wide ? 'wide' : ''} ${CD.pending === b.type ? 'selected' : ''}" ${b.disabled ? 'disabled' : ''} onclick="CD.choose('${b.type}')">${b.label}<br><small>${b.sub}</small></button>`).join('');
+  if (mine) box.innerHTML = M.ui(G, cur).concat(MK.useBtn(cur) || []).map(b => `<button class="opt ${b.wide ? 'wide' : ''} ${CD.pending === b.type ? 'selected' : ''}" ${b.disabled ? 'disabled' : ''} onclick="CD.choose('${b.type}')">${b.label}<br><small>${b.sub}</small>${b.odds ? `<span class="odds" title="Probabilidad base (sin objetos ni eventos)">${b.odds}</span>` : ''}</button>`).join('');
   $$('g-log').innerHTML = G.log.slice().reverse().map(l => '<div>' + esc(l) + '</div>').join('');
   const bt = $$('modal-between'); bt.classList.toggle('hidden', !G.between);
   if (G.between) {
@@ -397,7 +455,11 @@ function render() {
   MK.render();
   $$('between-podium').innerHTML = G.between && G.between.podium ? podiumHtml(G, G.between.podium) : '';
   $$('modal-over').classList.toggle('hidden', !G.over);
-  if (G.over) { $$('over-text').textContent = G.result.lost ? 'Partida interrumpida' : G.result.winner == null ? 'Empate' : '🏆 ' + G.players[G.result.winner].name; $$('over-sub').textContent = G.result.summary || ''; $$('over-podium').innerHTML = G.result.podium ? podiumHtml(G, G.result.podium) : ''; }
+  if (G.over) { $$('over-text').textContent = G.result.lost ? 'Partida interrumpida' : G.result.winner == null ? 'Empate' : '🏆 ' + G.players[G.result.winner].name; $$('over-sub').textContent = G.result.summary || ''; $$('over-podium').innerHTML = G.result.podium ? podiumHtml(G, G.result.podium) : '';
+    $$('over-rematch').classList.toggle('hidden', !CD.auth || !!G.result.lost);
+    $$('over-wait').classList.toggle('hidden', CD.auth || !!G.result.lost); }
+  $$('g-react').classList.toggle('hidden', !(CD.cfg.online && CD.me >= 0) || G.result && G.result.lost);
+  musicSet(G.over && !G.result.lost ? 'victoria' : CD.contract);         // música del contrato (o de victoria al final)
 }
 CD.choose = function (type) {                 // botón de acción
   const G = CD.G, me = G.players[G.turn]; if (G.between || G.over || G.wait || G.market) return;

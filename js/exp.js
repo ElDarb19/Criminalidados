@@ -42,8 +42,8 @@ const EXP = {
     const mx = this.maxGrenades(), foes = this.validTargets(G, me, 'sabotage');
     const repairOk = this.party() ? me.repairCooldown <= 0 : me.repairUses < 1;
     return [
-      { type:'explore', label:'📦 Saquear Cajas', sub:'d6: 1-2 trampa · 3-5 +1 · 6 +3' },
-      { type:'deep', label:'🏦 Forzar Bóveda', sub:'d20 ≥ 11 → d12 de botín' },
+      { type:'explore', label:'📦 Saquear Cajas', sub:'d6: 1-2 trampa · 3-5 +1 · 6 +3', odds:'67% botín' },
+      { type:'deep', label:'🏦 Forzar Bóveda', sub:'d20 ≥ 11 → d12 de botín', odds:'50% éxito' },
       { type:'repair', label:'🔧 Reforzar Cobertura', sub: this.party() ? (me.repairCooldown > 0 ? 'Espera ' + me.repairCooldown + ' rondas' : 'd4 · cada 5 rondas') : (me.repairUses >= 1 ? 'Agotado' : 'd4 · 1 por atraco'), disabled:!repairOk || me.hp >= me.max },
       { type:'sabotage', label:'💣 Lanzar Granada', sub:me.torpedoUses + '/' + mx + ' · d4 a un rival', disabled:me.torpedoUses >= mx || !foes.length },
       { type:'surface', label:'🚗 Coche de Escape', sub:'Asegura 💰 ' + me.temp, wide:true }

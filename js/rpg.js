@@ -7,7 +7,7 @@ const RPG = {
   ui(G, me) {
     return [
       { type:'quick', label:'⚡ Ráfaga Tommy Gun', sub:'d6 de daño' },
-      { type:'strong', label:'🔫 Francotirador', sub:'d20 ≥ 11, luego d12' },
+      { type:'strong', label:'🔫 Francotirador', sub:'d20 ≥ 11, luego d12', odds:'50% acierto' },
       { type:'heal', label:'🩺 Médico de calle', sub: me.hp >= this.HP_CAP ? 'Salud al tope (' + this.HP_CAP + ')' : me.blocked ? '🚫 Bloqueado: usa otra habilidad' : 'd8 de salud · ' + me.heals + '/3 seguidas', disabled:me.blocked || me.hp >= this.HP_CAP },
       { type:'poison', label:'🕵️ Infiltrar Soplón', sub: this.validTargets(G, me, 'poison').length ? '1 de daño por turno' : 'Todos ya tienen soplón', disabled:!this.validTargets(G, me, 'poison').length }
     ];

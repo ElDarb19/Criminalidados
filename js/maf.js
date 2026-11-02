@@ -36,16 +36,17 @@ const MAF = {
   ui(G, me) {
     if (G.phase === 'roll') {
       const eg = !!CD.opts.egoist && me.coins >= 1;
+      const mine = me.parcels.filter(d => !(me.raids[d] > 0)).length;            // tus distritos que pueden cobrar
       return [
-        { type:'harvest6', label:'🎲 Recaudación Segura', sub:'d6 · cobras 1💵' },
-        { type:'harvest12', label:'🎰 Recaudación Arriesgada', sub:'d12 · cobras 3💵 (7-12: nadie cobra)' },
+        { type:'harvest6', label:'🎲 Recaudación Segura', sub:'d6 · cobras 1💵', odds:Math.round(mine / 6 * 100) + '% cobras' },
+        { type:'harvest12', label:'🎰 Recaudación Arriesgada', sub:'d12 · cobras 3💵 (7-12: nadie cobra)', odds:Math.round(mine / 12 * 100) + '% cobras' },
         { type:'opt:egoist', label:'🔥 Lavar dinero: ' + (eg ? 'SÍ' : 'NO'), sub:'Paga 1💵 para cobrar solo tú', disabled:me.coins < 1, wide:true }
       ];
     }
     const cost = this.cost(me), full = me.parcels.length >= 6;
     return [
       { type:'buy', label:'🏢 Controlar Distrito', sub: full ? 'Límite alcanzado' : 'Costo: ' + cost + '💵', disabled:full || me.coins < cost },
-      { type:'brew', label:'🎩 Sobornar Político', sub:'5💵 · d20 de Influencia', disabled:me.coins < 5 },
+      { type:'brew', label:'🎩 Sobornar Político', sub:'5💵 · d20 de Influencia', odds:'+1: 45% · +2: 50% · +4: 5%', disabled:me.coins < 5 },
       { type:'raid', label:'🚨 Redada Policial', sub:'3💵 · clausura un distrito rival', disabled:me.coins < 3 || !this.raidTargets(G, me).length },
       { type:'pass', label:'⏳ Pasar turno', sub:'Guardas tu efectivo', wide:true }
     ];

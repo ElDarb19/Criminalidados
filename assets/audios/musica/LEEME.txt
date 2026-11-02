@@ -1,0 +1,19 @@
+MÚSICA AMBIENTE DE CRIMINAL DICE
+================================
+
+Guarda aquí las pistas en formato .mp3 con ESTOS nombres exactos (en minúsculas).
+El juego las detecta solo; no hay que tocar código.
+
+  menu.mp3      Menú principal
+  rpg.mp3       Guerra de Bandas
+  exp.mp3       El Gran Atraco
+  maf.mp3       Imperio Criminal
+  pok.mp3       Apuestas Clandestinas
+  victoria.mp3  Pantalla final (opcional: si no está, sigue la música del contrato)
+
+- Suenan en bucle y cambian con un fundido suave al pasar de un contrato a otro.
+- Si falta alguna, ese momento queda en silencio (el resto funciona igual).
+- Recomendado: 1-3 minutos que se puedan repetir sin corte, 128 kbps, menos de 4 MB cada una
+  (pesan poco y cargan rápido en el celular).
+- El volumen de la música es más bajo que el de los efectos. Para cambiarlo: MUSIC_VOL en js/audio.js.
+- Cada jugador puede apagarla con el botón "🎵 Música" (arriba a la izquierda); se recuerda en su navegador.
