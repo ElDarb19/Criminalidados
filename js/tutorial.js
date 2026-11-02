@@ -6,16 +6,13 @@
 //  · bot:true: el único paso en que el bot puede jugar; en los demás espera.
 //  · ready: el botón solo aparece cuando se cumple (p. ej. cuando el dado ya se resolvió).
 //  · next: qué hace el botón además de avanzar.
+//  · view: pantalla de fondo, solo para mirar ('menu', 'market', 'event'; 'home' cierra la partida y deja el menú real).
 const TUT = {
-  i:0, off:true, seen:-1, base:0, release:null,
+  i:0, off:true, seen:-1, base:0, release:null, v:null, bodyClass:'',
   acts: slot => (CD.G.stats && CD.G.stats[slot] && CD.G.stats[slot].acts) || 0,
   did() { return this.acts(0) > this.base; },                                     // ya jugó desde que empezó este paso
   myTurn() { const G = CD.G, cur = G.players[G.turn]; return G.started && !G.wait && !G.over && CD.canAct(cur); },
   idle: () => !CD.G.wait,
-  items(ids) {                                                                     // tarjetas del Mercado Negro con los datos reales
-    return '<span class="coach-items">' + ids.map(id => { const it = ITEM_BY_ID[id];
-      return `<span class="coach-item"><b>${it.icon} ${esc(it.name)}</b><em>${it.kind === 'c' ? 'Consumible' : 'Contacto'} · ${it.cost}💲</em><small>${esc(it.desc)}</small></span>`; }).join('') + '</span>';
-  },
   STEPS: [
     // ---- Guerra de Bandas guiada ----
     { text:'Bienvenido, Capo. Empezamos con una <b>Guerra de Bandas</b> contra el bot Instructor: gana el último jefe en pie. Al final darás un vistazo rápido a los otros contratos, al Modo Party y al Mercado Negro.', button:'Siguiente' },
@@ -24,7 +21,7 @@ const TUT = {
     { show:t => t.myTurn(), text:'Las notas como <b>d6, d20, d8 o d4</b> indican qué dado se lanza: la <b>d</b> es "dado" y el número, sus caras. <b>d6</b> da de 1 a 6, <b>d20</b> de 1 a 20. "<b>d20 ≥ 11</b>" significa que necesitas sacar 11 o más para acertar.', focus:'#g-actions', button:'Siguiente' },
     { show:t => t.myTurn(), text:'Usa la <b>⚡ Ráfaga Tommy Gun</b>: lanza un <b>d6</b> y ese es el daño. Con un solo rival, el objetivo se elige solo.', focus:'#g-actions', allow:['quick'], done:t => t.did() },
     { text:'El <b>dado</b> decide el resultado y el daño aparece sobre la ficha del rival. Ojo: un disparo mayor que la salud que le queda al rival se <b>anula</b>.', focus:'#g-players', ready:t => t.idle(), button:'Siguiente' },
-    { text:'Ahora juega el bot. Cada bot tiene una <b>personalidad</b> (mira la etiqueta de su ficha) que cambia su estilo.', focus:'#g-players', bot:true, done:t => t.myTurn() },
+    { text:'Ahora juega el bot. Cada bot tiene una <b>personalidad</b> (mira la etiqueta de su ficha) que cambia su estilo.', focus:'#g-players', bot:true, ready:t => t.acts(1) >= 1 && t.myTurn(), button:'Siguiente' },
     { text:'Tienes más armas: <b>🔫 Francotirador</b> (d20 para acertar y d12 de daño), <b>🩺 Médico</b> (cura un d8) y <b>🕵️ Soplón</b> (1 de daño en cada turno durante un d4 de rondas). Prueba una.', focus:'#g-actions', allow:['strong', 'heal', 'poison'], done:t => t.did() },
     { text:'¡Ya sabes combatir! La Guerra sigue hasta que quede un jefe; al final verás el podio y el <b>📁 Expediente</b> con las estadísticas. Ahora, un vistazo a los demás contratos.', ready:t => t.idle(), button:'Ver El Gran Atraco', next:() => TUT.taste('exp') },
     // ---- El Gran Atraco ----
@@ -38,11 +35,11 @@ const TUT = {
     { show:TUT_ON('pok'), text:'<b>🎰 Apuestas Clandestinas</b>: todos empiezan con <b>8 fichas</b> y se las roban entre sí durante 8 rondas. Prueba una <b>Apuesta Básica</b>: con un d6 de 4 o más le quitas 1 ficha al rival; si no, se la das tú.', focus:'#g-actions', allow:['bet'], done:t => t.did() },
     { text:'El <b>💥 Golpe a la Mesa</b> arriesga más fichas por un gran robo y la <b>🎭 Trampa de Tahúr</b> roba sin riesgo, pero tiene que recargar. Quien se queda sin fichas cae en bancarrota.', focus:'#g-players', ready:t => t.idle(), button:'Siguiente' },
     // ---- Modo Party, Mercado Negro y eventos ----
-    { text:'<b>🎉 Modo Party</b>: marcas varios contratos y eliges cuántas victorias hacen falta. Se juegan seguidos; tras cada uno hay podio y recompensa en 💲 según tu puesto. Gana quien llegue primero a esas victorias.', button:'Siguiente' },
-    { html:() => 'En el <b>🕶️ Mercado Negro</b> compras <b>contactos</b> (efectos pasivos, máximo ' + ECON.MAX_PASSIVES + ') y un <b>consumible</b> que usas desde tu turno. Empiezas con ' + ECON.START_PARTY + '💲 en Party (' + ECON.START_SINGLE + '💲 en un solo contrato). Algunos objetos:' +
-        TUT.items(['contact_armero', 'contact_matasanos', 'item_puro', 'item_soborno']), button:'Siguiente' },
-    { text:'Con los <b>📰 Eventos de Ciudad</b>, un titular cambia las reglas del contrato: <b>Noche de Purga</b> (+2 de daño), <b>Ley Seca</b> (menos curación) o un jefe como <b>El Carnicero</b>, que paga el doble a quien lo vence. Se activan en el menú.', button:'Siguiente' },
-    { text:'¡Listo, Capo! En el menú elige tu personaje y color, añade amigos o bots y monta tu partida, local u online.', button:'Volver al menú', last:true, next:() => CD.exit() }
+    // ---- Modo Party, Mercado Negro y eventos (vistas de solo lectura) ----
+    { view:'menu', focus:'#contract-card .switch', text:'<b>🎉 Modo Party</b>: se activa aquí, en el menú. Marcas varios contratos y eliges cuántas victorias hacen falta. Se juegan seguidos; tras cada uno hay podio y recompensa en 💲 según tu puesto. Gana quien llegue primero a esas victorias.', button:'Siguiente' },
+    { view:'market', html:() => 'Este es el <b>🕶️ Mercado Negro</b> (se activa en el menú). Compras <b>contactos</b> que funcionan solos (máximo ' + ECON.MAX_PASSIVES + ') y un <b>consumible</b> que usas desde tu turno. Empiezas con ' + ECON.START_PARTY + '💲 en Party (' + ECON.START_SINGLE + '💲 en un solo contrato) y ganas más según tu puesto.', button:'Siguiente' },
+    { view:'event', focus:'#g-event', html:() => 'Con los <b>📰 Eventos de Ciudad</b> un titular cambia las reglas del contrato y queda arriba, en esta franja. Aquí, con la <b>Ley Seca</b>, cada d6 baja 1: la Apuesta Básica gana menos veces. Otros: <b>Noche de Purga</b> (+2 de daño) o <b>El Carnicero</b>, un jefe que paga el doble a quien lo vence.', button:'Siguiente' },
+    { view:'home', text:'¡Listo, Capo! Este es el menú: elige tu personaje y color, añade amigos o bots y monta tu partida, local u online. Pulsa <b>Saltar tutorial</b> y empieza a jugar.', last:true }
   ],
 
   start() {
@@ -51,7 +48,7 @@ const TUT = {
     const cfg = { room:null, online:false, market:false, events:false, dice:'virtual', mode:'single', contract:'rpg', tutorial:true,
       players:[{ slot:0, bot:false, uid:null, rk:null, char:me.char || 'Mafioso', name:(me.name || '').trim() || 'Capo 1', color },
                { slot:1, bot:true, uid:null, rk:null, char:'Bot', name:'Instructor', color:COLOR_KEYS.find(c => c !== color) }] };
-    this.i = 0; this.seen = -1; this.off = false; this.build();
+    this.i = 0; this.seen = -1; this.v = null; this.off = false; this.bodyClass = document.body.className; this.build();
     emitStart(cfg);
   },
   ready() { return this.off || this.i > 0 ? Promise.resolve() : new Promise(r => { this.release = r; }); },   // la partida arranca tras la bienvenida
@@ -80,29 +77,55 @@ const TUT = {
     this.i++;
     if (this.release) { const r = this.release; this.release = null; r(); }
     if (s.next) s.next();
-    this.update(); render(); CD.next();
+    this.update(); if (CD.G) { render(); CD.next(); }
   },
-  stop() {                                          // saltar o terminar: la partida sigue sin ayudas
+  stop() {                                          // saltar o terminar: la partida (o el menú) sigue sin ayudas
+    if (this.v !== 'home') this.view(null);
+    $$('menu-screen').inert = false; document.body.classList.remove('tut-over');
     this.off = true; this.focus(null); $$('coach').classList.add('hidden'); document.body.classList.remove('tutorial');
     if (this.release) { const r = this.release; this.release = null; r(); }
     if (CD.G) { render(); CD.next(); }
   },
+  view(v) {                                         // cambia la pantalla de fondo; nada de lo que muestra se puede usar
+    const G = CD.G, menu = $$('menu-screen'), game = $$('game-screen'), was = this.v;
+    if (was === v) return; this.v = v;
+    if (was === 'menu') { menu.classList.add('hidden'); game.classList.remove('hidden'); }
+    if (was === 'market' && G) G.market = null;
+    if (was === 'event' && G) G.event = null;
+    menu.inert = false; document.body.classList.remove('tut-over');
+    if (v === 'menu' || v === 'home') { game.classList.add('hidden'); menu.classList.remove('hidden'); menu.inert = true; window.scrollTo(0, 0); }
+    if (v === 'market') {                           // tienda de muestra con objetos reales al azar
+      const p = G.players[0];
+      Object.assign(p, { money:ECON.START_PARTY, contacts:[], consumable:null, stock:MK.newStock(), rerollCost:ECON.REROLL_BASE });
+      G.market = { title:'MERCADO NEGRO', lines:['Vista de muestra del tutorial: aquí no se compra nada.'], order:[0], cur:0, done:{} };
+      document.body.classList.add('tut-over');
+    }
+    if (v === 'event') { G.event = { code:'ley_seca' }; window.scrollTo(0, 0); const e = EVENTS.ley_seca; showBanner(e.title, e.desc); }
+    if (v === 'home') {                             // fin: se cierra la partida y queda el menú de verdad
+      CD.running = false; CD.G = null;
+      ['modal-over', 'modal-between', 'modal-market', 'modal-event'].forEach(id => $$(id).classList.add('hidden'));
+      document.body.className = this.bodyClass + ' tutorial'; musicSet('menu');
+    }
+    if (CD.G) render();
+  },
   focus(sel) {
     document.querySelectorAll('.coach-focus').forEach(e => e.classList.remove('coach-focus'));
-    const el = sel && document.querySelector(sel); if (el) el.classList.add('coach-focus');
+    const el = sel && document.querySelector(sel); if (!el) return;
+    el.classList.add('coach-focus');
+    if (this.v === 'menu') el.scrollIntoView({ block:'center', behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
   },
   update() {                                              // lo llama render() en cada cambio
-    if (this.off || !CD.G) return;
+    if (this.off || !CD.G && this.v !== 'home') return;
     let s;
     for (;;) {
       s = this.STEPS[this.i];
-      if (this.seen !== this.i) { this.seen = this.i; this.base = this.acts(0); }
+      if (this.seen !== this.i) { this.seen = this.i; if (CD.G) this.base = this.acts(0); this.view(s.view || null); }
       if (s.done && !s.last && s.done(this)) { this.i++; continue; }
       break;
     }
     document.querySelectorAll('#g-actions .opt').forEach(b => { if (!this.allows(b.dataset.type)) b.disabled = true; });
     const box = $$('coach'), visible = !s.show || s.show(this);
-    box.classList.toggle('hidden', !visible || CD.G.over && !s.last);
+    box.classList.toggle('hidden', !visible || CD.G && CD.G.over && !s.last);
     if (!visible) return this.focus(null);
     $$('coach-step').textContent = (this.i + 1) + ' / ' + this.STEPS.length;
     $$('coach-text').innerHTML = s.html ? s.html() : s.text;

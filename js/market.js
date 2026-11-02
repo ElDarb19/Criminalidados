@@ -223,7 +223,7 @@ const MK = {
     return `<div class="mhud">💲 ${p.money}${(p.contacts || []).map(id => chip(id)).join('')}${p.consumable ? chip(p.consumable, true) : ''}</div>`;
   },
   act(op, id) {                                 // clic del jugador en la tienda
-    const G = CD.G, m = G.market; if (!m) return;
+    const G = CD.G, m = G.market; if (!m || CD.cfg.tutorial) return;     // en el tutorial la tienda es solo de muestra
     const slot = CD.cfg.online ? CD.me : m.order[m.cur];
     if (CD.auth) CD.marketAct(slot, op, id); else CD.send({ type:'mk', slot, op, id: id || null });
   },
