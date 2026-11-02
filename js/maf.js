@@ -22,7 +22,7 @@ const MAF = {
         else CD.log(`🔄 ${p.name} ya controla el Distrito [${r}]. Se relanza el dado…`);
       }
     }
-    G.turn = Math.floor(Math.random() * G.players.length); G.start = G.turn;                 // sorteo del primer turno
+    G.turn = CD.firstTurn(G); G.start = G.turn;                 // sorteo del primer turno
     CD.log('🎲 Sorteo: empieza ' + G.players[G.turn].name + '.');
   },
   normalize(p) { p.parcels = p.parcels || []; p.raids = p.raids || {}; },     // Firebase elimina arreglos y objetos vacíos

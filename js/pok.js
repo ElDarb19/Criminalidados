@@ -16,7 +16,7 @@ const POK = {
 
   async init(G) {
     G.players.forEach(p => Object.assign(p, { tokens:this.START_TOKENS, tahurCD:0, tahurUses:0, alive:true }));
-    G.turn = Math.floor(Math.random() * G.players.length); G.start = G.turn;                 // sorteo del primer turno
+    G.turn = CD.firstTurn(G); G.start = G.turn;                 // sorteo del primer turno
     CD.log(`🎲 ¡Se abren las mesas clandestinas! Todos inician con ${this.START_TOKENS} fichas.`);
     CD.log(`⚠️ Objetivo: desplumar a los rivales durante ${this.MAX_ROUNDS} rondas. Empieza ${G.players[G.turn].name}.`);
   },

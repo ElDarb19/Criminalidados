@@ -28,6 +28,7 @@ window.addEventListener('criminaldice:start', e => CD.start(e.detail));
 
 CD.mod = () => MODULES[CD.contract]();               // contrato en curso (en Modo Party va cambiando)
 CD.beginContract = async function (G) {      // mercado (contrato único) → evento de ciudad → preparación → a jugar
+  if (CD.cfg.tutorial) await TUT.ready();       // el tutorial espera a que el jugador lea la bienvenida
   if (MK.on() && !MK.party()) await CD.openMarket('MERCADO NEGRO', ['Compra antes del contrato · ' + CONTRACT_NAMES[CD.contract]]);
   await MK.rollEvent(G);
   await CD.mod().init(G);
@@ -35,7 +36,7 @@ CD.beginContract = async function (G) {      // mercado (contrato único) → ev
   G.started = true; G.wait = false; CD.publish(); render(); CD.next();
 };
 CD.applyContractUI = function () {                         // tema de color y título según el contrato actual
-  document.body.className = 'theme-' + CD.contract; $$('g-title').textContent = GAME_TITLES[CD.contract];
+  document.body.className = 'theme-' + CD.contract + (CD.cfg.tutorial && !TUT.off ? ' tutorial' : ''); $$('g-title').textContent = GAME_TITLES[CD.contract];
 };
 CD.start = function (cfg) {
   if (CD.running) return; CD.running = true;      // evita relanzar la partida si el lobby cambia después de empezar
@@ -350,11 +351,13 @@ CD.advance = function () {
     }
   }
 };
+CD.firstTurn = G => CD.cfg.tutorial ? 0 : Math.floor(Math.random() * G.players.length);   // sorteo del primer turno (en el tutorial empiezas tú)
 CD.next = function () {                       // los bots juegan solos
   const G = CD.G; if (!CD.auth || G.over || G.wait || G.between || G.market) return; const p = G.players[G.turn];
-  if (!p.bot) return;
+  if (!p.bot || CD.cfg.tutorial && TUT.holdBot()) return;                     // el tutorial frena al bot mientras explica
   setTimeout(async () => {
     const g = CD.G; if (g !== G || g.wait || g.over || g.between || g.market || g.players[g.turn] !== p || !p.bot) return;   // !p.bot: el jugador volvió a conectarse
+    if (CD.cfg.tutorial && TUT.holdBot()) return;
     if (MK.on() && p.consumable && AI.useItem && AI.useItem(g, p, CD.contract)) { await CD.useConsumable(p.slot); return; }   // usa su consumible y vuelve a decidir
     const a = AI.decide(g, p, CD.contract); if (a) CD.exec(p.slot, a.type, a.target, a.extra);
   }, 900);
@@ -471,7 +474,7 @@ function render() {
   $$('g-turn').textContent = G.over ? '' : !G.started ? 'Preparando el contrato…' : G.between ? '' : G.prompt ? '⏳ Esperando el dado de ' + G.players[G.prompt.slot].name :
     CD.pending ? '🎯 Elige a tu objetivo' : (mine ? '👉 Tu turno, ' + cur.name : 'Turno de ' + cur.name + (cur.bot ? ' (bot)' : ''));
   const box = $$('g-actions'); box.classList.toggle('hidden', !mine);
-  if (mine) box.innerHTML = M.ui(G, cur).concat(MK.useBtn(cur) || []).map(b => `<button class="opt ${b.wide ? 'wide' : ''} ${CD.pending === b.type ? 'selected' : ''}" ${b.disabled ? 'disabled' : ''} onclick="CD.choose('${b.type}')">${b.label}<br><small>${b.sub}</small>${b.odds ? `<span class="odds" title="Probabilidad base (sin objetos ni eventos)">${b.odds}</span>` : ''}</button>`).join('');
+  if (mine) box.innerHTML = M.ui(G, cur).concat(MK.useBtn(cur) || []).map(b => `<button class="opt ${b.wide ? 'wide' : ''} ${CD.pending === b.type ? 'selected' : ''}" data-type="${b.type}" ${b.disabled ? 'disabled' : ''} onclick="CD.choose('${b.type}')">${b.label}<br><small>${b.sub}</small>${b.odds ? `<span class="odds" title="Probabilidad base (sin objetos ni eventos)">${b.odds}</span>` : ''}</button>`).join('');
   $$('g-log').innerHTML = G.log.slice().reverse().map(l => '<div>' + esc(l) + '</div>').join('');
   const bt = $$('modal-between'); bt.classList.toggle('hidden', !G.between);
   if (G.between) {
@@ -492,6 +495,7 @@ function render() {
 }
 CD.choose = function (type) {                 // botón de acción
   const G = CD.G, me = G.players[G.turn]; if (G.between || G.over || G.wait || G.market) return;
+  if (CD.cfg.tutorial && !TUT.allows(type)) return;          // el tutorial solo deja usar la acción que está enseñando
   if (type === 'use') { if (CD.auth) CD.useConsumable(me.slot); else { CD.send({ type:'use', slot:me.slot }); G.wait = true; render(); } return; }
   if (type.startsWith('opt:')) { const k = type.slice(4); CD.opts[k] = !CD.opts[k]; return render(); }   // interruptores locales (no son acciones)
   const t = CD.mod().validTargets(G, me, type);

@@ -87,6 +87,11 @@ body.tutorial #game-screen{padding-bottom:200px}
 #coach{position:fixed;left:0;right:0;bottom:12px;margin:0 auto;z-index:3300;width:min(520px,calc(100vw - 32px));
   background:linear-gradient(180deg,#e9dfc7,#d9cba8);color:#1d1810;border:1px solid var(--gold-dark);border-radius:var(--radius);padding:12px 14px;
   box-shadow:0 12px 30px rgba(0,0,0,.55);animation:cd-fadeup .3s ease both}
+#coach{max-height:calc(100vh - 24px);overflow-y:auto}
+.coach-items{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:8px}
+.coach-item{display:flex;flex-direction:column;gap:2px;padding:6px 8px;background:rgba(255,255,255,.35);border:1px solid rgba(60,45,20,.3);border-radius:var(--radius-sm)}
+.coach-item b{font-size:.8rem}.coach-item em{font-style:normal;font-size:.68rem;color:#6b5220;letter-spacing:.5px}.coach-item small{font-size:.72rem;line-height:1.3}
+@media (max-width:420px){.coach-items{grid-template-columns:1fr}}
 .coach-kicker{margin:0 0 4px;font-family:var(--font-type);font-size:.7rem;letter-spacing:2px;color:#6b5220}
 #coach-text{margin:0 0 10px;font-family:var(--font-type);font-size:.88rem;line-height:1.45}
 .coach-btns{display:flex;justify-content:space-between;gap:8px}

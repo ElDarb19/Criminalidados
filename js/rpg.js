@@ -34,7 +34,7 @@ const RPG = {
     }
     const B = MK.boss();                                                       // Evento: el Carnicero tiene +10 de salud
     if (B != null) { const b = G.players[B]; b.hp += 10; b.max = b.hp; CD.log(`💀 ${b.name} asume el rol de Jefe: +10 de salud (${b.hp}).`); }
-    G.turn = Math.floor(Math.random() * G.players.length); G.start = G.turn;                 // sorteo del primer turno
+    G.turn = CD.firstTurn(G); G.start = G.turn;                 // sorteo del primer turno
     CD.log('🎲 Sorteo: empieza ' + G.players[G.turn].name + '. ¡Empieza el tiroteo!');
   },
 

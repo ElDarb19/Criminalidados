@@ -16,7 +16,7 @@ const EXP = {
     this.startDive(G);
   },
   startDive(G) {
-    G.turn = Math.floor(Math.random() * G.players.length); G.start = G.turn; G.round = 1; G.focus = null;   // sorteo del primer turno en cada atraco
+    G.turn = CD.firstTurn(G); G.start = G.turn; G.round = 1; G.focus = null;   // sorteo del primer turno en cada atraco
     G.players.forEach(p => {
       const m = this.MAX_COB + (MK.boss() === p.slot ? 10 : 0) - (MK.has(p, 'contact_prestamista') ? ECON.PRESTAMISTA_HP : 0);   // Carnicero +10 · Prestamista -4
       Object.assign(p, { max:m, hp:m, temp:0, alive:true, arrested:false, repairUses:0, repairCooldown:0, torpedoUses:0, matonUsed:false, sec0:p.secured || 0 });   // el Matón vuelve a estar disponible en cada atraco
