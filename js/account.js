@@ -87,7 +87,7 @@ const ACCOUNT = {
   merge(a, b) {
     if (!b) return a;
     const d = PROFILE.blank(), max = (x, y) => Math.max(x || 0, y || 0);
-    d.name = b.name || a.name || ''; d.color = b.color || a.color || null; d.char = b.char || a.char || null;
+    d.name = b.name || a.name || ''; d.color = b.color || a.color || null; d.char = b.char || a.char || null; d.react = b.react || a.react || null;
     ['games', 'wins', 'online'].forEach(k => { d[k] = max(a[k], b[k]); });
     GAMES.forEach(g => ['p', 'w'].forEach(k => { d.by[g][k] = max(a.by && a.by[g] && a.by[g][k], b.by && b.by[g] && b.by[g][k]); }));
     ['p', 'w'].forEach(k => { d.party[k] = max(a.party && a.party[k], b.party && b.party[k]); });

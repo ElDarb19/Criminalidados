@@ -4,8 +4,8 @@
 const SET = { sfx:true, fast:false, calm:false, cb:false };
 try { Object.assign(SET, JSON.parse(localStorage.getItem('cd-settings') || '{}')); } catch (e) {}
 // Modo daltónico: cada color lleva además una letra (en fichas, dados y muestras de color).
-const COLOR_TAGS = { Color_R:'R', Color_B:'A', Color_G:'V', Color_P:'Ro', Color_Pu:'M', Color_W:'B' };
-const COLOR_LABELS = { Color_R:'Rojo', Color_B:'Azul', Color_G:'Verde', Color_P:'Rosa', Color_Pu:'Morado', Color_W:'Blanco' };
+const COLOR_TAGS = { Color_R:'R', Color_B:'A', Color_G:'V', Color_P:'Ro', Color_Pu:'M', Color_W:'B', Color_Y:'Am' };
+const COLOR_LABELS = { Color_R:'Rojo', Color_B:'Azul', Color_G:'Verde', Color_P:'Rosa', Color_Pu:'Morado', Color_W:'Blanco', Color_Y:'Amarillo' };
 const colorTag = c => COLOR_TAGS[c] || '';
 
 function settingsRow(b, on, label) {

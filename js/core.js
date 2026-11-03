@@ -210,7 +210,11 @@ function showFloat(slot, text, kind) {
   if (kind === 'crit') { const g = $$('game-screen'); g.classList.add('screen-shake'); setTimeout(() => g.classList.remove('screen-shake'), 350); }
 }
 // ---- reacciones rápidas (online): cualquiera las envía, el anfitrión las reparte a todos ----
-const REACTIONS = ['😏', '💣', '🤝', '💸', '😡', '🔥', '¡Traición!'];
+// Catálogo cerrado (el anfitrión rechaza lo que no esté aquí: nadie puede mandar texto libre). Cada jugador elige
+// hasta REACT_MAX en su Perfil (PROFILE.reacts); sin elegir, usa REACT_DEFAULT. Solo emojis que Windows 10 ya dibuja.
+const REACTIONS = ['😏', '💣', '🤝', '💸', '😡', '🔥', '😂', '😎', '🤔', '😱', '😭', '👏', '👍', '👎', '🎲', '💰',
+  '🔫', '🃏', '🍀', '💀', '🐀', '🥃', '👑', '🙏', '😴', '🤐', '🎩', '¡Traición!', '¡Suerte!', '¡Buena!', 'Ups'];
+const REACT_DEFAULT = ['😏', '💣', '💸', '😡', '¡Traición!'], REACT_MAX = 5;
 CD.lastReact = {};
 CD.react = function (e) {
   if (!CD.cfg.online || CD.me < 0 || !REACTIONS.includes(e)) return;
@@ -230,8 +234,8 @@ function showReact(slot, e) {
   document.body.appendChild(s); setTimeout(() => s.remove(), 1700);
 }
 function buildReactBar() {
-  const bar = $$('g-react'); if (bar.childElementCount) return;
-  REACTIONS.forEach(e => { const b = document.createElement('button'); b.type = 'button'; b.textContent = e; if (e.length > 2) b.className = 'txt';
+  const bar = $$('g-react'); bar.innerHTML = '';                                 // se rehace en cada partida con los elegidos
+  PROFILE.reacts().forEach(e => { const b = document.createElement('button'); b.type = 'button'; b.textContent = e; if (e.length > 2) b.className = 'txt';
     b.setAttribute('aria-label', 'Reaccionar ' + e); b.onclick = () => CD.react(e); bar.appendChild(b); });
 }
 // ---- invitado: reproduce los eventos del anfitrión EN ORDEN, uno tras otro, sin solapar animaciones ----

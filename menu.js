@@ -29,7 +29,7 @@ function netError(e) {
 }
 
 // Colores = subcarpetas de cada personaje en assets/characters/ (Mafioso/, Bot/). Para agregar uno nuevo: crea su carpeta en cada personaje y añádelo aquí.
-const COLORS = { Color_R:'#e74c3c', Color_B:'#3498db', Color_G:'#2ecc71', Color_P:'#ff8fc7', Color_Pu:'#9b59b6', Color_W:'#ecf0f1' };
+const COLORS = { Color_R:'#e74c3c', Color_B:'#3498db', Color_G:'#2ecc71', Color_P:'#ff8fc7', Color_Pu:'#9b59b6', Color_W:'#ecf0f1', Color_Y:'#f1c40f' };
 // Ajustable: dinero inicial del Mercado Negro cuando se juega un único contrato (en Party se usa la economía normal).
 const SINGLE_CONTRACT_START_MONEY = 300;
 // Momentos de Mercado Negro en un único contrato: antes de empezar (y en El Gran Atraco, también tras la inmersión 1 y la 3).
@@ -40,7 +40,8 @@ const COLOR_KEYS = Object.keys(COLORS);
 // Los que no tienes no aparecen en el menú (salvo el que ya lleve otro jugador en una sala online).
 const CHARACTERS = [{ key:'Mafioso', label:'Mafioso' }, { key:'Mafiosa', label:'Mafiosa' }, { key:'Patron', label:'El Patrón', price:400 },
   { key:'Tony', label:'El Gordo', price:400 },
-  { key:'Brummie', label:'El Brummie', price:500 }];
+  { key:'Brummie', label:'El Brummie', price:500 },
+  { key:'Terminator', label:'T-800', secret:true }];          // capo secreto: lo desbloquea el logro "Juicio Final"
 const GAMES = ['rpg','exp','maf','pok'];
 const IMPLEMENTED = ['rpg', 'exp', 'maf', 'pok'];   // contratos ya migrados a 4 jugadores; añade aquí cada uno al terminarlo
 const GAME_NAMES = { rpg:'Guerra de Bandas', exp:'El Gran Atraco', maf:'Imperio Criminal', pok:'Apuestas Clandestinas' };
@@ -221,7 +222,7 @@ function renderSlots() {
     let el = box.children[i];
     if (!el) { el = document.createElement('div'); el.className = 'slot'; box.appendChild(el); el.innerHTML =
       '<div class="avatar"><img alt=""></div><div><small></small><input type="text" maxlength="16"><div class="chars" role="group" aria-label="Personaje"></div><div class="swatches"></div></div>';
-      el.querySelector('input').addEventListener('input', e => onName(i, e.target.value));
+      el.querySelector('input').addEventListener('input', e => onName(i, cleanInput(e.target)));
       const ch = el.querySelector('.chars');
       CHARACTERS.forEach(c => { const b = document.createElement('button'); b.type = 'button'; b.className = 'char-btn'; b.dataset.char = c.key;
         b.textContent = c.label; b.onclick = () => onChar(i, c.key); ch.appendChild(b); });
@@ -237,7 +238,7 @@ function renderSlots() {
     el.classList.toggle('mine', mine && online());
     const inp = el.querySelector('input');
     el.querySelector('small').textContent = isBot ? 'BOT ' + (i - S.humans + 1) : ('JEFE ' + (i+1) + (online() ? (p.uid === uid ? ' · TÚ' : (claimed ? '' : ' · esperando…')) : ''));
-    const nm = isBot ? 'Bot ' + (i - S.humans + 1) : (claimed ? p.name : '—');
+    const nm = isBot ? 'Bot ' + (i - S.humans + 1) : (claimed ? cleanName(p.name) : '—');
     if (document.activeElement !== inp) inp.value = nm;
     inp.disabled = !mine;
     el.querySelector('.avatar').style.setProperty('--pc', COLORS[color] || '#555');
@@ -253,7 +254,11 @@ function renderSlots() {
     });
   }
 }
+// Nombres: solo letras (con tildes), números, espacios y . ' - _  →  sin emojis ni emoticonos como :) o <3
+function cleanName(v) { return String(v || '').replace(/[^\p{L}\p{M}\p{N} .'_-]/gu, '').replace(/\s{2,}/g, ' ').slice(0, 16); }
+function cleanInput(el) { const c = cleanName(el.value); if (c !== el.value) el.value = c; return c; }
 function onName(i, v) {
+  v = cleanName(v);
   S.players[i].name = v;
   if (online() && lobbyRef) lobbyRef.child('players/' + i + '/name').set(v);
 }
@@ -333,7 +338,7 @@ function buildConfig() {
   const players = [];
   for (let i = 0; i < total; i++) {
     const bot = i >= S.humans;
-    players.push({ slot:i, bot, uid:bot ? null : (S.players[i].uid || null), rk:bot ? null : (S.players[i].rk || null), char:bot ? 'Bot' : (S.players[i].char || 'Mafioso'), name:bot ? 'Bot ' + (i - S.humans + 1) : S.players[i].name.trim() || 'Capo ' + (i+1),
+    players.push({ slot:i, bot, uid:bot ? null : (S.players[i].uid || null), rk:bot ? null : (S.players[i].rk || null), char:bot ? 'Bot' : (S.players[i].char || 'Mafioso'), name:bot ? 'Bot ' + (i - S.humans + 1) : cleanName(S.players[i].name).trim() || 'Capo ' + (i+1),
       color:bot ? botCols[i - S.humans] : S.players[i].color });
   }
   const c = { room:S.room, online:online(), players, market:S.market, events:S.events, dice:S.dice,

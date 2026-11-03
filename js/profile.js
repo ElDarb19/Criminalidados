@@ -44,7 +44,7 @@ const PROFILE = {
   blank() {
     return { name:'', color:null, char:null, games:0, wins:0, online:0,
       by:Object.fromEntries(GAMES.map(g => [g, { p:0, w:0 }])), party:{ p:0, w:0 },
-      tot:{ dealt:0, gained:0, healed:0, nat20:0, nat1:0, acts:0 }, titles:{}, ach:{}, gold:0, paid:{}, owned:{} };
+      tot:{ dealt:0, gained:0, healed:0, nat20:0, nat1:0, acts:0 }, titles:{}, ach:{}, gold:0, paid:{}, owned:{}, react:null };
   },
   load() {
     if (this.d) return this.d;
@@ -59,7 +59,26 @@ const PROFILE = {
     try { localStorage.setItem(this.KEY, JSON.stringify(this.d)); } catch (e) {}
     if (!local && typeof ACCOUNT !== 'undefined') ACCOUNT.later();
   },
-  prefs() { const d = this.load(); return { name:(d.name || '').trim(), color:COLORS[d.color] ? d.color : null, char:this.owns(d.char) ? d.char : null }; },
+  reacts() {                                       // reacciones del chat rápido (máx. REACT_MAX, solo del catálogo)
+    const r = (this.load().react || []).filter(e => REACTIONS.includes(e)).slice(0, REACT_MAX);
+    return r.length ? r : REACT_DEFAULT.slice();
+  },
+  toggleReact(e) {
+    const r = this.reacts(), i = r.indexOf(e);
+    if (i >= 0) { if (r.length === 1) return this.reactMsg('Deja al menos una reacción.'); r.splice(i, 1); }
+    else { if (r.length >= REACT_MAX) return this.reactMsg('Máximo ' + REACT_MAX + '. Quita una para elegir otra.'); r.push(e); }
+    this.d.react = r; this.save(); $$('pf-react').innerHTML = this.reactHtml();
+  },
+  reactHtml() {
+    const r = this.reacts();
+    return `<h3 class="pf-h">Chat rápido · ${r.length}/${REACT_MAX}</h3>
+      <p class="pf-note pf-react-note">Elige hasta ${REACT_MAX} reacciones para enviar en las partidas online. Salen en el orden en que las elijas: ${r.map(esc).join(' ')}</p>
+      <div class="pf-reacts">${REACTIONS.map(e => { const on = r.includes(e);
+        return `<button type="button" class="pf-rx ${on ? 'on' : ''} ${e.length > 2 ? 'txt' : ''}" aria-pressed="${on}" aria-label="${on ? 'Quitar' : 'Elegir'} ${esc(e)}" onclick="PROFILE.toggleReact('${e}')">${e}</button>`; }).join('')}</div>
+      <p id="pf-react-msg" class="ac-msg" role="status"></p>`;
+  },
+  reactMsg(t) { const m = $$('pf-react-msg'); if (m) m.textContent = t; },
+  prefs() { const d = this.load(); return { name:cleanName(d.name).trim(), color:COLORS[d.color] ? d.color : null, char:this.owns(d.char) ? d.char : null }; },
 
   // ---------- oro y tienda ----------
   pay(a) {                                         // cobra un logro (una sola vez en la vida del perfil)
@@ -137,7 +156,7 @@ const PROFILE = {
     document.querySelectorAll('#modal-profile .tab-btn').forEach(b => { const on = b.dataset.tab === t; b.classList.toggle('active', on); b.setAttribute('aria-selected', on); });
     $$('profile-body').innerHTML = t === 'capo' ? this.capoHtml() : t === 'hist' ? this.histHtml() : t === 'shop' ? this.shopHtml() : t === 'top' ? ACCOUNT.topHtml() : this.achHtml();
     $$('pf-gold').textContent = this.d.gold;
-    if (t === 'capo') $$('pf-name').addEventListener('input', e => this.set('name', e.target.value));
+    if (t === 'capo') $$('pf-name').addEventListener('input', e => this.set('name', cleanInput(e.target)));
   },
   set(k, v) {
     this.d[k] = v; this.save(); this.toMenu(k);
@@ -157,6 +176,7 @@ const PROFILE = {
       <span class="pf-label">Personaje</span><div class="chars">${CHARACTERS.filter(c => this.owns(c.key)).map(c => `<button type="button" class="char-btn ${(p.char || 'Mafioso') === c.key ? 'sel' : ''}" aria-pressed="${(p.char || 'Mafioso') === c.key}" onclick="PROFILE.set('char','${c.key}')">${c.label}</button>`).join('')}</div>
       <span class="pf-label">Color favorito</span><div class="swatches">${COLOR_KEYS.map(c => `<button type="button" class="sw ${p.color === c ? 'sel' : ''}" style="--c:${COLORS[c]}" data-tag="${colorTag(c)}" aria-label="${COLOR_LABELS[c]}" onclick="PROFILE.set('color','${c}')"></button>`).join('')}</div></div></div>
       <p class="pf-note">Se usan solos en tu puesto del menú y al unirte a una sala online. Puedes cambiarlos en el menú cuando quieras. Si en una sala tu color ya está ocupado, lo conserva quien entró antes.</p>
+      <div id="pf-react">${this.reactHtml()}</div>
       <h3 class="pf-h">Cuenta</h3><div id="ac-zone">${typeof ACCOUNT !== 'undefined' ? ACCOUNT.html() : ''}</div>`;
   },
   histHtml() {

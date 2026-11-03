@@ -7,7 +7,7 @@ function ok(cond, msg) { if (!cond) throw new Error(msg || 'falló la comprobaci
 function eq(got, want, what) { if (got !== want) throw new Error(`${what}: se esperaba ${want} y salió ${got}`); }
 
 let W, E;                                          // ventana del juego y acceso a sus variables globales
-const COLORS6 = ['Color_R', 'Color_B', 'Color_G', 'Color_P', 'Color_Pu', 'Color_W'];
+const COLORS6 = ['Color_R', 'Color_B', 'Color_G', 'Color_P', 'Color_Pu', 'Color_W', 'Color_Y'];   // todos los colores de jugador
 
 // Prepara una partida de prueba sin red ni animaciones. players: [{ bot }, ...]
 function game(contract, players, mode) {
@@ -77,7 +77,7 @@ test('Expediente · El daño se anota a quien ataca y a quien lo recibe', async 
 });
 
 // ---------- Archivos ----------
-test('Sprites · Existen las 21 poses de cada personaje del menú y del bot en los 6 colores', async () => {
+test('Sprites · Existen las 21 poses de cada personaje del menú y del bot en todos los colores', async () => {
   const poses = ['idle', 'win', 'lose', 'exp_boxes', 'exp_cover', 'exp_getaway', 'exp_grenade', 'exp_vault', 'maf_bribe', 'maf_buy', 'maf_harvest', 'maf_raid', 'maf_risk', 'maf_safe', 'pok_bet', 'pok_cheat', 'pok_slam', 'rpg_doctor', 'rpg_rat', 'rpg_sniper', 'rpg_tommy'];
   const missing = [];
   const who = W.eval('CHARACTERS').map(c => ({ char:c.key })).concat({ bot:true });     // los personajes nuevos entran solos en la prueba

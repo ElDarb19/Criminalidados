@@ -1,4 +1,4 @@
-param([string]$Root)
+﻿param([string]$Root, [string[]]$Colors = @('Color_R','Color_B','Color_G','Color_P','Color_Pu','Color_W','Color_Y'))
 # Genera "El Patrón" en todos los colores: assets/characters/Patron/<Color>/<pose>.png
 # Base: assets/characters/Patron/Color_G/idle.png (retocado a mano por Darb; no se sobrescribe).
 #  · idle de los demás colores: misma imagen con la camisa del color del jugador.
@@ -8,7 +8,8 @@ param([string]$Root)
 #  · coche: Porsche 911 RSR IROC (1974) dibujado por código, del color del jugador y con él al volante.
 # Uso: powershell -ExecutionPolicy Bypass -File generar_patron.ps1 -Root <carpeta del juego>
 Add-Type -AssemblyName System.Drawing
-$cols = @{ Color_R='#A81515'; Color_B='#264385'; Color_G='#36613A'; Color_P='#F78DD1'; Color_Pu='#913CB9'; Color_W='#D9D9D9' }   # = colores de los dados
+$Colors = @($Colors | ForEach-Object { $_ -split ',' } | Where-Object { $_ })
+$cols = @{ Color_R='#A81515'; Color_B='#264385'; Color_G='#36613A'; Color_P='#F78DD1'; Color_Pu='#913CB9'; Color_W='#D9D9D9'; Color_Y='#D9A520' }   # = colores de los dados
 function C([string]$h) { [System.Drawing.ColorTranslator]::FromHtml($h) }
 function Mix($a, $b, [double]$t) { [System.Drawing.Color]::FromArgb(255, [int]($a.R + ($b.R - $a.R) * $t), [int]($a.G + ($b.G - $a.G) * $t), [int]($a.B + ($b.B - $a.B) * $t)) }
 $hex = { param($p) '{0:X2}{1:X2}{2:X2}' -f $p.R, $p.G, $p.B }
@@ -124,7 +125,7 @@ function Recolor($from, $to, $map) {
   $out.Save($to, [System.Drawing.Imaging.ImageFormat]::Png); $out.Dispose()
 }
 
-foreach ($key in 'Color_R','Color_B','Color_G','Color_P','Color_Pu','Color_W') {
+foreach ($key in $Colors) {
   $tc = C $cols[$key]
   $src = Join-Path $Root "assets\characters\Mafioso\$key"; $dir = Join-Path $Root "assets\characters\Patron\$key"
   New-Item -ItemType Directory -Force $dir | Out-Null
