@@ -35,7 +35,7 @@ const FILE = {
     const rows = this.rows(G), last = Math.max(...rows.map(r => r.place || 0)), medal = { 1:'🥇', 2:'🥈', 3:'🥉' };
     $$('file-cards').innerHTML = rows.map(r => {
       const img = r.place === 1 ? 'win' : rows.length > 2 && r.place === last ? 'lose' : 'idle', L = charList(r.p, img);
-      const who = r.p.bot ? 'Bot' + (PERSONAS[r.p.persona] ? ' · ' + PERSONAS[r.p.persona].label : '') : (r.p.char || 'Mafioso');
+      const who = r.p.bot ? 'Bot' + (PERSONAS[r.p.persona] ? ' · ' + PERSONAS[r.p.persona].label : '') : ((CHARACTERS.find(c => c.key === r.p.char) || CHARACTERS[0]).label);
       return `<article class="mug" style="--pc:${COLORS[r.p.color]}">
         <div class="mug-photo"><img src="${L[0]}" data-c="${L.join('|')}" onerror="charNext(this)" alt=""><span class="mug-plate">Nº 1946-0${r.p.slot + 1}</span></div>
         <div class="mug-body"><h3>${r.place ? (medal[r.place] || r.place + 'º') + ' ' : ''}${esc(r.p.name)}</h3><small>${esc(who)}</small>

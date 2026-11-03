@@ -77,11 +77,12 @@ test('Expediente · El daño se anota a quien ataca y a quien lo recibe', async 
 });
 
 // ---------- Archivos ----------
-test('Sprites · Existen las 21 poses de los 3 personajes en los 6 colores', async () => {
+test('Sprites · Existen las 21 poses de cada personaje del menú y del bot en los 6 colores', async () => {
   const poses = ['idle', 'win', 'lose', 'exp_boxes', 'exp_cover', 'exp_getaway', 'exp_grenade', 'exp_vault', 'maf_bribe', 'maf_buy', 'maf_harvest', 'maf_raid', 'maf_risk', 'maf_safe', 'pok_bet', 'pok_cheat', 'pok_slam', 'rpg_doctor', 'rpg_rat', 'rpg_sniper', 'rpg_tommy'];
   const missing = [];
-  for (const who of [{ char:'Mafioso' }, { char:'Mafiosa' }, { bot:true }]) for (const color of COLORS6) for (const img of poses) {
-    const u = new URL(W.charList(Object.assign({ color }, who), img)[0], W.location.href); const r = await fetch(u, { method:'HEAD' }); if (!r.ok) missing.push(u.pathname);
+  const who = W.eval('CHARACTERS').map(c => ({ char:c.key })).concat({ bot:true });     // los personajes nuevos entran solos en la prueba
+  for (const w of who) for (const color of COLORS6) for (const img of poses) {
+    const u = new URL(W.charList(Object.assign({ color }, w), img)[0], W.location.href); const r = await fetch(u, { method:'HEAD' }); if (!r.ok) missing.push(u.pathname);
   }
   ok(!missing.length, 'faltan ' + missing.length + ': ' + missing.slice(0, 5).join(', '));
 });
