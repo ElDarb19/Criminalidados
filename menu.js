@@ -38,7 +38,8 @@ const COLOR_KEYS = Object.keys(COLORS);
 // Personajes seleccionables = carpetas de assets/characters/ (cada una con sus subcarpetas de color). Para añadir uno, agrégalo aquí.
 // price: se compra con oro en la Tienda del perfil · secret: se gana con un logro · sin ninguno: básico.
 // Los que no tienes no aparecen en el menú (salvo el que ya lleve otro jugador en una sala online).
-const CHARACTERS = [{ key:'Mafioso', label:'Mafioso' }, { key:'Mafiosa', label:'Mafiosa' }, { key:'Patron', label:'El Patrón', price:400 }];
+const CHARACTERS = [{ key:'Mafioso', label:'Mafioso' }, { key:'Mafiosa', label:'Mafiosa' }, { key:'Patron', label:'El Patrón', price:400 },
+  { key:'Tony', label:'El Gordo', price:400 }];
 const GAMES = ['rpg','exp','maf','pok'];
 const IMPLEMENTED = ['rpg', 'exp', 'maf', 'pok'];   // contratos ya migrados a 4 jugadores; añade aquí cada uno al terminarlo
 const GAME_NAMES = { rpg:'Guerra de Bandas', exp:'El Gran Atraco', maf:'Imperio Criminal', pok:'Apuestas Clandestinas' };
