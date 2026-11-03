@@ -159,6 +159,8 @@ body.tutorial #menu-screen{padding-bottom:220px}
 #d-wrap{position:relative;width:96px;height:96px;margin:6px auto 4px;image-rendering:pixelated;filter:drop-shadow(0 8px 6px rgba(0,0,0,.55))}
 #fx:not(.hidden) #d-wrap{animation:cd-roll .7s cubic-bezier(.2,.7,.3,1) both}
 @keyframes cd-roll{0%{translate:-90px -40px;scale:.6;opacity:0}60%{translate:6px 4px;scale:1.1;opacity:1}100%{translate:0 0;scale:1}}
+.pcard>.ctag{position:absolute;top:6px;left:6px;z-index:2}
+#d-wrap .ctag{position:absolute;right:-8px;bottom:-4px;z-index:2}
 #d-wrap div{position:absolute;inset:0;background-size:contain;background-repeat:no-repeat;background-position:center;image-rendering:pixelated}
 
 /* dado físico / elección */

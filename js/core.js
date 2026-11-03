@@ -308,6 +308,7 @@ async function playFx(fx) {
   $$('fx-title').textContent = fx.desc; im.dataset.c = list.join('|'); im.onerror = function () { charNext(this); }; im.src = list[0];
   if (fx.sound) playSound(fx.sound);
   $$('d-shadow').style.backgroundImage = fx.sides > 6 ? `url('${d}Sombra.png')` : 'none';
+  $$('d-tag').textContent = colorTag(fx.color); $$('d-tag').style.setProperty('--pc', COLORS[fx.color]);
   $$('d-color').style.backgroundImage = `url('${d}${fx.color}.png')`; $$('d-base').style.backgroundImage = `url('${d}Capa 0.png')`;
   const num = $$('d-num'); box.classList.remove('hidden');
   if (fx.manual) { num.style.backgroundImage = `url('${d}${fx.val}.png')`; playSound('diceLanding'); await sleep(900); }
@@ -332,7 +333,7 @@ CD.exec = async function (slot, type, target, extra) {
   G.wait = true; CD.publish(); render();
   if (G.started) CD.stat(slot).acts++;
   try { await CD.mod().act(G, p, type, target, extra); } catch (e) { console.error(e); }
-  CD.publish(); render(); await sleep(G.over || G.between ? 900 : 1500);     // momento para ver el daño sobre el personaje
+  CD.publish(); render(); await sleep((G.over || G.between ? 900 : 1500) * (p.bot && SET.fast ? .5 : 1));     // momento para ver el daño sobre el personaje (más corto con "Bots rápidos")
   G.focus = null;
   const M = CD.mod();
   if (!G.over && !G.between && !(M.keepTurn && M.keepTurn(G))) { MK.turnEnd(G, p); if (!G.over && !G.between) CD.advance(); }     // algunos contratos tienen turnos de varias fases
@@ -360,7 +361,7 @@ CD.next = function () {                       // los bots juegan solos
     if (CD.cfg.tutorial && TUT.holdBot()) return;
     if (MK.on() && p.consumable && AI.useItem && AI.useItem(g, p, CD.contract)) { await CD.useConsumable(p.slot); return; }   // usa su consumible y vuelve a decidir
     const a = AI.decide(g, p, CD.contract); if (a) CD.exec(p.slot, a.type, a.target, a.extra);
-  }, 900);
+  }, SET.fast ? 350 : 900);
 };
 // Usar un consumible no gasta el turno.
 CD.useConsumable = async function (slot) {
@@ -457,7 +458,15 @@ async function showBanner(title, desc) {
   $$('ev-title').textContent = title; $$('ev-desc').textContent = desc; $$('modal-event').classList.remove('hidden'); playSound('crit'); await sleep(2800); $$('modal-event').classList.add('hidden');
 }
 CD.banner = async function (title, desc) { CD.emit('banner', { title, desc }); await showBanner(title, desc); };
-CD.exit = () => { if (CD.cfg.online && CD.auth) db.ref('rooms/' + CD.cfg.room).remove(); location.href = location.pathname; };
+CD.exit = () => { CD.leaving = true; if (CD.cfg.online && CD.auth) db.ref('rooms/' + CD.cfg.room).remove(); location.href = location.pathname; };
+CD.playing = () => CD.running && CD.G && !CD.G.over && !(CD.G.result && CD.G.result.lost);
+CD.askExit = async function () {                // salir a mitad de partida (desde Ajustes) pide confirmación
+  if (!CD.playing()) return CD.exit();
+  const text = !CD.cfg.online ? 'Se perderá el progreso de esta partida.'
+    : CD.auth ? 'Eres el anfitrión: la sala se cerrará para todos los jugadores.' : 'Un bot ocupará tu lugar y podrás volver con el código de la sala.';
+  if (await askConfirm('¿Abandonar la partida?', text, 'SÍ, SALIR')) CD.exit();
+};
+window.addEventListener('beforeunload', e => { if (CD.playing() && !CD.leaving) { e.preventDefault(); e.returnValue = ''; } });   // aviso del navegador al cerrar o recargar
 
 // ---------- pantalla ----------
 function render() {
@@ -469,7 +478,7 @@ function render() {
     const k = M.card(p, G), L = charList(p, k.img), isT = targets.includes(p.slot);
     const marked = G.focus && G.focus.target === p.slot && G.focus.att !== p.slot;
     return `<div class="pcard ${G.players[G.turn].slot === p.slot && !G.over && !G.between && p.alive ? 'turn' : ''} ${k.state} ${isT ? 'targetable' : ''} ${marked ? 'marked' : ''}" data-slot="${p.slot}" style="--pc:${COLORS[p.color]}" ${isT ? `onclick="CD.pick(${p.slot})"` : ''}>
-      ${marked ? '<span class="mark">🎯</span>' : ''}<img src="${L[0]}" data-c="${L.join('|')}" onerror="charNext(this)" alt="">
+      ${marked ? '<span class="mark">🎯</span>' : ''}<span class="ctag" title="${COLOR_LABELS[p.color] || ''}">${colorTag(p.color)}</span><img src="${L[0]}" data-c="${L.join('|')}" onerror="charNext(this)" alt="">
       <div><b>${esc(p.name)}</b>${p.bot ? ' 🤖' : ''}${p.bot && PERSONAS[p.persona] ? ` <span class="persona" title="${PERSONAS[p.persona].label}: ${PERSONAS[p.persona].desc}">${PERSONAS[p.persona].icon} ${PERSONAS[p.persona].label}</span>` : ''}${MK.boss() === p.slot ? ' 💀' : ''}<div class="hp">${(k.segs || [{ pct:k.pct, color:k.color }]).map(s => `<i style="width:${Math.max(0, Math.min(100, s.pct))}%;background:${s.color}"></i>`).join('')}</div><small>${k.label}</small>${k.html || ''}${MK.hud(p)}${CD.cfg.mode === 'party' ? `<div class="pw">🏅 ${(G.wins && G.wins[p.slot]) || 0}/${CD.cfg.winsNeeded} victorias</div>` : ''}</div></div>`; }).join('');
   $$('g-turn').textContent = G.over ? '' : !G.started ? 'Preparando el contrato…' : G.between ? '' : G.prompt ? '⏳ Esperando el dado de ' + G.players[G.prompt.slot].name :
     CD.pending ? '🎯 Elige a tu objetivo' : (mine ? '👉 Tu turno, ' + cur.name : 'Turno de ' + cur.name + (cur.bot ? ' (bot)' : ''));
@@ -492,6 +501,8 @@ function render() {
   $$('g-react').classList.toggle('hidden', !(CD.cfg.online && CD.me >= 0) || G.result && G.result.lost);
   musicSet(G.over && !G.result.lost ? 'victoria' : CD.contract);         // música del contrato (o de victoria al final)
   if (CD.cfg.tutorial) TUT.update();
+  if (!G.over) CD.recorded = false;                                       // historial y logros del perfil: una vez por final
+  else if (!CD.recorded && !G.result.lost) { CD.recorded = true; if (!CD.cfg.tutorial) PROFILE.record(G); }
 }
 CD.choose = function (type) {                 // botón de acción
   const G = CD.G, me = G.players[G.turn]; if (G.between || G.over || G.wait || G.market) return;

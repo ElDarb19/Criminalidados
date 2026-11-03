@@ -122,7 +122,8 @@ async function joinRoom() {
   if (slot < 0) return say('net-msg', 'La sala está llena (el anfitrión debe subir el número de jugadores).');
   const taken = Object.values(pl).map(p => p.color);
   const rk = Math.random().toString(36).slice(2, 12);       // llave para recuperar el asiento si se cierra la pestaña
-  const mine = { name:'Capo ' + (slot + 1), color:COLOR_KEYS.find(c => !taken.includes(c)), char:'Mafioso', uid, rk };
+  const pref = PROFILE.prefs();                              // nombre, color y personaje del Perfil (el color, solo si sigue libre)
+  const mine = { name:pref.name || 'Capo ' + (slot + 1), color:pref.color && !taken.includes(pref.color) ? pref.color : COLOR_KEYS.find(c => !taken.includes(c)), char:pref.char || 'Mafioso', uid, rk };
   let tx; try { tx = await ref.child('players/' + slot).transaction(cur => cur ? undefined : mine); } catch (e) { return say('net-msg', netError(e)); }
   if (!tx.committed) return say('net-msg', 'Otro jugador tomó ese lugar justo ahora. Intenta de nuevo.');
   try { localStorage.setItem('cd-seat', JSON.stringify({ room:code, slot, rk })); } catch (e) {}
@@ -222,7 +223,7 @@ function renderSlots() {
         b.textContent = c.label; b.onclick = () => onChar(i, c.key); ch.appendChild(b); });
       const sw = el.querySelector('.swatches');
       COLOR_KEYS.forEach(c => { const b = document.createElement('button'); b.className = 'sw'; b.style.setProperty('--c', COLORS[c]);
-        b.title = c; b.onclick = () => onColor(i, c); sw.appendChild(b); }); }
+        b.title = c; b.dataset.tag = colorTag(c); b.setAttribute('aria-label', COLOR_LABELS[c]); b.onclick = () => onColor(i, c); sw.appendChild(b); }); }
     el.classList.toggle('hidden', i >= total);
     if (i >= total) continue;
     const isBot = i >= S.humans, p = S.players[i];

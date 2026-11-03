@@ -105,6 +105,7 @@ const TUT = {
       CD.running = false; CD.G = null;
       ['modal-over', 'modal-between', 'modal-market', 'modal-event'].forEach(id => $$(id).classList.add('hidden'));
       document.body.className = this.bodyClass + ' tutorial'; musicSet('menu');
+      PROFILE.unlock('graduado');
     }
     if (CD.G) render();
   },

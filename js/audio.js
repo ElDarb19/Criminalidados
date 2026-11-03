@@ -69,7 +69,7 @@ function musicToggle() {
   if (MUS.on && MUS.want) musicPlay(MUS.want);
   musicButton();
 }
-function musicButton() { const b = document.getElementById('btn-music'); if (!b) return; b.textContent = MUS.on ? '🎵 Música' : '🔇 Música'; b.setAttribute('aria-pressed', MUS.on); }
+function musicButton() { const b = document.getElementById('set-music'); if (b) settingsRow(b, MUS.on, MUS.on ? '🎵 Música' : '🔇 Música'); }
 // Los navegadores solo dejan sonar música después de que el usuario toca la pantalla.
 ['pointerdown', 'keydown', 'touchstart'].forEach(ev => window.addEventListener(ev, () => { if (!MUS.unlocked) { MUS.unlocked = true; if (MUS.want) musicPlay(MUS.want); } }, { passive:true }));
 document.addEventListener('DOMContentLoaded', () => { musicButton(); if (!MUS.want) musicSet('menu'); });
