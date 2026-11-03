@@ -87,6 +87,17 @@ test('Sprites · Existen las 21 poses de cada personaje del menú y del bot en l
   ok(!missing.length, 'faltan ' + missing.length + ': ' + missing.slice(0, 5).join(', '));
 });
 
+// ---------- Tienda ----------
+test('Tienda · El oro de todos los logros alcanza para comprar toda la tienda', async () => {
+  const gold = E('ACHIEVEMENTS').reduce((n, a) => n + E('TIERS')[a.tier].gold, 0);
+  const cost = E('CHARACTERS').reduce((n, c) => n + (c.price || 0), 0);
+  ok(gold >= cost, 'los logros dan ' + gold + ' de oro y la tienda cuesta ' + cost + ': sube recompensas o añade logros');
+});
+test('Tienda · Los capos secretos tienen un logro que los desbloquea', async () => {
+  const sin = E('CHARACTERS').filter(c => c.secret && !E('ACHIEVEMENTS').some(a => a.unlocks === c.key)).map(c => c.key);
+  ok(!sin.length, 'sin logro: ' + sin.join(', '));
+});
+
 // ---------- ejecución ----------
 async function run() {
   const frame = document.getElementById('game');

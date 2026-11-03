@@ -36,7 +36,9 @@ const SINGLE_CONTRACT_START_MONEY = 300;
 const MARKET_MOMENTS = { rpg:['inicio'], maf:['inicio'], pok:['inicio'], exp:['inicio','tras_inmersion_1','tras_inmersion_3'] };
 const COLOR_KEYS = Object.keys(COLORS);
 // Personajes seleccionables = carpetas de assets/characters/ (cada una con sus subcarpetas de color). Para añadir uno, agrégalo aquí.
-const CHARACTERS = [{ key:'Mafioso', label:'Mafioso' }, { key:'Mafiosa', label:'Mafiosa' }, { key:'Patron', label:'El Patrón' }];
+// price: se compra con oro en la Tienda del perfil · secret: se gana con un logro · sin ninguno: básico.
+// Los que no tienes no aparecen en el menú (salvo el que ya lleve otro jugador en una sala online).
+const CHARACTERS = [{ key:'Mafioso', label:'Mafioso' }, { key:'Mafiosa', label:'Mafiosa' }, { key:'Patron', label:'El Patrón', price:400 }];
 const GAMES = ['rpg','exp','maf','pok'];
 const IMPLEMENTED = ['rpg', 'exp', 'maf', 'pok'];   // contratos ya migrados a 4 jugadores; añade aquí cada uno al terminarlo
 const GAME_NAMES = { rpg:'Guerra de Bandas', exp:'El Gran Atraco', maf:'Imperio Criminal', pok:'Apuestas Clandestinas' };
@@ -241,7 +243,8 @@ function renderSlots() {
     const img = el.querySelector('img'); const src = 'assets/characters/' + who + '/' + color + '/idle.png';
     if (!img.src.endsWith(src)) { img.style.visibility = 'visible'; img.onerror = () => { img.style.visibility = 'hidden'; }; img.src = src; }
     const chars = el.querySelector('.chars'); chars.classList.toggle('hidden', isBot);            // los bots siempre son el robot
-    chars.querySelectorAll('.char-btn').forEach(b => { const on = b.dataset.char === who; b.classList.toggle('sel', on); b.setAttribute('aria-pressed', on); b.disabled = !mine; });
+    chars.querySelectorAll('.char-btn').forEach(b => { const on = b.dataset.char === who; b.classList.toggle('sel', on); b.setAttribute('aria-pressed', on); b.disabled = !mine;
+      b.classList.toggle('hidden', !on && !ownsChar(b.dataset.char)); });            // skins sin comprar: ni se ven
     el.querySelectorAll('.sw').forEach(b => {
       const c = b.title; b.classList.toggle('sel', c === color);
       b.disabled = !mine || usedByHumans(i).includes(c);   // colores en uso, bloqueados
@@ -252,7 +255,9 @@ function onName(i, v) {
   S.players[i].name = v;
   if (online() && lobbyRef) lobbyRef.child('players/' + i + '/name').set(v);
 }
+function ownsChar(k) { return typeof PROFILE === 'undefined' || PROFILE.owns(k); }
 function onChar(i, k) {
+  if (!ownsChar(k)) return;
   S.players[i].char = k;
   if (online() && lobbyRef) lobbyRef.child('players/' + i + '/char').set(k);
   renderAll();

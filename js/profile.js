@@ -5,25 +5,38 @@
 //  · Historial: partidas, victorias por contrato y totales del Expediente.
 //  · Logros: se revisan al terminar cada partida (el tutorial no cuenta, salvo su propio logro).
 // Cuenta las partidas del jugador de este dispositivo: en online tu asiento; en local, el Jefe 1.
+//  · Oro: cada logro paga según su dificultad (TIERS) y se gasta en la Tienda (skins de CHARACTERS con precio).
+//    Regla: el oro de todos los logros debe alcanzar para comprar toda la tienda (lo comprueba tests/).
+//    Un logro solo paga una vez, aunque se borre el historial (d.paid).
+const TIERS = {
+  facil:   { label:'Fácil',      gold:100 },
+  media:   { label:'Media',      gold:250 },
+  dificil: { label:'Difícil',    gold:500 },
+  leyenda: { label:'Legendario', gold:1000 },
+  secreto: { label:'Secreto',    gold:0 }       // no paga oro: desbloquea un capo que no se vende
+};
 const ACHIEVEMENTS = [
-  { id:'primer_golpe', icon:'🥃', name:'Primer Golpe',          desc:'Gana tu primera partida.',                              test:c => c.won },
-  { id:'guerra',       icon:'🔫', name:'Señor de la Guerra',    desc:'Gana una Guerra de Bandas (contrato único).',            test:c => c.won && c.single('rpg') },
-  { id:'atraco',       icon:'💰', name:'Golpe Maestro',         desc:'Gana El Gran Atraco (contrato único).',                  test:c => c.won && c.single('exp') },
-  { id:'imperio',      icon:'🏛️', name:'Magnate',               desc:'Gana Imperio Criminal (contrato único).',                test:c => c.won && c.single('maf') },
-  { id:'apuestas',     icon:'🎰', name:'Tahúr de Ley',          desc:'Gana Apuestas Clandestinas (contrato único).',           test:c => c.won && c.single('pok') },
-  { id:'toda_ciudad',  icon:'🗺️', name:'Toda la Ciudad',        desc:'Gana los cuatro contratos al menos una vez.',            test:c => GAMES.every(g => c.d.by[g].w > 0) },
-  { id:'party',        icon:'🎉', name:'Rey de la Fiesta',      desc:'Gana un Modo Party.',                                    test:c => c.won && c.party },
-  { id:'intocable',    icon:'🛡️', name:'Intocable',             desc:'Gana una partida sin recibir daño ni pérdidas.',          test:c => c.won && c.s.taken === 0 },
-  { id:'sin_medico',   icon:'💪', name:'Sin Médico',            desc:'Gana una Guerra de Bandas sin curarte.',                 test:c => c.won && c.single('rpg') && c.s.healed === 0 },
-  { id:'huida',        icon:'🚗', name:'Huida Perfecta',        desc:'Asegura 25 de botín o más en El Gran Atraco.',           test:c => c.single('exp') && (c.p.secured || 0) >= 25 },
-  { id:'trebol',       icon:'🍀', name:'Trébol de Cuatro Hojas', desc:'Saca tres 20 naturales en una misma partida.',          test:c => c.s.nat20 >= 3 },
-  { id:'gato',         icon:'🐈‍⬛', name:'Gato Negro',            desc:'Saca tres 1 naturales en una misma partida.',            test:c => c.s.nat1 >= 3 },
-  { id:'maquinas',     icon:'🤖', name:'Domador de Máquinas',   desc:'Gana contra 3 bots.',                                    test:c => c.won && c.G.players.filter(q => q.bot).length >= 3 },
-  { id:'sindicato',    icon:'🌐', name:'Socio del Sindicato',   desc:'Termina una partida online.',                            test:c => !!CD.cfg.online },
-  { id:'coleccionista', icon:'🗂️', name:'Coleccionista',        desc:'Consigue los 8 títulos del Expediente.',                 test:c => FILE.TITLES.every(t => c.d.titles[t.key] > 0) },
-  { id:'veterano',     icon:'📅', name:'Veterano',              desc:'Juega 10 partidas.',                                     test:c => c.d.games >= 10 },
-  { id:'leyenda',      icon:'👑', name:'Leyenda de la Ciudad',  desc:'Gana 25 partidas.',                                      test:c => c.d.wins >= 25 },
-  { id:'graduado',     icon:'🎓', name:'Graduado',              desc:'Completa el tutorial.',                                  test:() => false }
+  { id:'graduado',     tier:'facil',   icon:'🎓', name:'Graduado',              desc:'Completa el tutorial.',                                  test:() => false },
+  { id:'primer_golpe', tier:'facil',   icon:'🥃', name:'Primer Golpe',          desc:'Gana tu primera partida.',                              test:c => c.won },
+  { id:'sindicato',    tier:'facil',   icon:'🌐', name:'Socio del Sindicato',   desc:'Termina una partida online.',                            test:c => !!CD.cfg.online },
+  { id:'veterano',     tier:'facil',   icon:'📅', name:'Veterano',              desc:'Juega 10 partidas.',                                     test:c => c.d.games >= 10 },
+  { id:'guerra',       tier:'media',   icon:'🔫', name:'Señor de la Guerra',    desc:'Gana una Guerra de Bandas (contrato único).',            test:c => c.won && c.single('rpg') },
+  { id:'atraco',       tier:'media',   icon:'💰', name:'Golpe Maestro',         desc:'Gana El Gran Atraco (contrato único).',                  test:c => c.won && c.single('exp') },
+  { id:'imperio',      tier:'media',   icon:'🏛️', name:'Magnate',               desc:'Gana Imperio Criminal (contrato único).',                test:c => c.won && c.single('maf') },
+  { id:'apuestas',     tier:'media',   icon:'🎰', name:'Tahúr de Ley',          desc:'Gana Apuestas Clandestinas (contrato único).',           test:c => c.won && c.single('pok') },
+  { id:'party',        tier:'media',   icon:'🎉', name:'Rey de la Fiesta',      desc:'Gana un Modo Party.',                                    test:c => c.won && c.party },
+  { id:'huida',        tier:'media',   icon:'🚗', name:'Huida Perfecta',        desc:'Asegura 25 de botín o más en El Gran Atraco.',           test:c => c.single('exp') && (c.p.secured || 0) >= 25 },
+  { id:'gato',         tier:'media',   icon:'🐈‍⬛', name:'Gato Negro',            desc:'Saca tres 1 naturales en una misma partida.',            test:c => c.s.nat1 >= 3 },
+  { id:'toda_ciudad',  tier:'dificil', icon:'🗺️', name:'Toda la Ciudad',        desc:'Gana los cuatro contratos al menos una vez.',            test:c => GAMES.every(g => c.d.by[g].w > 0) },
+  { id:'sin_medico',   tier:'dificil', icon:'💪', name:'Sin Médico',            desc:'Gana una Guerra de Bandas sin curarte.',                 test:c => c.won && c.single('rpg') && c.s.healed === 0 },
+  { id:'maquinas',     tier:'dificil', icon:'🤖', name:'Domador de Máquinas',   desc:'Gana contra 3 bots.',                                    test:c => c.won && c.G.players.filter(q => q.bot).length >= 3 },
+  { id:'trebol',       tier:'dificil', icon:'🍀', name:'Trébol de Cuatro Hojas', desc:'Saca tres 20 naturales en una misma partida.',          test:c => c.s.nat20 >= 3 },
+  { id:'intocable',    tier:'dificil', icon:'🛡️', name:'Intocable',             desc:'Gana una partida sin recibir daño ni pérdidas.',          test:c => c.won && c.s.taken === 0 },
+  { id:'coleccionista', tier:'leyenda', icon:'🗂️', name:'Coleccionista',        desc:'Consigue los 8 títulos del Expediente.',                 test:c => FILE.TITLES.every(t => c.d.titles[t.key] > 0) },
+  { id:'leyenda',      tier:'leyenda', icon:'👑', name:'Leyenda de la Ciudad',  desc:'Gana 25 partidas.',                                      test:c => c.d.wins >= 25 },
+  { id:'juicio_final', tier:'secreto', icon:'⚙️', name:'Juicio Final', hidden:true, unlocks:'Terminator',
+    desc:'Gana un Modo Party a 8 o más victorias contra 3 bots.',
+    test:c => c.won && c.party && (CD.cfg.winsNeeded || 0) >= 8 && c.G.players.filter(q => q.bot).length >= 3 }
 ];
 
 const PROFILE = {
@@ -31,17 +44,46 @@ const PROFILE = {
   blank() {
     return { name:'', color:null, char:null, games:0, wins:0, online:0,
       by:Object.fromEntries(GAMES.map(g => [g, { p:0, w:0 }])), party:{ p:0, w:0 },
-      tot:{ dealt:0, gained:0, healed:0, nat20:0, nat1:0, acts:0 }, titles:{}, ach:{} };
+      tot:{ dealt:0, gained:0, healed:0, nat20:0, nat1:0, acts:0 }, titles:{}, ach:{}, gold:0, paid:{}, owned:{} };
   },
   load() {
     if (this.d) return this.d;
     let saved = {}; try { saved = JSON.parse(localStorage.getItem(this.KEY) || '{}') || {}; } catch (e) {}
     const b = this.blank();
     this.d = Object.assign(b, saved, { by:Object.assign(b.by, saved.by), party:Object.assign(b.party, saved.party), tot:Object.assign(b.tot, saved.tot) });
+    const back = ACHIEVEMENTS.filter(a => this.d.ach[a.id] && !this.d.paid[a.id]).reduce((n, a) => n + this.pay(a), 0);   // logros de antes de existir el oro
+    if (back) { this.save(); setTimeout(() => this.notify('<i class="coin big" aria-hidden="true"></i>', 'ORO POR TUS LOGROS', '+' + back + ' de oro'), 600); }
     return this.d;
   },
-  save() { try { localStorage.setItem(this.KEY, JSON.stringify(this.d)); } catch (e) {} },
-  prefs() { const d = this.load(); return { name:(d.name || '').trim(), color:COLORS[d.color] ? d.color : null, char:CHARACTERS.some(c => c.key === d.char) ? d.char : null }; },
+  save(local) {                                    // local: solo en el dispositivo (sin subir a la nube)
+    try { localStorage.setItem(this.KEY, JSON.stringify(this.d)); } catch (e) {}
+    if (!local && typeof ACCOUNT !== 'undefined') ACCOUNT.later();
+  },
+  prefs() { const d = this.load(); return { name:(d.name || '').trim(), color:COLORS[d.color] ? d.color : null, char:this.owns(d.char) ? d.char : null }; },
+
+  // ---------- oro y tienda ----------
+  pay(a) {                                         // cobra un logro (una sola vez en la vida del perfil)
+    const d = this.d, g = TIERS[a.tier].gold; d.paid[a.id] = true; d.gold += g;
+    if (a.unlocks) d.owned[a.unlocks] = true;
+    return g;
+  },
+  goldOf(d) {                                      // oro = lo cobrado por logros − lo gastado en la tienda (sirve para combinar dispositivos)
+    const won = ACHIEVEMENTS.filter(a => d.paid[a.id]).reduce((n, a) => n + TIERS[a.tier].gold, 0);
+    const spent = CHARACTERS.filter(c => c.price && d.owned[c.key]).reduce((n, c) => n + c.price, 0);
+    return Math.max(0, won - spent);
+  },
+  owns(key) {                                      // los personajes sin precio ni secreto son básicos
+    const c = CHARACTERS.find(x => x.key === key); if (!c) return false;
+    return !(c.price || c.secret) || !!this.load().owned[key];
+  },
+  async buy(key) {
+    const c = CHARACTERS.find(x => x.key === key), d = this.load(); if (!c || !c.price || this.owns(key)) return;
+    if (d.gold < c.price) return;
+    if (!(await askConfirm('¿Comprar ' + c.label + '?', 'Cuesta ' + c.price + ' de oro. Te quedarán ' + (d.gold - c.price) + '.', 'COMPRAR'))) return;
+    d.gold -= c.price; d.owned[key] = true; this.save(); playSound('coin');
+    if (typeof renderAll === 'function') renderAll();
+    this.tab('shop');
+  },
 
   // ---------- llevar el perfil al menú ----------
   mySlot() { return online() && S.room ? S.players.findIndex(p => p.uid === uid) : 0; },
@@ -74,12 +116,15 @@ const PROFILE = {
   },
   unlock(id, quiet) {
     const d = this.load(), a = ACHIEVEMENTS.find(x => x.id === id); if (!a || d.ach[id]) return;
-    d.ach[id] = Date.now(); if (!quiet) this.save();
-    this.queue.push(a); if (this.queue.length === 1) this.toast();
+    d.ach[id] = Date.now();
+    const g = d.paid[id] ? 0 : this.pay(a);
+    if (!quiet) this.save();
+    this.notify(a.icon, 'LOGRO DESBLOQUEADO', a.name + (g ? ' · +' + g + ' de oro' : a.unlocks ? ' · capo secreto' : ''));
   },
-  toast() {                                        // aviso de logro, uno tras otro
+  notify(icon, head, text) { this.queue.push({ icon, head, text }); if (this.queue.length === 1) this.toast(); },
+  toast() {                                        // avisos de logro y de oro, uno tras otro
     const a = this.queue[0], t = $$('ach-toast'); if (!a) return;
-    t.innerHTML = `<span class="ach-ic">${a.icon}</span><span><small>LOGRO DESBLOQUEADO</small><b>${esc(a.name)}</b></span>`;
+    t.innerHTML = `<span class="ach-ic">${a.icon}</span><span><small>${a.head}</small><b>${esc(a.text)}</b></span>`;
     t.classList.remove('hidden'); playSound('coin');
     setTimeout(() => { t.classList.add('hidden'); this.queue.shift(); setTimeout(() => this.toast(), 300); }, 3500);
   },
@@ -90,7 +135,8 @@ const PROFILE = {
   tab(t) {
     this.cur = t;
     document.querySelectorAll('#modal-profile .tab-btn').forEach(b => { const on = b.dataset.tab === t; b.classList.toggle('active', on); b.setAttribute('aria-selected', on); });
-    $$('profile-body').innerHTML = t === 'capo' ? this.capoHtml() : t === 'hist' ? this.histHtml() : this.achHtml();
+    $$('profile-body').innerHTML = t === 'capo' ? this.capoHtml() : t === 'hist' ? this.histHtml() : t === 'shop' ? this.shopHtml() : t === 'top' ? ACCOUNT.topHtml() : this.achHtml();
+    $$('pf-gold').textContent = this.d.gold;
     if (t === 'capo') $$('pf-name').addEventListener('input', e => this.set('name', e.target.value));
   },
   set(k, v) {
@@ -108,9 +154,10 @@ const PROFILE = {
     setTimeout(() => this.avatar());
     return `<div class="pf-capo"><div class="pf-card"><div id="pf-avatar" class="avatar"><img id="pf-img" alt=""></div><span id="pf-plate" class="pf-plate"></span></div>
       <div class="pf-fields"><label class="pf-label" for="pf-name">Nombre</label><input id="pf-name" type="text" maxlength="16" placeholder="Capo 1" value="${esc(p.name)}">
-      <span class="pf-label">Personaje</span><div class="chars">${CHARACTERS.map(c => `<button type="button" class="char-btn ${(p.char || 'Mafioso') === c.key ? 'sel' : ''}" aria-pressed="${(p.char || 'Mafioso') === c.key}" onclick="PROFILE.set('char','${c.key}')">${c.label}</button>`).join('')}</div>
+      <span class="pf-label">Personaje</span><div class="chars">${CHARACTERS.filter(c => this.owns(c.key)).map(c => `<button type="button" class="char-btn ${(p.char || 'Mafioso') === c.key ? 'sel' : ''}" aria-pressed="${(p.char || 'Mafioso') === c.key}" onclick="PROFILE.set('char','${c.key}')">${c.label}</button>`).join('')}</div>
       <span class="pf-label">Color favorito</span><div class="swatches">${COLOR_KEYS.map(c => `<button type="button" class="sw ${p.color === c ? 'sel' : ''}" style="--c:${COLORS[c]}" data-tag="${colorTag(c)}" aria-label="${COLOR_LABELS[c]}" onclick="PROFILE.set('color','${c}')"></button>`).join('')}</div></div></div>
-      <p class="pf-note">Se usan solos en tu puesto del menú y al unirte a una sala online. Puedes cambiarlos en el menú cuando quieras. Si en una sala tu color ya está ocupado, lo conserva quien entró antes.</p>`;
+      <p class="pf-note">Se usan solos en tu puesto del menú y al unirte a una sala online. Puedes cambiarlos en el menú cuando quieras. Si en una sala tu color ya está ocupado, lo conserva quien entró antes.</p>
+      <h3 class="pf-h">Cuenta</h3><div id="ac-zone">${typeof ACCOUNT !== 'undefined' ? ACCOUNT.html() : ''}</div>`;
   },
   histHtml() {
     const d = this.load(), pct = d.games ? Math.round(d.wins / d.games * 100) : 0;
@@ -125,12 +172,24 @@ const PROFILE = {
   },
   achHtml() {
     const d = this.load(), n = ACHIEVEMENTS.filter(a => d.ach[a.id]).length;
-    return `<p class="pf-count">${n} de ${ACHIEVEMENTS.length} logros</p><div class="pf-ach">${ACHIEVEMENTS.map(a => { const on = d.ach[a.id];
-      return `<div class="ach ${on ? 'on' : ''}"><span class="ach-ic">${on ? a.icon : '🔒'}</span><div><b>${esc(a.name)}</b><small>${esc(a.desc)}</small>${on ? `<em>${new Date(on).toLocaleDateString('es')}</em>` : ''}</div></div>`; }).join('')}</div>`;
+    return `<p class="pf-count">${n} de ${ACHIEVEMENTS.length} logros</p><div class="pf-ach">${ACHIEVEMENTS.map(a => { const on = d.ach[a.id], veil = a.hidden && !on, g = TIERS[a.tier].gold;
+      const prize = g ? '<i class="coin" aria-hidden="true"></i> ' + g : a.unlocks ? '🎭 Capo secreto' : '';
+      return `<div class="ach ${on ? 'on' : ''}"><span class="ach-ic">${on ? a.icon : veil ? '❔' : '🔒'}</span><div><b>${veil ? '???' : esc(a.name)}</b><small>${veil ? 'Logro secreto. Sigue jugando…' : esc(a.desc)}</small>
+        <span class="ach-meta"><span class="tier tier-${a.tier}">${TIERS[a.tier].label}</span>${veil ? '' : `<span class="ach-gold">${prize}</span>`}</span>${on ? `<em>${new Date(on).toLocaleDateString('es')}</em>` : ''}</div></div>`; }).join('')}</div>`;
+  },
+  shopHtml() {
+    const d = this.load(), col = this.prefs().color || 'Color_R';
+    const items = CHARACTERS.filter(c => c.price);
+    return `<p class="pf-note">Gana oro con los logros: cuanto más difícil, más paga. Con todos los logros tendrás oro para comprar toda la tienda.</p>
+      <h3 class="pf-h">Capos</h3><div class="shop">${items.map(c => { const own = this.owns(c.key), can = d.gold >= c.price;
+        return `<div class="shop-item ${own ? 'own' : ''}" style="--pc:${COLORS[col]}"><div class="avatar"><img src="assets/characters/${c.key}/${col}/idle.png" alt=""></div>
+          <b>${esc(c.label)}</b>${own ? '<span class="shop-own">✔ Tuyo</span>'
+          : `<button type="button" class="shop-buy" ${can ? '' : 'disabled'} onclick="PROFILE.buy('${c.key}')"><i class="coin" aria-hidden="true"></i> ${c.price}</button>${can ? '' : `<small>Te faltan ${c.price - d.gold}</small>`}`}</div>`; }).join('')}</div>
+      <h3 class="pf-h">Dados</h3><p class="pf-note">Próximamente: juegos de dados para personalizar tus tiradas.</p>`;
   },
   async reset() {
-    if (!(await askConfirm('¿Borrar historial y logros?', 'Tu nombre, personaje y color se conservan. Esto no se puede deshacer.', 'SÍ, BORRAR'))) return;
-    const d = this.load(), keep = { name:d.name, color:d.color, char:d.char };
+    if (!(await askConfirm('¿Borrar historial y logros?', 'Tu nombre, personaje y color se conservan, y también tu oro y lo que compraste. Los logros ya cobrados no vuelven a pagar. Esto no se puede deshacer.', 'SÍ, BORRAR'))) return;
+    const d = this.load(), keep = { name:d.name, color:d.color, char:d.char, gold:d.gold, paid:d.paid, owned:d.owned, owner:d.owner };
     this.d = Object.assign(this.blank(), keep); this.save(); this.tab('hist');
   }
 };

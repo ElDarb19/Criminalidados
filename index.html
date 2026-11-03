@@ -21,6 +21,7 @@
 <script defer src="js/audio.js"></script>
 <script defer src="js/settings.js"></script>
 <script defer src="js/profile.js"></script>
+<script defer src="js/account.js"></script>
 <script defer src="js/core.js"></script>
 <script defer src="js/market.js"></script>
 <script defer src="js/rpg.js"></script>
@@ -182,10 +183,13 @@ window.addEventListener('error', function (e) {
 
 <div id="modal-profile" class="modal-overlay hidden" style="z-index:4050" role="dialog" aria-modal="true" aria-labelledby="profile-title"><div class="modal-content profile-box">
   <h2 id="profile-title">👤 Perfil del Capo</h2>
+  <p class="pf-purse" aria-live="polite"><i class="coin" aria-hidden="true"></i> <b id="pf-gold">0</b> de oro</p>
   <div class="tab-header" role="tablist">
     <button class="tab-btn active" type="button" data-tab="capo" onclick="PROFILE.tab('capo')">🎩 TU CAPO</button>
     <button class="tab-btn" type="button" data-tab="hist" onclick="PROFILE.tab('hist')">📜 HISTORIAL</button>
     <button class="tab-btn" type="button" data-tab="ach" onclick="PROFILE.tab('ach')">🏅 LOGROS</button>
+    <button class="tab-btn" type="button" data-tab="shop" onclick="PROFILE.tab('shop')"><i class="coin" aria-hidden="true"></i> TIENDA</button>
+    <button class="tab-btn" type="button" data-tab="top" onclick="PROFILE.tab('top')">🏆 TOP</button>
   </div>
   <div id="profile-body"></div>
   <button class="btn-cancel" type="button" onclick="PROFILE.close()">CERRAR</button>

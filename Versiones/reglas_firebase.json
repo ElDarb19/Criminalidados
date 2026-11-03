@@ -1,0 +1,55 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "rooms": {
+      "$roomId": {
+        ".read": "auth != null",
+        ".write": "auth != null && data.child('lobby/hostUid').val() === auth.uid",
+        "lobby": {
+          ".write": "auth != null && (!data.exists() || data.child('hostUid').val() === auth.uid)",
+          "players": {
+            "$slot": {
+              ".write": "auth != null && ((!data.exists() && newData.child('uid').val() === auth.uid) || data.child('uid').val() === auth.uid || root.child('rooms').child($roomId).child('lobby').child('hostUid').val() === auth.uid)"
+            }
+          }
+        },
+        "play": {
+          ".write": "auth != null && root.child('rooms').child($roomId).child('lobby').child('hostUid').val() === auth.uid",
+          "actions": {
+            "$actionId": {
+              ".write": "auth != null && ((!data.exists() && newData.child('uid').val() === auth.uid) || root.child('rooms').child($roomId).child('lobby').child('hostUid').val() === auth.uid)"
+            }
+          },
+          "presence": {
+            "$slot": {
+              ".write": "auth != null && root.child('rooms').child($roomId).child('lobby').child('players').child($slot).child('uid').val() === auth.uid"
+            }
+          }
+        }
+      }
+    },
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider !== 'anonymous'",
+        ".validate": "newData.hasChildren(['games', 'wins']) && newData.child('games').isNumber() && newData.child('wins').isNumber() && newData.child('wins').val() <= newData.child('games').val()"
+      }
+    },
+    "ranking": {
+      ".read": true,
+      ".indexOn": ["wins"],
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider !== 'anonymous'",
+        ".validate": "newData.hasChildren(['name', 'wins', 'games', 't'])",
+        "name":  { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 16" },
+        "wins":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= newData.parent().child('games').val()" },
+        "games": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000" },
+        "char":  { ".validate": "newData.isString() && newData.val().length <= 20" },
+        "color": { ".validate": "newData.isString() && newData.val().length <= 10" },
+        "t":     { ".validate": "newData.val() === now" },
+        "$other": { ".validate": false }
+      }
+    }
+  }
+}

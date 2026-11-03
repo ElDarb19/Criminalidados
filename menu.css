@@ -146,6 +146,57 @@ html.cb .ctag{display:inline-flex;align-items:center;justify-content:center;min-
 .ach b{display:block;font-family:var(--font-ui);font-weight:600;letter-spacing:.5px;font-size:.9rem}
 .ach small{display:block;font-size:.75rem;color:var(--cream-3);line-height:1.35}
 .ach em{display:block;font-style:normal;font-size:.68rem;color:var(--gold-2);margin-top:2px}
+.ach-meta{display:flex;gap:6px;align-items:center;margin-top:4px;flex-wrap:wrap}
+.tier{font-family:var(--font-ui);font-size:.6rem;letter-spacing:1.5px;text-transform:uppercase;padding:1px 6px;border-radius:999px;border:1px solid currentColor}
+.tier-facil{color:#8fbf7a}.tier-media{color:#d9b45a}.tier-dificil{color:#e07a6a}.tier-leyenda{color:#c79ae6}.tier-secreto{color:var(--cream-3)}
+.ach-gold{font-size:.72rem;color:var(--gold-2)}
+
+/* oro y tienda (moneda dibujada: el emoji 🪙 no existe en Windows 10) */
+.coin{display:inline-block;width:.95em;height:.95em;border-radius:50%;vertical-align:-.12em;font-style:normal;
+  background:radial-gradient(circle at 35% 30%,#fff3c4 0 12%,#f0cf6e 30%,#c9a24a 62%,#8a6a22 100%);box-shadow:inset 0 0 0 .08em #7a5a1a,0 1px 2px rgba(0,0,0,.4)}
+.coin.big{width:1.6rem;height:1.6rem}
+.pf-purse{margin:-6px 0 10px;text-align:center;font-family:var(--font-ui);letter-spacing:1.5px;color:var(--cream-3);font-size:.85rem}
+.pf-purse b{font-family:var(--font-display);font-weight:400;font-size:1.3rem;color:var(--gold-2)}
+.shop{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.shop-item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 8px;background:var(--ink);border:1px solid var(--line);border-radius:var(--radius-sm);text-align:center}
+.shop-item.own{border-color:var(--gold)}
+.shop-item .avatar{width:84px;height:84px}
+.shop-item b{font-family:var(--font-ui);font-weight:600;letter-spacing:.5px;font-size:.9rem}
+.shop-item small{font-size:.7rem;color:var(--cream-3)}
+.shop-buy{min-height:44px;width:100%;background:linear-gradient(180deg,var(--gold-2),var(--gold));color:#1d1810;border:1px solid var(--gold-dark);border-radius:var(--radius-sm);font-family:var(--font-ui);font-weight:600;letter-spacing:1px;cursor:pointer}
+.shop-buy:disabled{opacity:.45;cursor:not-allowed}
+.shop-own{min-height:44px;display:flex;align-items:center;font-family:var(--font-ui);letter-spacing:1px;color:var(--gold-2);font-size:.85rem}
+/* cuenta en la nube */
+.ac-box{display:flex;flex-direction:column}
+.ac-box .pf-note{margin:0 0 12px}
+.ac-box input{min-height:44px}
+.ac-on{flex-direction:row;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.ac-on p{margin:0;color:var(--cream-3);font-size:.85rem;word-break:break-all}.ac-on b{color:var(--gold-2)}
+.ac-on .btn-cancel{margin:0;width:auto;padding:0 16px}
+.ac-google{min-height:44px;display:flex;align-items:center;justify-content:center;gap:10px;background:#f5f1e6;color:#1d1810;border:1px solid var(--gold-dark);border-radius:var(--radius-sm);font-family:var(--font-ui);font-weight:600;letter-spacing:.5px;font-size:.95rem;cursor:pointer}
+.g-logo{width:22px;height:22px;border-radius:50%;background:#fff;color:#4285f4;font:700 15px/22px Arial,sans-serif;box-shadow:0 0 0 1px rgba(0,0,0,.15)}
+.ac-or{display:flex;align-items:center;gap:10px;margin:14px 0 4px;color:var(--cream-3);font-size:.75rem;letter-spacing:1px}
+.ac-or::before,.ac-or::after{content:'';flex:1;height:1px;background:var(--line)}
+.ac-row{display:flex;gap:8px;margin-top:12px}.ac-row button{flex:1;min-height:44px;margin:0}
+.ac-link{min-height:44px;background:none;border:0;color:var(--gold-2);text-decoration:underline;font-family:var(--font-type);font-size:.8rem;cursor:pointer}
+.ac-msg{min-height:1em;margin:4px 0 0;font-size:.8rem;color:#e07a6a;text-align:center}.ac-msg.good{color:#8fbf7a}
+.ac-box button:disabled{opacity:.5;cursor:wait}
+
+/* TOP global */
+.top{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.top li{display:grid;grid-template-columns:34px 44px minmax(0,1fr) auto auto;align-items:center;gap:10px;padding:6px 10px;background:var(--ink);border:1px solid var(--line);border-radius:var(--radius-sm)}
+.top li.me{border-color:var(--gold);background:linear-gradient(180deg,rgba(201,162,74,.14),rgba(201,162,74,.03))}
+.top-n{font-family:var(--font-display);font-size:1.1rem;color:var(--gold-2);text-align:center}
+.top .avatar{width:44px;height:44px}
+.top-name{text-align:left;font-family:var(--font-ui);font-weight:600;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.top-name small{color:var(--gold-2);font-weight:400}
+.top-w,.top-g{text-align:center;font-family:var(--font-display);color:var(--gold-2);font-size:1.05rem;line-height:1}
+.top-g{color:var(--cream-3);font-size:.9rem}
+@media (max-width:520px){
+  .top li{grid-template-columns:28px 44px minmax(0,1fr) minmax(0,1fr);grid-template-areas:"n a name name" "n a w g";gap:2px 8px;padding:6px 8px}
+  .top-n{grid-area:n}.top .avatar{grid-area:a}.top-name{grid-area:name}.top-w{grid-area:w;text-align:left}.top-g{grid-area:g;text-align:left}
+  .top li .top-w small,.top li .top-g small{display:inline;margin:0 0 0 3px}
+}
+.top-w small,.top-g small{display:block;font-family:var(--font-ui);font-size:.55rem;letter-spacing:1px;color:var(--cream-3);margin-top:2px}
 @media (max-width:520px){.pf-capo{flex-direction:column;align-items:center}.pf-fields{width:100%}.pf-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.pf-ach{grid-template-columns:1fr}}
 
 /* aviso de logro */
@@ -172,7 +223,7 @@ html.cb .ctag{display:inline-flex;align-items:center;justify-content:center;min-
 .opt.gold{border-color:var(--gold)}
 .code{text-align:center;color:var(--accent-cyan);font-family:var(--font-type);font-size:1.1rem;letter-spacing:3px;margin:14px 0 10px}
 .opt.cyan{border-color:var(--accent-cyan);color:var(--accent-cyan);display:block;margin:0 auto;padding:10px 16px}
-input[type=text],input[type=number]{width:100%;min-height:44px;background:var(--ink);color:var(--cream);border:1px solid rgba(233,223,199,.2);border-radius:var(--radius-sm);padding:10px 12px;font-size:1rem;font-family:var(--font-ui);letter-spacing:1px}
+input[type=text],input[type=number],input[type=email],input[type=password]{width:100%;min-height:44px;background:var(--ink);color:var(--cream);border:1px solid rgba(233,223,199,.2);border-radius:var(--radius-sm);padding:10px 12px;font-size:1rem;font-family:var(--font-ui);letter-spacing:1px}
 input:focus{outline:none;border-color:var(--gold-2);box-shadow:0 0 0 3px rgba(201,162,74,.2)}
 input:disabled{opacity:.65}
 .counts{display:flex;gap:10px;margin-bottom:14px}.counts label{flex:1;font-size:.75rem;font-weight:500;letter-spacing:2px;color:var(--cream-3)}
