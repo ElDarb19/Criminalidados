@@ -41,6 +41,8 @@ const COLOR_KEYS = Object.keys(COLORS);
 const CHARACTERS = [{ key:'Mafioso', label:'Mafioso' }, { key:'Mafiosa', label:'Mafiosa' }, { key:'Patron', label:'El Patrón', price:400 },
   { key:'Tony', label:'El Gordo', price:400 },
   { key:'Brummie', label:'El Brummie', price:500 },
+  { key:'Soprano', label:'El Sopra', price:500 },
+  { key:'Gustavo', label:'Gustavo', price:500 },
   { key:'Terminator', label:'T-800', secret:true }];          // capo secreto: lo desbloquea el logro "Juicio Final"
 const GAMES = ['rpg','exp','maf','pok'];
 const IMPLEMENTED = ['rpg', 'exp', 'maf', 'pok'];   // contratos ya migrados a 4 jugadores; añade aquí cada uno al terminarlo
