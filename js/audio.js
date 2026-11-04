@@ -92,6 +92,9 @@ function playSound(name) {
       case 'heal':          tone(ctx, 'sine', [330, 660], .25, .2); break;
       case 'coin':          tone(ctx, 'sine', [987.77, 1318.51], .25, .15); break;
       case 'win':           tone(ctx, 'triangle', [523.25, 659.25, 783.99, 1046.5], .6, .2); break;
+      case 'trophy':        // propio de los logros: campanitas que suben (sol-si-re-sol) y un destello agudo al final
+        [783.99, 987.77, 1174.66, 1567.98].forEach((f, i) => { tone(ctx, 'triangle', [f], .38, .14, i * .08); tone(ctx, 'sine', [f * 2], .26, .05, i * .08); });
+        tone(ctx, 'sine', [2093, 3136], .5, .06, .36); break;
       case 'tommy':         for (let i = 0; i < 6; i++) tone(ctx, 'sawtooth', [75 + Math.random() * 25, 60], .05, .3, i * .065); break;
       case 'sniper_reload': tone(ctx, 'sine', [1200, 400], .08, .2); break;
       case 'sniper_shot':   tone(ctx, 'square', [900, 60], .3, .35); break;

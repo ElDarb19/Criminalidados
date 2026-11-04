@@ -141,11 +141,13 @@ const PROFILE = {
     this.notify(a.icon, 'LOGRO DESBLOQUEADO', a.name + (g ? ' · +' + g + ' de oro' : a.unlocks ? ' · capo secreto' : ''));
   },
   notify(icon, head, text) { this.queue.push({ icon, head, text }); if (this.queue.length === 1) this.toast(); },
-  toast() {                                        // avisos de logro y de oro, uno tras otro
+  toast() {                                        // avisos de logro y de oro, uno tras otro, por encima de cualquier pantalla
     const a = this.queue[0], t = $$('ach-toast'); if (!a) return;
+    document.body.appendChild(t);                  // último del documento: queda sobre cualquier ventana abierta después
     t.innerHTML = `<span class="ach-ic">${a.icon}</span><span><small>${a.head}</small><b>${esc(a.text)}</b></span>`;
-    t.classList.remove('hidden'); playSound('coin');
-    setTimeout(() => { t.classList.add('hidden'); this.queue.shift(); setTimeout(() => this.toast(), 300); }, 3500);
+    t.className = 'ach-toast in'; playSound('trophy');
+    setTimeout(() => { t.className = 'ach-toast out';
+      setTimeout(() => { t.className = 'ach-toast hidden'; this.queue.shift(); setTimeout(() => this.toast(), 250); }, 420); }, 3200);
   },
 
   // ---------- ventana del perfil ----------

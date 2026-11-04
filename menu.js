@@ -44,6 +44,7 @@ const CHARACTERS = [{ key:'Mafioso', label:'Mafioso' }, { key:'Mafiosa', label:'
   { key:'Fisk', label:'Sr. Fisk', price:600 },
   { key:'Tony', label:'El Gordo', price:600 },
   { key:'Gustavo', label:'Gustavo', price:700 },
+  { key:'Montana', label:'Sr. Montana', price:700 },
   { key:'Terminator', label:'T-800', secret:true }];          // capo secreto: lo desbloquea el logro "Juicio Final"
 const GAMES = ['rpg','exp','maf','pok'];
 const IMPLEMENTED = ['rpg', 'exp', 'maf', 'pok'];   // contratos ya migrados a 4 jugadores; añade aquí cada uno al terminarlo
