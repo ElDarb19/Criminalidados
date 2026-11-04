@@ -54,16 +54,46 @@ CD.start = function (cfg) {
     render(); setTimeout(() => CD.beginContract(CD.G), 600);
   } else {
     if (cfg.rejoin) CD.catchUp(); else db.ref(CD.base + '/ev').on('child_added', s => CD.enqueue(s.val()));
-    let hostSeen = false, hostTimer = null;    // el anfitrión es el jefe 0: si su presencia no vuelve, la sala se cerró
+    // El anfitrión es el jefe 0 y es quien mueve la partida. Si se le apaga la pantalla o pierde la señal, se espera
+    // a que vuelva (HOST_GRACE); la partida solo termina si no vuelve a tiempo o si cerró la sala a propósito.
+    let hostSeen = false, hostTimer = null;
+    const hostGone = summary => { hostWait(false); if (CD.G && !CD.G.over) { CD.G.over = true; CD.G.result = { winner:null, lost:true, summary }; render(); } };
     db.ref(CD.base + '/presence/0').on('value', s => {
-      if (s.val()) { hostSeen = true; clearTimeout(hostTimer); hostTimer = null; }
-      else if (hostSeen && !hostTimer) hostTimer = setTimeout(() => {
-        if (CD.G && !CD.G.over) { CD.G.over = true; CD.G.result = { winner:null, lost:true, summary:'El anfitrión se desconectó y la partida terminó.' }; render(); }
-      }, DROP_GRACE);
+      if (s.val()) { hostSeen = true; clearTimeout(hostTimer); hostTimer = null; hostWait(false); }
+      else if (hostSeen && !hostTimer) {
+        hostWait(true);
+        hostTimer = setTimeout(() => hostGone('El anfitrión no volvió a conectarse y la partida terminó.'), HOST_GRACE);
+      }
     });
+    db.ref('rooms/' + cfg.room + '/lobby/status').on('value', s => { if (hostSeen && !s.val()) hostGone('El anfitrión cerró la sala y la partida terminó.'); });
   }
-  if (cfg.online) { CD.presence(); buildReactBar(); }
+  if (cfg.online) { CD.presence(); buildReactBar(); keepAwake(); }
+  preloadDice(cfg.players);
 };
+// Aviso para los invitados mientras el anfitrión está fuera (sus acciones quedan en cola y se juegan cuando vuelve).
+function hostWait(on) {
+  const el = $$('g-hostwait'); if (!el) return;
+  el.textContent = '⏳ El anfitrión perdió la conexión. Esperando a que vuelva…'; el.classList.toggle('hidden', !on);
+}
+// Mantiene la pantalla encendida durante las partidas online (si el navegador lo permite): al apagarse, el celular
+// congela el juego y corta la conexión. Se vuelve a pedir al regresar a la pestaña, porque el sistema lo suelta al ocultarla.
+function keepAwake() {
+  if (!('wakeLock' in navigator)) return;
+  const ask = () => { if (document.visibilityState === 'visible' && CD.running) navigator.wakeLock.request('screen').catch(() => {}); };
+  ask(); document.addEventListener('visibilitychange', ask);
+}
+// Carga de antemano las caras de los dados: si no, en celular la animación pasa antes de que bajen y el dado no se ve.
+const diceCache = [];
+function preloadDice(players) {
+  const colors = [...new Set(players.map(p => p.color))];
+  [4, 6, 8, 12, 20].forEach(n => {
+    const urls = ['Capa 0'].concat(n > 6 ? ['Sombra'] : [], colors, Array.from({ length:n }, (_, i) => String(i + 1)));
+    urls.forEach(u => { const im = new Image(); im.src = 'assets/D' + n + '/' + u + '.png'; diceCache.push(im); });
+  });
+}
+function imgReady(url, ms) {                 // espera a que una imagen esté lista (o ms como máximo)
+  return new Promise(res => { const im = new Image(); const t = setTimeout(res, ms); im.onload = im.onerror = () => { clearTimeout(t); res(); }; im.src = url; });
+}
 CD.freshGame = players => {
   const styles = Object.keys(PERSONAS).sort(() => Math.random() - .5); let n = 0;      // cada bot recibe una personalidad (distintas mientras alcancen)
   return { players:players.map(p => ({ slot:p.slot, name:p.name, color:p.color, char:p.char || 'Mafioso', bot:p.bot, dropped:!!p.dropped,
@@ -93,6 +123,7 @@ CD.rematch = function () {
 
 // ---------- presencia: si un jugador online pierde la conexión, un bot lo cubre hasta que vuelva ----------
 const DROP_GRACE = 20000;   // ms sin conexión antes de pasarle el control a un bot (cortes breves, pantalla bloqueada…)
+const HOST_GRACE = 180000;  // ms que los invitados esperan al anfitrión antes de dar la partida por terminada
 CD.presence = function () {
   if (CD.me >= 0) {
     const r = db.ref(CD.base + '/presence/' + CD.me), seat = db.ref('rooms/' + CD.cfg.room + '/lobby/players/' + CD.me); let on = false;
@@ -116,11 +147,14 @@ CD.presence = function () {
     });
   });
 };
-// El anfitrión mantiene viva la sala: un corte suyo dispara el onDisconnect que la borra, así que al volver la reconstruye.
+// El anfitrión mantiene viva la sala. Ya en partida, un corte suyo (pantalla apagada, sin señal) NO la borra: solo deja
+// la hora en lobby/away y los invitados lo esperan. Se borra cuando él sale a propósito (CD.exit).
 CD.keepRoom = function () {
-  const room = db.ref('rooms/' + CD.cfg.room); room.onDisconnect().remove();
+  const room = db.ref('rooms/' + CD.cfg.room); room.onDisconnect().cancel();       // quita el borrado automático que se puso en el lobby
+  room.child('lobby/away').onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
+  db.ref(CD.base + '/presence/' + CD.me).onDisconnect().remove();                  // cancel() también quitó este: los invitados lo usan para saber que se fue
   const h = CD.cfg.players[0];
-  room.child('lobby').update({ status:'STARTING', hostUid:uid, 'players/0':{ name:h.name, color:h.color, uid }, 'config/final':JSON.parse(JSON.stringify(CD.cfg)) }).catch(() => {});
+  room.child('lobby').update({ status:'STARTING', hostUid:uid, away:null, 'players/0':{ name:h.name, color:h.color, uid }, 'config/final':JSON.parse(JSON.stringify(CD.cfg)) }).catch(() => {});
 };
 CD.restorePlayer = function (slot) {
   const G = CD.G, p = G && G.players[slot]; if (!p || !p.dropped || G.over) return;
@@ -315,6 +349,7 @@ async function playFx(fx) {
   $$('d-tag').textContent = colorTag(fx.color); $$('d-tag').style.setProperty('--pc', COLORS[fx.color]);
   $$('d-color').style.backgroundImage = `url('${d}${fx.color}.png')`; $$('d-base').style.backgroundImage = `url('${d}Capa 0.png')`;
   const num = $$('d-num'); box.classList.remove('hidden');
+  await Promise.all([`${d}Capa 0.png`, `${d}${fx.color}.png`, `${d}${fx.val}.png`].map(u => imgReady(u, 1500)));   // que el dado se vea aunque la red vaya lenta
   if (fx.manual) { num.style.backgroundImage = `url('${d}${fx.val}.png')`; playSound('diceLanding'); await sleep(900); }
   else { for (let i = 0; i < 10; i++) { num.style.backgroundImage = `url('${d}${1 + Math.floor(Math.random() * fx.sides)}.png')`; $$('d-wrap').style.transform = `rotate(${Math.random() * 20 - 10}deg)`; playSound('roll'); await sleep(60); }
     num.style.backgroundImage = `url('${d}${fx.val}.png')`; $$('d-wrap').style.transform = 'none'; playSound('diceLanding'); await sleep(650); }

@@ -72,6 +72,10 @@
 .persona{display:inline-block;margin-left:4px;padding:0 6px;border:1px solid var(--line);border-radius:8px;font-family:var(--font-type);font-size:.68rem;font-weight:400;color:var(--cream-2);vertical-align:middle}
 
 /* reacciones rápidas (online) */
+#g-hostwait{margin:6px auto 10px;max-width:520px;padding:10px 14px;text-align:center;background:rgba(0,0,0,.55);color:var(--cream);
+  border:1px solid var(--theme-accent);border-radius:8px;font-weight:700;animation:hostpulse 1.6s ease-in-out infinite}
+@keyframes hostpulse{50%{opacity:.6}}
+@media (prefers-reduced-motion:reduce){#g-hostwait{animation:none}}
 #g-react{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:4px 0 12px}
 #g-react button{min-width:44px;min-height:44px;padding:0 10px;background:var(--ink-2);color:var(--cream);border:1px solid rgba(233,223,199,.18);border-radius:22px;
   font-family:var(--font-ui);font-size:1.1rem;letter-spacing:1px;cursor:pointer;transition:transform .15s,border-color .2s}
