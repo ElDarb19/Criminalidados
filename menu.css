@@ -163,6 +163,11 @@ html.cb .ctag{display:inline-flex;align-items:center;justify-content:center;min-
 .shop-item .avatar{width:84px;height:84px}
 .shop-item b{font-family:var(--font-ui);font-weight:600;letter-spacing:.5px;font-size:.9rem}
 .shop-item small{font-size:.7rem;color:var(--cream-3)}
+.dice-prev{width:96px;height:96px;image-rendering:pixelated}                          /* dados decorados (js/dice.js) */
+.shop-item .shop-sub{margin-top:-4px}
+.pf-dice{display:flex;gap:16px;align-items:center}
+.pf-dice .dice-prev{flex:0 0 auto;width:128px;height:128px}
+@media (max-width:520px){.pf-dice{flex-direction:column}}
 .shop-buy{min-height:44px;width:100%;background:linear-gradient(180deg,var(--gold-2),var(--gold));color:#1d1810;border:1px solid var(--gold-dark);border-radius:var(--radius-sm);font-family:var(--font-ui);font-weight:600;letter-spacing:1px;cursor:pointer}
 .shop-buy:disabled{opacity:.45;cursor:not-allowed}
 .shop-own{min-height:44px;display:flex;align-items:center;font-family:var(--font-ui);letter-spacing:1px;color:var(--gold-2);font-size:.85rem}

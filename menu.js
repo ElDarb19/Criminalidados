@@ -133,7 +133,7 @@ async function joinRoom() {
   const taken = Object.values(pl).map(p => p.color);
   const rk = Math.random().toString(36).slice(2, 12);       // llave para recuperar el asiento si se cierra la pestaña
   const pref = PROFILE.prefs();                              // nombre, color y personaje del Perfil (el color, solo si sigue libre)
-  const mine = { name:pref.name || 'Capo ' + (slot + 1), color:pref.color && !taken.includes(pref.color) ? pref.color : COLOR_KEYS.find(c => !taken.includes(c)), char:pref.char || 'Mafioso', uid, rk };
+  const mine = { name:pref.name || 'Capo ' + (slot + 1), color:pref.color && !taken.includes(pref.color) ? pref.color : COLOR_KEYS.find(c => !taken.includes(c)), char:pref.char || 'Mafioso', uid, rk, fin:pref.fin, aura:pref.aura };
   let tx; try { tx = await ref.child('players/' + slot).transaction(cur => cur ? undefined : mine); } catch (e) { return say('net-msg', netError(e)); }
   if (!tx.committed) return say('net-msg', 'Otro jugador tomó ese lugar justo ahora. Intenta de nuevo.');
   try { localStorage.setItem('cd-seat', JSON.stringify({ room:code, slot, rk })); } catch (e) {}
@@ -340,11 +340,13 @@ function renderAll() {
 function buildConfig() {
   const total = S.humans + S.bots;
   const botCols = botColors();
-  const players = [];
+  const players = [], me = PROFILE.mySlot(), pref = PROFILE.prefs();
   for (let i = 0; i < total; i++) {
-    const bot = i >= S.humans;
-    players.push({ slot:i, bot, uid:bot ? null : (S.players[i].uid || null), rk:bot ? null : (S.players[i].rk || null), char:bot ? 'Bot' : (S.players[i].char || 'Mafioso'), name:bot ? 'Bot ' + (i - S.humans + 1) : cleanName(S.players[i].name).trim() || 'Capo ' + (i+1),
-      color:bot ? botCols[i - S.humans] : S.players[i].color });
+    const bot = i >= S.humans, q = S.players[i];
+    // dados decorados: los del invitado llegan en su puesto del lobby; los de este dispositivo salen del Perfil
+    const dice = bot ? {} : q.fin !== undefined || q.aura !== undefined ? { fin:q.fin || null, aura:q.aura || null } : i === me ? { fin:pref.fin, aura:pref.aura } : {};
+    players.push(Object.assign({ slot:i, bot, uid:bot ? null : (q.uid || null), rk:bot ? null : (q.rk || null), char:bot ? 'Bot' : (q.char || 'Mafioso'), name:bot ? 'Bot ' + (i - S.humans + 1) : cleanName(q.name).trim() || 'Capo ' + (i+1),
+      color:bot ? botCols[i - S.humans] : q.color }, dice));
   }
   const c = { room:S.room, online:online(), players, market:S.market, events:S.events, dice:S.dice,
     mode:S.party ? 'party' : 'single' };

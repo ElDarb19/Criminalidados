@@ -90,8 +90,19 @@ test('Sprites · Existen las 21 poses de cada personaje del menú y del bot en t
 // ---------- Tienda ----------
 test('Tienda · El oro de todos los logros alcanza para comprar toda la tienda', async () => {
   const gold = E('ACHIEVEMENTS').reduce((n, a) => n + E('TIERS')[a.tier].gold, 0);
-  const cost = E('CHARACTERS').reduce((n, c) => n + (c.price || 0), 0);
+  const cost = E('CHARACTERS').concat(E('DICE_ITEMS')).reduce((n, c) => n + (c.price || 0), 0);   // capos y dados
   ok(gold >= cost, 'los logros dan ' + gold + ' de oro y la tienda cuesta ' + cost + ': sube recompensas o añade logros');
+});
+test('Tienda · Cada dado decorado se dibuja (animado y estático) sin errores', async () => {
+  const fx = E('DICEFX'), bad = [], warm = document.createElement('canvas'); warm.width = warm.height = 96; document.body.appendChild(warm);
+  for (const fin of [null, 'oro', 'balazo']) fx.show(warm, { sides:20, color:'Color_R', val:20, fin, aura:null });   // que carguen las capas del dado
+  await new Promise(r => setTimeout(r, 800)); fx.hide(warm); warm.remove();
+  for (const it of E('DICE_ITEMS')) for (const calm of [false, true]) {
+    try { const cv = document.createElement('canvas'); cv.width = cv.height = 96; document.body.appendChild(cv);
+      E('SET').calm = calm; fx.show(cv, { sides:20, color:'Color_R', val:20, fin:it.kind === 'fin' ? it.id : null, aura:it.kind === 'aura' ? it.id : null }); fx.hide(cv); cv.remove();
+    } catch (e) { bad.push(it.key + (calm ? ' (estático)' : '') + ': ' + e.message); } }
+  E('SET').calm = false;
+  ok(!bad.length, bad.join(' · '));
 });
 test('Tienda · Los capos secretos tienen un logro que los desbloquea', async () => {
   const sin = E('CHARACTERS').filter(c => c.secret && !E('ACHIEVEMENTS').some(a => a.unlocks === c.key)).map(c => c.key);

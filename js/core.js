@@ -96,7 +96,7 @@ function imgReady(url, ms) {                 // espera a que una imagen esté li
 }
 CD.freshGame = players => {
   const styles = Object.keys(PERSONAS).sort(() => Math.random() - .5); let n = 0;      // cada bot recibe una personalidad (distintas mientras alcancen)
-  return { players:players.map(p => ({ slot:p.slot, name:p.name, color:p.color, char:p.char || 'Mafioso', bot:p.bot, dropped:!!p.dropped,
+  return { players:players.map(p => ({ slot:p.slot, name:p.name, color:p.color, char:p.char || 'Mafioso', bot:p.bot, dropped:!!p.dropped, fin:p.fin || null, aura:p.aura || null,
       persona:p.bot && !p.dropped ? styles[n++ % styles.length] : null, alive:true, hp:0, max:0, poison:0, heals:0, blocked:false })),
     turn:0, round:1, start:0, log:[], fx:null, prompt:null, over:false, result:null, wait:true, started:false, contract:CD.contract, pi:0, wins:{} };
 };
@@ -320,7 +320,7 @@ CD.roll = async function (sides, p, desc, img, sound, opt) {
     }
   } else val = 1 + Math.floor(Math.random() * sides);
   CD.trackRoll(p, sides, val);
-  G.fx = { id:++fxId, sides, val, slot:p.slot, desc, img:img || 'idle', color:p.color, char:p.char || 'Mafioso', bot:p.bot, sound:sound || null, manual };
+  G.fx = { id:++fxId, sides, val, slot:p.slot, desc, img:img || 'idle', color:p.color, char:p.char || 'Mafioso', bot:p.bot, sound:sound || null, manual, fin:p.fin || null, aura:p.aura || null };
   CD.publish(); CD.emit('fx', G.fx); const t = playFx(G.fx); render(); await t;
   if (G.started) {                                            // objetos y eventos solo afectan a las tiradas de juego, no a las de preparación
     val = MK.modRoll(p, sides, val, forced);
@@ -348,11 +348,15 @@ async function playFx(fx) {
   $$('d-shadow').style.backgroundImage = fx.sides > 6 ? `url('${d}Sombra.png')` : 'none';
   $$('d-tag').textContent = colorTag(fx.color); $$('d-tag').style.setProperty('--pc', COLORS[fx.color]);
   $$('d-color').style.backgroundImage = `url('${d}${fx.color}.png')`; $$('d-base').style.backgroundImage = `url('${d}Capa 0.png')`;
-  const num = $$('d-num'); box.classList.remove('hidden');
+  // Dado decorado (acabado o aura de la tienda): se pinta en un lienzo con js/dice.js; si no, con las capas de siempre.
+  const num = $$('d-num'), wrap = $$('d-wrap'), cv = $$('d-canvas'), deco = !!(fx.fin || fx.aura) && typeof DICEFX !== 'undefined';
+  const face = v => { if (deco) DICEFX.show(cv, { sides:fx.sides, color:fx.color, val:v, fin:fx.fin, aura:fx.aura }); else num.style.backgroundImage = `url('${d}${v}.png')`; };
+  wrap.classList.toggle('deco', deco); box.classList.remove('hidden');
   await Promise.all([`${d}Capa 0.png`, `${d}${fx.color}.png`, `${d}${fx.val}.png`].map(u => imgReady(u, 1500)));   // que el dado se vea aunque la red vaya lenta
-  if (fx.manual) { num.style.backgroundImage = `url('${d}${fx.val}.png')`; playSound('diceLanding'); await sleep(900); }
-  else { for (let i = 0; i < 10; i++) { num.style.backgroundImage = `url('${d}${1 + Math.floor(Math.random() * fx.sides)}.png')`; $$('d-wrap').style.transform = `rotate(${Math.random() * 20 - 10}deg)`; playSound('roll'); await sleep(60); }
-    num.style.backgroundImage = `url('${d}${fx.val}.png')`; $$('d-wrap').style.transform = 'none'; playSound('diceLanding'); await sleep(650); }
+  if (fx.manual) { face(fx.val); playSound('diceLanding'); await sleep(900); }
+  else { for (let i = 0; i < 10; i++) { face(1 + Math.floor(Math.random() * fx.sides)); wrap.style.transform = `rotate(${Math.random() * 20 - 10}deg)`; playSound('roll'); await sleep(60); }
+    face(fx.val); wrap.style.transform = 'none'; playSound('diceLanding'); await sleep(650); }
+  if (deco) DICEFX.hide(cv);
   box.classList.add('hidden');
 }
 
@@ -453,7 +457,7 @@ CD.nextContract = async function () {
   G.between = null; G.wait = true; CD.publish(); render();
   if (MK.on()) await CD.openMarket('MERCADO NEGRO', ['Siguiente contrato: ' + CONTRACT_NAMES[next]]);
   CD.contract = next;
-  CD.G = { players:G.players.map(p => Object.assign({ slot:p.slot, name:p.name, color:p.color, char:p.char, bot:p.bot, dropped:!!p.dropped, persona:p.persona || null, alive:true, hp:0, max:0, poison:0, heals:0, blocked:false },
+  CD.G = { players:G.players.map(p => Object.assign({ slot:p.slot, name:p.name, color:p.color, char:p.char, bot:p.bot, dropped:!!p.dropped, persona:p.persona || null, fin:p.fin || null, aura:p.aura || null, alive:true, hp:0, max:0, poison:0, heals:0, blocked:false },
       MK.on() ? { money:p.money, contacts:p.contacts, consumable:p.consumable, stock:[], rerollCost:ECON.REROLL_BASE } : {})),
     turn:0, round:1, start:0, log:G.log, fx:null, prompt:null, over:false, result:null, wait:true, started:false, contract:CD.contract, pi, wins:G.wins, stats:G.stats || {}, between:null, focus:null, event:null };   // las estadísticas suman todo el Modo Party
   CD.applyContractUI(); CD.log('🎬 ——— Contrato ' + (pi + 1) + ': ' + GAME_TITLES[CD.contract] + ' ———'); CD.lastSnap = null; CD.publish(); render();

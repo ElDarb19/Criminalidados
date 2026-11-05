@@ -6,15 +6,16 @@
 //  · Logros: se revisan al terminar cada partida (el tutorial no cuenta, salvo su propio logro).
 // Cuenta las partidas del jugador de este dispositivo: en online tu asiento; en local, el Jefe 1.
 //  · Oro: cada logro paga según su dificultad (TIERS) y se gasta en la Tienda (skins de CHARACTERS con precio).
-//    Regla: el oro de todos los logros debe alcanzar para comprar toda la tienda (lo comprueba tests/).
+//    Regla: el oro de todos los logros debe alcanzar para comprar toda la tienda, capos y dados (lo comprueba tests/).
 //    Un logro solo paga una vez, aunque se borre el historial (d.paid).
 const TIERS = {
-  facil:   { label:'Fácil',      gold:100 },
-  media:   { label:'Media',      gold:250 },
-  dificil: { label:'Difícil',    gold:500 },
-  leyenda: { label:'Legendario', gold:1000 },
+  facil:   { label:'Fácil',      gold:150 },
+  media:   { label:'Media',      gold:350 },
+  dificil: { label:'Difícil',    gold:700 },
+  leyenda: { label:'Legendario', gold:1300 },
   secreto: { label:'Secreto',    gold:0 }       // no paga oro: desbloquea un capo que no se vende
 };
+const GOLD_V1 = { facil:100, media:250, dificil:500, leyenda:1000 };   // lo que pagaban antes de subir (para dar la diferencia)
 const ACHIEVEMENTS = [
   { id:'graduado',     tier:'facil',   icon:'🎓', name:'Graduado',              desc:'Completa el tutorial.',                                  test:() => false },
   { id:'primer_golpe', tier:'facil',   icon:'🥃', name:'Primer Golpe',          desc:'Gana tu primera partida.',                              test:c => c.won },
@@ -44,7 +45,7 @@ const PROFILE = {
   blank() {
     return { name:'', color:null, char:null, games:0, wins:0, online:0,
       by:Object.fromEntries(GAMES.map(g => [g, { p:0, w:0 }])), party:{ p:0, w:0 },
-      tot:{ dealt:0, gained:0, healed:0, nat20:0, nat1:0, acts:0 }, titles:{}, ach:{}, gold:0, paid:{}, owned:{}, react:null };
+      tot:{ dealt:0, gained:0, healed:0, nat20:0, nat1:0, acts:0 }, titles:{}, ach:{}, gold:0, paid:{}, owned:{}, react:null, fin:null, aura:null, goldv:2 };
   },
   load() {
     if (this.d) return this.d;
@@ -52,7 +53,10 @@ const PROFILE = {
     const b = this.blank();
     this.d = Object.assign(b, saved, { by:Object.assign(b.by, saved.by), party:Object.assign(b.party, saved.party), tot:Object.assign(b.tot, saved.tot) });
     const back = ACHIEVEMENTS.filter(a => this.d.ach[a.id] && !this.d.paid[a.id]).reduce((n, a) => n + this.pay(a), 0);   // logros de antes de existir el oro
-    if (back) { this.save(); setTimeout(() => this.notify('<i class="coin big" aria-hidden="true"></i>', 'ORO POR TUS LOGROS', '+' + back + ' de oro'), 600); }
+    // Las recompensas subieron (v2, al llegar los dados a la tienda): los logros ya cobrados reciben la diferencia una vez.
+    const raise = (saved.goldv || 1) < 2 ? ACHIEVEMENTS.filter(a => this.d.paid[a.id]).reduce((n, a) => n + TIERS[a.tier].gold - (GOLD_V1[a.tier] || 0), 0) : 0;
+    this.d.gold += raise; this.d.goldv = 2;
+    if (back || raise) { this.save(); setTimeout(() => this.notify('<i class="coin big" aria-hidden="true"></i>', 'ORO POR TUS LOGROS', '+' + (back + raise) + ' de oro'), 600); }
     return this.d;
   },
   save(local) {                                    // local: solo en el dispositivo (sin subir a la nube)
@@ -78,7 +82,8 @@ const PROFILE = {
       <p id="pf-react-msg" class="ac-msg" role="status"></p>`;
   },
   reactMsg(t) { const m = $$('pf-react-msg'); if (m) m.textContent = t; },
-  prefs() { const d = this.load(); return { name:cleanName(d.name).trim(), color:COLORS[d.color] ? d.color : null, char:this.owns(d.char) ? d.char : null }; },
+  prefs() { const d = this.load(); return { name:cleanName(d.name).trim(), color:COLORS[d.color] ? d.color : null, char:this.owns(d.char) ? d.char : null,
+    fin:d.fin && this.owns('fin:' + d.fin) ? d.fin : null, aura:d.aura && this.owns('aura:' + d.aura) ? d.aura : null }; },
 
   // ---------- oro y tienda ----------
   pay(a) {                                         // cobra un logro (una sola vez en la vida del perfil)
@@ -88,17 +93,18 @@ const PROFILE = {
   },
   goldOf(d) {                                      // oro = lo cobrado por logros − lo gastado en la tienda (sirve para combinar dispositivos)
     const won = ACHIEVEMENTS.filter(a => d.paid[a.id]).reduce((n, a) => n + TIERS[a.tier].gold, 0);
-    const spent = CHARACTERS.filter(c => c.price && d.owned[c.key]).reduce((n, c) => n + c.price, 0);
+    const spent = this.items().filter(c => d.owned[c.key]).reduce((n, c) => n + c.price, 0);
     return Math.max(0, won - spent);
   },
-  owns(key) {                                      // los personajes sin precio ni secreto son básicos
-    const c = CHARACTERS.find(x => x.key === key); if (!c) return false;
+  items() { return CHARACTERS.filter(c => c.price).concat(DICE_ITEMS); },   // todo lo que se vende en la Tienda
+  owns(key) {                                      // los personajes sin precio ni secreto son básicos; los dados se compran (fin:… / aura:…)
+    const c = CHARACTERS.find(x => x.key === key) || DICE_ITEMS.find(x => x.key === key); if (!c) return false;
     return !(c.price || c.secret) || !!this.load().owned[key];
   },
   async buy(key) {
-    const c = CHARACTERS.find(x => x.key === key), d = this.load(); if (!c || !c.price || this.owns(key)) return;
+    const c = this.items().find(x => x.key === key), d = this.load(); if (!c || !c.price || this.owns(key)) return;
     if (d.gold < c.price) return;
-    if (!(await askConfirm('¿Comprar ' + c.label + '?', 'Cuesta ' + c.price + ' de oro. Te quedarán ' + (d.gold - c.price) + '.', 'COMPRAR'))) return;
+    if (!(await askConfirm('¿Comprar ' + (c.kind === 'aura' ? 'el aura ' : c.kind === 'fin' ? 'los dados ' : '') + c.label + '?', 'Cuesta ' + c.price + ' de oro. Te quedarán ' + (d.gold - c.price) + '.', 'COMPRAR'))) return;
     d.gold -= c.price; d.owned[key] = true; this.save(); playSound('coin');
     if (typeof renderAll === 'function') renderAll();
     this.tab('shop');
@@ -159,6 +165,7 @@ const PROFILE = {
     $$('profile-body').innerHTML = t === 'capo' ? this.capoHtml() : t === 'hist' ? this.histHtml() : t === 'shop' ? this.shopHtml() : t === 'top' ? ACCOUNT.topHtml() : this.achHtml();
     $$('pf-gold').textContent = this.d.gold;
     if (t === 'capo') $$('pf-name').addEventListener('input', e => this.set('name', cleanInput(e.target)));
+    this.dicePreviews();
   },
   set(k, v) {
     this.d[k] = v; this.save(); this.toMenu(k);
@@ -178,8 +185,22 @@ const PROFILE = {
       <span class="pf-label">Personaje</span><div class="chars">${CHARACTERS.filter(c => this.owns(c.key)).map(c => `<button type="button" class="char-btn ${(p.char || 'Mafioso') === c.key ? 'sel' : ''}" aria-pressed="${(p.char || 'Mafioso') === c.key}" onclick="PROFILE.set('char','${c.key}')">${c.label}</button>`).join('')}</div>
       <span class="pf-label">Color favorito</span><div class="swatches">${COLOR_KEYS.map(c => `<button type="button" class="sw ${p.color === c ? 'sel' : ''}" style="--c:${COLORS[c]}" data-tag="${colorTag(c)}" aria-label="${COLOR_LABELS[c]}" onclick="PROFILE.set('color','${c}')"></button>`).join('')}</div></div></div>
       <p class="pf-note">Se usan solos en tu puesto del menú y al unirte a una sala online. Puedes cambiarlos en el menú cuando quieras. Si en una sala tu color ya está ocupado, lo conserva quien entró antes.</p>
+      ${this.diceHtml(p)}
       <div id="pf-react">${this.reactHtml()}</div>
       <h3 class="pf-h">Cuenta</h3><div id="ac-zone">${typeof ACCOUNT !== 'undefined' ? ACCOUNT.html() : ''}</div>`;
+  },
+  diceHtml(p) {                                    // elegir acabado y aura de los dados (solo lo comprado)
+    const own = k => DICE_ITEMS.filter(i => i.kind === k && this.owns(i.key));
+    const row = (k, none, cur) => [`<button type="button" class="char-btn ${!cur ? 'sel' : ''}" aria-pressed="${!cur}" onclick="PROFILE.set('${k}',null)">${none}</button>`]
+      .concat(own(k).map(i => `<button type="button" class="char-btn ${cur === i.id ? 'sel' : ''}" aria-pressed="${cur === i.id}" onclick="PROFILE.set('${k}','${i.id}')">${esc(i.label)}</button>`)).join('');
+    return `<h3 class="pf-h">Tus dados</h3><div class="pf-dice"><canvas class="dice-prev" width="96" height="96" data-fin="${p.fin || ''}" data-aura="${p.aura || ''}" aria-hidden="true"></canvas>
+      <div class="pf-fields"><span class="pf-label">Acabado</span><div class="chars">${row('fin', 'Normal', p.fin)}</div>
+      <span class="pf-label">Aura</span><div class="chars">${row('aura', 'Ninguna', p.aura)}</div>
+      ${own('fin').length + own('aura').length ? '' : '<p class="pf-note">Compra acabados y auras en la Tienda.</p>'}</div></div>`;
+  },
+  dicePreviews() {                                 // anima los dados de muestra que haya en el perfil
+    const col = this.prefs().color || 'Color_R';
+    document.querySelectorAll('#profile-body .dice-prev').forEach(cv => DICEFX.show(cv, { sides:20, color:col, val:20, fin:cv.dataset.fin || null, aura:cv.dataset.aura || null }));
   },
   histHtml() {
     const d = this.load(), pct = d.games ? Math.round(d.wins / d.games * 100) : 0;
@@ -207,11 +228,15 @@ const PROFILE = {
         return `<div class="shop-item ${own ? 'own' : ''}" style="--pc:${COLORS[col]}"><div class="avatar"><img src="assets/characters/${c.key}/${col}/idle.png" alt=""></div>
           <b>${esc(c.label)}</b>${own ? '<span class="shop-own">✔ Tuyo</span>'
           : `<button type="button" class="shop-buy" ${can ? '' : 'disabled'} onclick="PROFILE.buy('${c.key}')"><i class="coin" aria-hidden="true"></i> ${c.price}</button>${can ? '' : `<small>Te faltan ${c.price - d.gold}</small>`}`}</div>`; }).join('')}</div>
-      <h3 class="pf-h">Dados</h3><p class="pf-note">Próximamente: juegos de dados para personalizar tus tiradas.</p>`;
+      <h3 class="pf-h">Dados</h3><p class="pf-note">Solo cambian cómo se ve tu dado al tirar (también para los demás en online), nunca el resultado. El acabado y el aura se eligen por separado en Tu Capo.</p>
+      <div class="shop">${DICE_ITEMS.map(c => { const own = this.owns(c.key), can = d.gold >= c.price;
+        return `<div class="shop-item ${own ? 'own' : ''}"><canvas class="dice-prev" width="96" height="96" data-fin="${c.kind === 'fin' ? c.id : ''}" data-aura="${c.kind === 'aura' ? c.id : ''}" aria-hidden="true"></canvas>
+          <b>${c.kind === 'aura' ? 'Aura de ' : 'Dados '}${esc(c.label)}</b><small class="shop-sub">${esc(c.sub)}</small>${own ? '<span class="shop-own">✔ Tuyo</span>'
+          : `<button type="button" class="shop-buy" ${can ? '' : 'disabled'} onclick="PROFILE.buy('${c.key}')"><i class="coin" aria-hidden="true"></i> ${c.price}</button>${can ? '' : `<small>Te faltan ${c.price - d.gold}</small>`}`}</div>`; }).join('')}</div>`;
   },
   async reset() {
     if (!(await askConfirm('¿Borrar historial y logros?', 'Tu nombre, personaje y color se conservan, y también tu oro y lo que compraste. Los logros ya cobrados no vuelven a pagar. Esto no se puede deshacer.', 'SÍ, BORRAR'))) return;
-    const d = this.load(), keep = { name:d.name, color:d.color, char:d.char, gold:d.gold, paid:d.paid, owned:d.owned, owner:d.owner };
+    const d = this.load(), keep = { name:d.name, color:d.color, char:d.char, gold:d.gold, paid:d.paid, owned:d.owned, owner:d.owner, fin:d.fin, aura:d.aura, react:d.react };
     this.d = Object.assign(this.blank(), keep); this.save(); this.tab('hist');
   }
 };

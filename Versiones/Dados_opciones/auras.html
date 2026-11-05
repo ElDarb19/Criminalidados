@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dados decorados</title>
+<style>
+  :root { --bg:#14110d; --card:#221d16; --cream:#e9dfc7; --gold:#c9a44a; }
+  * { box-sizing:border-box }
+  body { margin:0; padding:16px; background:var(--bg); color:var(--cream); font:15px/1.4 Georgia, serif }
+  h1 { margin:0 0 4px; font-size:1.3rem; color:var(--gold); letter-spacing:1px }
+  p { margin:0 0 14px; opacity:.8 }
+  .bar { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px }
+  .bar button { min-height:44px; padding:0 14px; background:var(--card); color:var(--cream); border:1px solid #4a3f2e; border-radius:8px; font:inherit; cursor:pointer }
+  .bar button.on { border-color:var(--gold); color:var(--gold) }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:12px; margin-top:6px }
+  .cell { background:var(--card); border:1px solid #3a3226; border-radius:10px; padding:8px; text-align:center }
+  canvas { width:100%; max-width:192px; aspect-ratio:1; image-rendering:pixelated }
+  .cell b { display:block; margin-top:4px; color:var(--gold) }
+  .cell small { opacity:.7 }
+</style>
+</head>
+<body>
+<h1>Dados decorados</h1>
+<p>Usa el mismo código del juego (js/dice.js). Prueba colores, dados, acabados y la versión estática que sale con "Reducir animaciones".</p>
+<div class="bar" id="colors"></div>
+<div class="bar" id="dice"></div>
+<div class="bar" id="fins"></div>
+<div class="bar" id="modes"></div>
+<div class="grid" id="grid"></div>
+<script>
+let calm = false;
+function reducedMotion() { return calm; }                   // la usa js/dice.js
+</script>
+<script src="../../js/dice.js"></script>
+<script>
+DICEFX.base('../../');
+const COLORS = { Color_R:'Rojo', Color_B:'Azul', Color_G:'Verde', Color_P:'Rosa', Color_Pu:'Morado', Color_W:'Blanco', Color_Y:'Amarillo' };
+const DICE = { D4:4, D6:6, D8:8, D12:12, D20:20 };
+const FINS = { '':'Sin acabado', oro:'Oro', balazo:'Balazo' };
+const MODES = { anim:'Animadas', still:'Estáticas' };
+let color = 'Color_R', die = 'D20', fin = '', mode = matchMedia('(prefers-reduced-motion: reduce)').matches ? 'still' : 'anim';
+const auras = [{ id:null, label:'Sin aura', sub:'solo el dado' }].concat(DICE_ITEMS.filter(i => i.kind === 'aura'));
+function bar(id, opts, cur, set) {
+  const el = document.getElementById(id); el.innerHTML = '';
+  Object.entries(opts).forEach(([k, v]) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = typeof v === 'number' ? k : v;
+    b.className = k === cur() ? 'on' : ''; b.onclick = () => { set(k); bar(id, opts, cur, set); draw(); }; el.appendChild(b); });
+}
+const grid = document.getElementById('grid');
+grid.innerHTML = auras.map(a => `<div class="cell"><canvas width="96" height="96"></canvas><b>${a.label}</b><small>${a.sub}</small></div>`).join('');
+const cvs = [...grid.querySelectorAll('canvas')];
+function draw() { calm = mode === 'still'; const n = DICE[die]; cvs.forEach((cv, i) => DICEFX.show(cv, { sides:n, color, val:n, fin:fin || null, aura:auras[i].id })); }
+bar('colors', COLORS, () => color, k => color = k);
+bar('dice', DICE, () => die, k => die = k);
+bar('fins', FINS, () => fin, k => fin = k);
+bar('modes', MODES, () => mode, k => mode = k);
+draw();
+</script>
+</body>
+</html>

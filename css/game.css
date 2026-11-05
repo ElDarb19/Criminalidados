@@ -165,6 +165,9 @@ body.tutorial #menu-screen{padding-bottom:220px}
 @keyframes cd-roll{0%{translate:-90px -40px;scale:.6;opacity:0}60%{translate:6px 4px;scale:1.1;opacity:1}100%{translate:0 0;scale:1}}
 .pcard>.ctag{position:absolute;top:6px;left:6px;z-index:2}
 #d-wrap .ctag{position:absolute;right:-8px;bottom:-4px;z-index:2}
+#d-canvas{display:none;position:absolute;left:-48px;top:-48px;width:192px;height:192px;image-rendering:pixelated;pointer-events:none}   /* dado decorado: el aura ocupa el doble */
+#d-wrap.deco #d-canvas{display:block}
+#d-wrap.deco div{display:none}
 #d-wrap div{position:absolute;inset:0;background-size:contain;background-repeat:no-repeat;background-position:center;image-rendering:pixelated}
 
 /* dado físico / elección */

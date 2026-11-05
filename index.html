@@ -20,6 +20,7 @@
 <script defer src="menu.js"></script>
 <script defer src="js/audio.js"></script>
 <script defer src="js/settings.js"></script>
+<script defer src="js/dice.js"></script>
 <script defer src="js/profile.js"></script>
 <script defer src="js/account.js"></script>
 <script defer src="js/core.js"></script>
@@ -133,7 +134,7 @@ window.addEventListener('error', function (e) {
 
 <div id="fx" class="modal-overlay hidden" style="z-index:3500"><div class="modal-content">
   <p id="fx-title" style="font-weight:700;color:var(--theme-accent)"></p><img id="fx-char" alt="">
-  <div id="d-wrap"><div id="d-shadow"></div><div id="d-color"></div><div id="d-base"></div><div id="d-num"></div><span id="d-tag" class="ctag"></span></div>
+  <div id="d-wrap"><canvas id="d-canvas" width="96" height="96" aria-hidden="true"></canvas><div id="d-shadow"></div><div id="d-color"></div><div id="d-base"></div><div id="d-num"></div><span id="d-tag" class="ctag"></span></div>
 </div></div>
 
 <div id="modal-roll" class="modal-overlay hidden" style="z-index:3600"><div class="modal-content">
