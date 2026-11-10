@@ -38,7 +38,7 @@ const AI = {
     const frac = me.hp / me.max;
     if (!me.blocked && me.hp < RPG.HP_CAP) {                                   // curarse rinde menos cerca del tope de salud
       const room = Math.min(4.5, RPG.HP_CAP - me.hp) / 4.5;
-      opts.push({ type:'heal', target:null, v:(frac < .3 ? 5.5 + (1 - frac) * 3 : frac < .5 ? 2.4 : 0.3) * room * (MK.eventsOn() && MK.ev() === 'ley_seca' ? .6 : 1) * (MK.has(me, 'contact_matasanos') ? 1.3 : 1) * k.heal });
+      opts.push({ type:'heal', target:null, v:(frac < .3 ? 5.5 + (1 - frac) * 3 : frac < .5 ? 2.4 : 0.3) * room * (MK.dry() ? .6 : 1) * (MK.has(me, 'contact_matasanos') ? 1.3 : 1) * k.heal });
     }
     opts.forEach(o => { this.modifiers.forEach(m => { o.v = m({ G, me, foes, o }, o.v); }); o.v += Math.random() * .6; });
     opts.sort((a, b) => b.v - a.v);
@@ -99,6 +99,7 @@ const AI = {
       const rivalAvg = foes.reduce((s, f) => s + f.parcels.length, 0) / (foes.length || 1);
       // "Lavar dinero" cuesta 1💵: solo compensa si yo tengo muchos distritos y no quiero regalar cobros a rivales fuertes.
       const egoist = me.coins >= 3 && (me.parcels.length >= 4 || rivalAvg > me.parcels.length + 1) && Math.random() < .5;
+      if (me.force6) return { type:'harvest6', extra:{ egoist:egoist || me.coins >= 1 && foes.some(f => f.parcels.includes(6)) } };   // el Soborno solo sirve en la d6: cobra el 6 (y solo él, si puede)
       const sides = (MK.eventsOn() && MK.ev() === 'inspectores') || Math.random() < k.d12 ? 12 : 6;     // con Inspectores la d6 arriesga la inspección
       return { type: sides === 12 ? 'harvest12' : 'harvest6', extra:{ egoist } };
     }
@@ -181,7 +182,7 @@ const AI = {
         if (contract === 'rpg') return foes.some(f => f.hp >= 7);
         if (contract === 'exp') return p.hp >= 6;
         if (contract === 'pok') return p.tokens >= 2 && foes.some(f => f.tokens >= 1);
-        if (contract === 'maf') return G.phase === 'roll' && p.parcels.includes(6);
+        if (contract === 'maf') return G.phase === 'roll' && p.parcels.includes(6) && !(p.raids[6] > 0);
         return false;
       case 'item_falsa_alarma': return this.falsaNow(G, p, contract);
       default: return false;
@@ -195,5 +196,10 @@ const AI = {
     if (contract === 'pok') return h.filter(x => x.from != null).reduce((s, x) => s + (x.n || 0), 0) >= 2;
     return false;
   },
-  puro(sides, val) { return val <= Math.ceil(sides * 0.3); }          // repite las tiradas malas
+  puro(sides, val, p) {                         // repite las tiradas malas
+    const G = CD.G;
+    if (p && G && CD.contract === 'maf' && G.phase === 'roll') return !(val <= 6 && p.parcels.includes(val) && !(p.raids[val] > 0));   // Recaudación: solo si no cobra; un distrito suyo, aunque sea bajo, se queda
+    if (p && G && CD.contract === 'maf' && sides === 20) return val <= 9;                                                                // Sobornar: repite el +1
+    return val <= Math.ceil(sides * 0.3);
+  }
 };

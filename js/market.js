@@ -12,13 +12,14 @@ const ECON = {
   USURERO: 0.15, USURERO_MAX: 200, PRESTAMISTA_MONEY: 150, PRESTAMISTA_HP: 4,
   EXTORSIONADOR: 4, MATEMATICO: 15, COBRADOR: 50,    // 💲 por turno sin daño · 💲 al sacar el máximo en un dado · 💲 al sacar 1 en d6
   EVENT_CHANCE: 0.65,                // probabilidad de que haya un Evento de Ciudad en cada contrato (si están activados)
+  LEY_SECA: 0.40,                    // con el evento Ley Seca, probabilidad de que afecte en cada turno
   TAX: n => Math.floor(n * 0.9)      // Comisionado: lo que te queda tras el 10% (igual que la versión anterior: redondea hacia abajo)
 };
 const ITEMS = [
-  { id:'contact_armero', icon:'🔫', name:'Armero Clandestino', cost:320, kind:'p', desc:'+2 a tiradas d20 (máximo 20).', incompatible:[] },
+  { id:'contact_armero', icon:'🔫', name:'Armero Clandestino', cost:360, kind:'p', desc:'+2 a tus tiradas d20 (máximo 20). Un 18 o 19 se vuelve 20 y cuenta como crítico.', incompatible:[] },
   { id:'contact_tahur', icon:'🃏', name:'El Cobrador de la Mesa', cost:140, kind:'p', desc:'Si sacas 1 en d6, ganas +50💲 para tu dinero del Mercado Negro. No se combina con el Tallador de Dados.', incompatible:[], econ:true, excludes:['contact_tallador'] },
-  { id:'contact_crupier', icon:'🎲', name:'Crupier de Esquina', cost:130, kind:'p', desc:'Un resultado par de d6 recibe +1, sin superar 6.', incompatible:[] },
-  { id:'contact_tallador', icon:'🎯', name:'Tallador de Dados', cost:150, kind:'p', desc:'En Atraco y Apuestas, transforma un 1 en d6 en un valor seguro (Atraco: 3; Apuestas: 2). No se combina con El Cobrador de la Mesa.', incompatible:['maf', 'rpg'], excludes:['contact_tahur'] },
+  { id:'contact_crupier', icon:'🎲', name:'Crupier de Esquina', cost:120, kind:'p', desc:'Un resultado par de tu d6 recibe +1, sin superar 6. En Imperio solo cambia tu cobro: los rivales cobran con el número original.', incompatible:['pok'] },
+  { id:'contact_tallador', icon:'🎯', name:'Tallador de Dados', cost:160, kind:'p', desc:'En Atraco y Apuestas, transforma un 1 en d6 en un valor seguro (Atraco: 3; Apuestas: 4, que gana la apuesta). No se combina con El Cobrador de la Mesa.', incompatible:['maf', 'rpg'], excludes:['contact_tahur'] },
   { id:'contact_matematico', icon:'🧮', name:'Matemático del Sindicato', cost:200, kind:'p', desc:'Sacar el máximo en cualquier dado otorga +15💲.', incompatible:[], econ:true },
   { id:'contact_matasanos', icon:'🩺', name:'Médico Matasanos', cost:380, kind:'p', desc:'+50% a toda curación recibida.', incompatible:['maf', 'pok'] },
   { id:'contact_desguace', icon:'🔧', name:'Dueño del Desguace', cost:90, kind:'p', desc:'Vender artículos te devuelve el 75% de su valor.', incompatible:[], econ:true },
@@ -27,33 +28,33 @@ const ITEMS = [
   { id:'contact_contador', icon:'📒', name:'Contador de la Mafia', cost:160, kind:'p', desc:'Multiplica x1.5 la recompensa final de Guerra si conservas más del 50% de tu salud.', incompatible:['maf', 'pok', 'exp'], econ:true },
   { id:'contact_usurero', icon:'💰', name:'Inversionista Usurero', cost:150, kind:'p', desc:'Al salir de la tienda, +15% de interés sobre tu dinero (máx. 200).', incompatible:[], econ:true },
   { id:'contact_prestamista', icon:'🩸', name:'Prestamista Siniestro', cost:250, kind:'p', desc:'+150💲 al inicio de minijuego, pero -4 HP/COB máxima.', incompatible:['maf', 'pok'], econ:true },
-  { id:'contact_extorsionador', icon:'💼', name:'Extorsionador de Barrio', cost:170, kind:'p', desc:'Ganas +4💲 por cada turno finalizado sin recibir daño.', incompatible:[], econ:true },
+  { id:'contact_extorsionador', icon:'💼', name:'Extorsionador de Barrio', cost:120, kind:'p', desc:'Ganas +4💲 por cada turno tuyo terminado sin haber recibido daño desde tu turno anterior (el daño del Soplón no cuenta).', incompatible:['maf', 'pok'], econ:true },
   { id:'contact_maton', icon:'🥊', name:'Matón a Sueldo', cost:150, kind:'p', desc:'+2 al resultado del d4 de tu primera Lanzar Granada de CADA atraco (Atraco) y de tu primera Trampa de Tahúr (Apuestas).', incompatible:['rpg', 'maf'] },
-  { id:'contact_chofer', icon:'🚗', name:'Chófer de Huida', cost:200, kind:'p', desc:'Si tu HP/COB está por debajo del 25%, recibes -2 daño.', incompatible:['maf', 'pok'] },
+  { id:'contact_chofer', icon:'🚗', name:'Chófer de Huida', cost:220, kind:'p', desc:'Si tu HP/COB está por debajo del 25%, todo el daño que recibes baja 2 (disparos, granadas, trampas y alarmas; mínimo 1).', incompatible:['maf', 'pok'] },
   { id:'contact_quimico', icon:'🧪', name:'Químico Corruptor', cost:190, kind:'p', desc:'En Guerra, un Francotirador que acierta con 20 en el d20 envenena 3 rondas. En Imperio, un 20 en Sobornar Político permite una Redada extra.', incompatible:['exp', 'pok'] },
   { id:'contact_arquitecto', icon:'🏛️', name:'Red de Protección', cost:260, kind:'p', desc:'+10% a ingresos y curaciones. Bloquea la primera Redada o Infiltrar Soplón que recibas.', incompatible:['exp', 'pok'] },
   { id:'item_puro', icon:'🚬', name:'Puro del Capo', cost:80, kind:'c', desc:'Repite la última tirada de dado (te lo ofrece tras cada tirada de tu turno).', incompatible:[] },
-  { id:'item_whisky', icon:'🥃', name:'Whisky Clandestino', cost:70, kind:'c', desc:'Duplica el daño/botín de tu próxima acción, pero resta 2 HP/Cobertura.', incompatible:['maf', 'pok'] },
+  { id:'item_whisky', icon:'🥃', name:'Whisky Clandestino', cost:90, kind:'c', desc:'Resta 2 HP/Cobertura y duplica el daño o botín de tu próxima acción que lo use (disparos, granadas, saqueos o la bóveda). Curarte o asegurar no lo gasta.', incompatible:['maf', 'pok'] },
   { id:'item_soborno', icon:'🤝', name:'Soborno Relámpago', cost:90, kind:'c', desc:'Fuerza un 6 en tu próximo d6.', incompatible:[] },
-  { id:'item_adrenalina', icon:'💉', name:'Inyección Adrenalina', cost:90, kind:'c', desc:'Cura +4 HP/Cobertura al instante (hasta tu máximo inicial).', incompatible:['maf', 'pok'] },
+  { id:'item_adrenalina', icon:'💉', name:'Inyección Adrenalina', cost:100, kind:'c', desc:'+4 HP/Cobertura al instante, aunque pase de tu máximo inicial (escudo dorado; en Guerra, hasta el tope de 35).', incompatible:['maf', 'pok'] },
   { id:'item_falsa_alarma', icon:'📞', name:'Llamada Falsa Alarma', cost:110, kind:'c', desc:'Cancela lo que te hicieron los rivales desde tu último turno (daño, Soplón, Redadas o fichas robadas). Puedes usarla en cuanto te afecten o en tu turno.', incompatible:[] }
 ];
 const ITEM_BY_ID = Object.fromEntries(ITEMS.map(i => [i.id, i]));
 const EVENTS = {
   purga:       { title:'📰 NOCHE DE PURGA', desc:'Guerra: Tommy/Francotirador +2 daño · Atraco: Trampa/Granada +2 daño', games:['rpg', 'exp'] },
-  ley_seca:    { title:'📰 LEY SECA CLANDESTINA', desc:'-50% a curaciones · -1 a las tiradas de d6', games:['rpg', 'exp', 'maf', 'pok'] },
+  ley_seca:    { title:'📰 LEY SECA CLANDESTINA', desc:'40% de probabilidad en cada turno: -50% a curaciones · -1 a las tiradas de d6', games:['rpg', 'exp', 'maf', 'pok'] },
   inspectores: { title:'📰 GUERRA DE INSPECTORES', desc:'Recaudación x2 · 50% de riesgo de inspección en la Recaudación Segura', games:['maf'] },
   carnicero:   { title:'💀 JEFE: EL CARNICERO', desc:'El jefe tiene +10 HP/COB, +1 daño y recibe +1 daño. Vencerlo otorga x2 de recompensa; si gana el jefe, se lleva x1.5.', games:['rpg', 'exp'] },
   comisionado: { title:'💀 JEFE: COMISIONADO CORRUPTO', desc:'-10% de Efectivo/Fichas/Botín al terminar tu turno', games:['exp', 'maf', 'pok'] }
 };
 // Utilidad (0-1) de cada objeto por contrato: la usa la IA para comprar. Si falta un dato, vale 0.5.
 const ITEM_VALUE = {
-  contact_armero:{ rpg:.55, exp:.6, maf:1, pok:.9 }, contact_tahur:{ rpg:.8, exp:.15, maf:.3, pok:.1 }, contact_crupier:{ rpg:.45, exp:.1, maf:.1, pok:.1 },
-  contact_tallador:{ exp:.3, pok:.1 }, contact_matematico:{ rpg:.55, exp:.45, maf:.6, pok:.2 }, contact_matasanos:{ rpg:1, exp:.35 },
+  contact_armero:{ rpg:.55, exp:.6, maf:1, pok:.9 }, contact_tahur:{ rpg:.8, exp:.15, maf:.3, pok:.1 }, contact_crupier:{ rpg:.45, exp:.4, maf:.35 },
+  contact_tallador:{ exp:.3, pok:.35 }, contact_matematico:{ rpg:.55, exp:.45, maf:.6, pok:.2 }, contact_matasanos:{ rpg:1, exp:.35 },
   contact_desguace:{ rpg:.2, exp:.2, maf:.2, pok:.2 }, contact_policia:{ rpg:.3, maf:.35 }, contact_dinamita:{ exp:.2, pok:.2 }, contact_contador:{ rpg:.3 },
-  contact_usurero:{ rpg:.35, exp:.35, maf:.35, pok:.35 }, contact_prestamista:{ rpg:.2, exp:.1 }, contact_extorsionador:{ rpg:.5, exp:.45, maf:.9, pok:.3 },
+  contact_usurero:{ rpg:.35, exp:.35, maf:.35, pok:.35 }, contact_prestamista:{ rpg:.2, exp:.1 }, contact_extorsionador:{ rpg:.5, exp:.45 },
   contact_maton:{ exp:.15, pok:.35 }, contact_chofer:{ rpg:.45, exp:.15 }, contact_quimico:{ rpg:.3, maf:.1 }, contact_arquitecto:{ rpg:.1, maf:.8 },
-  item_puro:{ rpg:.35, exp:.1, maf:.1, pok:.35 }, item_whisky:{ rpg:.3, exp:.3 }, item_soborno:{ rpg:.15, exp:.05, maf:.05, pok:.35 },
+  item_puro:{ rpg:.35, exp:.1, maf:.1, pok:.35 }, item_whisky:{ rpg:.35, exp:.4 }, item_soborno:{ rpg:.15, exp:.05, maf:.05, pok:.35 },
   item_adrenalina:{ rpg:.4, exp:.35 }, item_falsa_alarma:{ rpg:.4, exp:.1, maf:.2, pok:.5 }
 };
 const MAF_RAID_TARGETS = (G, me) => MAF.raidTargets(G, me);
@@ -108,13 +109,16 @@ const MK = {
   },
 
   // ---------- modificadores de dados ----------
+  // Los textos flotantes de objetos y eventos empiezan con su icono (no con + o -) para que el Expediente no los cuente como daño o botín.
+  // CD.shared guarda la tirada tras los eventos (que afectan a todos) y antes de tus objetos (que solo te afectan a ti): la usa el Imperio.
   modRoll(p, sides, val, forced) {
     const fl = (t, k) => CD.float(p.slot, t, k || 'status');
-    if (this.eventsOn() && this.ev() === 'ley_seca' && sides === 6 && !forced && val > 1) { val -= 1; fl('-1 LEY SECA'); CD.log(`🍷 Ley Seca: el d6 de ${p.name} baja a ${val}.`); }
+    if (this.dry() && sides === 6 && !forced && val > 1) { val -= 1; fl('🍷 LEY SECA −1'); CD.log(`🍷 Ley Seca: el d6 de ${p.name} baja a ${val}.`); }
+    CD.shared = val;
     if (!this.on()) return val;
-    if (sides === 20 && this.has(p, 'contact_armero') && val < 20) { val = Math.min(20, val + 2); fl('+2 ARMERO', 'crit'); }
-    if (sides === 6 && this.has(p, 'contact_tallador') && val === 1) { val = CD.contract === 'exp' ? 3 : 2; fl('TALLADOR (' + val + ')', 'crit'); }
-    if (sides === 6 && this.has(p, 'contact_crupier') && val % 2 === 0 && val < 6) { val += 1; fl('+1 CRUPIER', 'crit'); }
+    if (sides === 20 && this.has(p, 'contact_armero') && val < 20) { val = Math.min(20, val + 2); fl('🔫 ARMERO +2' + (val === 20 ? ' · ¡20!' : ''), 'crit'); CD.log(`🔫 Armero Clandestino: el d20 de ${p.name} sube a ${val}.`); }
+    if (sides === 6 && this.has(p, 'contact_tallador') && val === 1) { val = CD.contract === 'exp' ? 3 : 4; fl('🎯 TALLADOR (' + val + ')', 'crit'); CD.log(`🎯 Tallador de Dados: el 1 de ${p.name} se vuelve ${val}.`); }
+    if (sides === 6 && this.has(p, 'contact_crupier') && val % 2 === 0 && val < 6) { val += 1; fl('🎲 CRUPIER +1', 'crit'); CD.log(`🎲 Crupier de Esquina: el d6 de ${p.name} sube a ${val}.`); }
     if (this.has(p, 'contact_matematico') && val === sides) { this.gain(p, ECON.MATEMATICO, 'MATEMÁTICO'); }
     if (sides === 6 && this.has(p, 'contact_tahur') && val === 1) { this.gain(p, ECON.COBRADOR, 'COBRADOR'); CD.log(`🃏 El Cobrador de la Mesa suma +${ECON.COBRADOR}💲 a ${p.name}.`); }
     return val;
@@ -122,19 +126,35 @@ const MK = {
 
   // ---------- defensa, curación y daño ----------
   heal(p, h) {                                  // Ley Seca → Red de Protección → Matasanos
-    if (this.eventsOn() && this.ev() === 'ley_seca') h = Math.max(1, Math.floor(h * 0.5));
-    if (this.has(p, 'contact_arquitecto')) h = this.pct(h, 0.10);
-    if (this.has(p, 'contact_matasanos')) h = Math.floor(h * 1.5);
+    const fl = t => CD.float(p.slot, t, 'status');
+    if (this.dry()) { h = Math.max(1, Math.floor(h * 0.5)); fl('🍷 LEY SECA ½'); }
+    if (this.has(p, 'contact_arquitecto')) { const b = h; h = this.pct(h, 0.10); if (h > b) fl('🏛️ RED +' + (h - b)); }
+    if (this.has(p, 'contact_matasanos')) { const b = h; h = Math.floor(h * 1.5); if (h > b) { fl('🩺 MATASANOS +' + (h - b)); CD.log(`🩺 El Médico Matasanos le suma +${h - b} de curación a ${p.name}.`); } }
     return Math.max(h, h > 0 ? 1 : 0);
+  },
+  dry() { return this.eventsOn() && this.ev() === 'ley_seca' && !!(CD.G && CD.G.dry); },     // ¿la Ley Seca afecta en este turno?
+  turnStart(G) {                                // al empezar cada turno: la Ley Seca se sortea (40%)
+    if (!G || !G.started || G.over || !this.eventsOn() || this.ev() !== 'ley_seca') { if (G) G.dry = false; return; }
+    const p = G.players[G.turn]; G.dry = Math.random() < ECON.LEY_SECA;
+    if (G.dry && p) { CD.float(p.slot, '🍷 LEY SECA', 'status'); CD.log(`🍷 La Ley Seca aprieta en el turno de ${p.name}: -1 a los d6 y curaciones a la mitad.`); }
   },
   block(def, what) {                            // Redada / Soplón entrante: Red de Protección (1 vez) o Protección Policial (80%)
     if (this.has(def, 'contact_arquitecto') && !def.bunkerUsed) { def.bunkerUsed = true; CD.float(def.slot, '🏛️ BLOQUEADO', 'status'); return { kind:'bunker', text:'🏛️ ¡RED DE PROTECCIÓN de ' + def.name + '! ' + what + ' fue bloqueado.' }; }
     if (this.has(def, 'contact_policia') && Math.random() < 0.8) { CD.float(def.slot, '🚓 INTERCEPTADO', 'status'); return { kind:'police', text:'🚓 ¡PROTECCIÓN POLICIAL de ' + def.name + '! ' + what + ' fue interceptado (80%).' }; }
     return null;
   },
-  chofer(def, dmg) {                            // -2 de daño si estás por debajo del 25%
-    if (this.has(def, 'contact_chofer') && def.max > 0 && def.hp / def.max < 0.25) { CD.float(def.slot, '-2 CHÓFER', 'status'); return Math.max(1, dmg - 2); }
-    return dmg;
+  choferOn(def) { return this.has(def, 'contact_chofer') && def.max > 0 && def.hp / def.max < 0.25; },
+  chofer(def, dmg) {                            // -2 a todo el daño si estás por debajo del 25% (mínimo 1)
+    if (!this.choferOn(def)) return dmg;
+    const n = Math.max(1, dmg - 2);
+    if (n < dmg) { CD.float(def.slot, '🚗 CHÓFER −' + (dmg - n), 'status'); CD.log(`🚗 El Chófer de Huida protege a ${def.name}: -${dmg - n} de daño.`); }
+    return n;
+  },
+  tags(p) {                                     // efectos activos que se ven en la tarjeta del jugador
+    const t = [];
+    if ((p.mult || 1) > 1) t.push('🥃 x' + p.mult);
+    if (this.choferOn(p)) t.push('🚗 chófer');
+    return t.length ? ' · ' + t.join(' · ') : '';
   },
 
   // ---------- fin de turno: Comisionado y Extorsionador ----------
@@ -147,7 +167,7 @@ const MK = {
       }
     }
     if (this.has(p, 'contact_extorsionador') && !p.tookDmg && !(CD.contract === 'exp' && !p.alive)) { this.gain(p, ECON.EXTORSIONADOR, 'EXTORSIONADOR'); }
-    p.tookDmg = false; p.mult = 1; p.hurt = [];
+    p.tookDmg = false; p.hurt = [];             // el Whisky (p.mult) sigue activo hasta una acción que lo use
   },
 
   // ---------- eventos de ciudad ----------
@@ -206,9 +226,11 @@ const MK = {
     const id = p.consumable; if (!id || !this.on() || !this.compatible(id, CD.contract)) return false;
     const it = ITEM_BY_ID[id]; p.consumable = null; CD.log(`${it.icon} ${p.name} usa ${it.name}.`);
     if (id === 'item_adrenalina') {
-      const before = p.hp; p.hp = Math.max(p.hp, Math.min(p.max, p.hp + 4)); CD.float(p.slot, '+' + (p.hp - before) + (CD.contract === 'exp' ? ' COB' : ' HP'), 'heal');
+      const before = p.hp, cap = CD.contract === 'rpg' ? RPG.HP_CAP : Infinity;                // escudo: puede pasar del máximo inicial
+      p.hp = Math.max(p.hp, Math.min(cap, p.hp + 4)); CD.float(p.slot, '+' + (p.hp - before) + (CD.contract === 'exp' ? ' COB' : ' HP') + ' 💉', 'heal');
+      CD.log(`💉 ${p.name} se inyecta adrenalina: +${p.hp - before} (queda con ${p.hp}${p.hp > p.max ? ', escudo dorado' : ''}).`);
     } else if (id === 'item_whisky') {
-      p.hp = Math.max(0, p.hp - 2); p.mult = (p.mult || 1) * 2; CD.float(p.slot, '-2 · x2 🥃', 'crit');
+      p.hp = Math.max(0, p.hp - 2); p.mult = (p.mult || 1) * 2; CD.float(p.slot, '-2 · x2 🥃', 'crit'); CD.log(`🥃 ${p.name} bebe Whisky: su próximo disparo, granada, saqueo o bóveda hará x2.`);
       if (p.hp <= 0) { if (CD.contract === 'rpg') { p.alive = false; p.poison = 0; p.outRound = G.round; p.elimN = G.elimCount = (G.elimCount || 0) + 1; CD.log('💀 ' + p.name + ' cae por el Whisky.'); RPG.check(G); }
         else if (p.alive) { EXP.arrest(p, `🚨 ¡${p.name} colapsa por el Whisky! Cobertura destruida.`); if (!G.players.some(q => q.alive)) EXP.endDive(G); } }
     } else if (id === 'item_soborno') { p.force6 = true; }
@@ -218,7 +240,7 @@ const MK = {
   falsa(G, p) {                                 // cancela lo que te hicieron los rivales desde tu último turno
     const h = p.hurt || [], sum = h.reduce((s, x) => s + (x.n || 0), 0);
     if (CD.contract === 'rpg') { p.poison = 0; if (sum) { p.hp += sum; CD.float(p.slot, '+' + sum + ' 📞', 'heal'); } CD.log(`📞 Soplón cancelado${sum ? ' y ' + sum + ' de salud recuperada' : ''}.`); }
-    else if (CD.contract === 'exp') { if (sum) { p.hp = Math.min(p.max, p.hp + sum); CD.float(p.slot, '+' + sum + ' COB 📞', 'heal'); CD.log(`📞 Recupera ${sum} de Cobertura dañada por granadas.`); } }
+    else if (CD.contract === 'exp') { if (sum) { p.hp = Math.max(p.hp, Math.min(p.max, p.hp + sum)); CD.float(p.slot, '+' + sum + ' COB 📞', 'heal'); CD.log(`📞 Recupera ${sum} de Cobertura dañada por granadas.`); } }
     else if (CD.contract === 'maf') { p.raids = {}; CD.float(p.slot, '📞 REDADAS CANCELADAS', 'status'); CD.log('📞 Redadas sobre tus distritos canceladas.'); }
     else if (CD.contract === 'pok') {
       let got = 0;
@@ -243,7 +265,7 @@ const MK = {
     }
   },
   async offerPuro(p, sides, val) {              // tras una tirada del propio turno
-    if (p.bot) return AI.puro ? AI.puro(sides, val) : false;
+    if (p.bot) return AI.puro ? AI.puro(sides, val, p) : false;
     const r = await CD.askPlayer(p.slot, { title:'🚬 PURO DEL CAPO', text:`Sacaste ${val} en un d${sides}. ¿Quieres repetir la tirada?`, options:[{ label:'🔁 Repetir', value:true }, { label:'✋ Mantener', value:false }] });
     return r === true;
   },
@@ -251,7 +273,8 @@ const MK = {
   useBtn(p) {                                   // botón "usar consumible" durante tu turno
     if (!this.on() || !p.consumable || p.consumable === 'item_puro') return null;
     const it = ITEM_BY_ID[p.consumable], ok = this.compatible(it.id, CD.contract), idle = ok && it.id === 'item_falsa_alarma' && !this.falsaUseful(CD.G, p);
-    return { type:'use', label:it.icon + ' Usar ' + it.name, sub:!ok ? 'No funciona en este contrato' : idle ? 'Nada que cancelar todavía' : it.desc, disabled:!ok || idle, wide:true };
+    const full = ok && it.id === 'item_adrenalina' && CD.contract === 'rpg' && p.hp >= RPG.HP_CAP;
+    return { type:'use', label:it.icon + ' Usar ' + it.name, sub:!ok ? 'No funciona en este contrato' : idle ? 'Nada que cancelar todavía' : full ? 'Salud al tope (' + RPG.HP_CAP + ')' : it.desc, disabled:!ok || idle || full, wide:true };
   },
   // ---------- interfaz de la tienda ----------
   hud(p) {

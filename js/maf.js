@@ -72,21 +72,24 @@ const MAF = {
     if (G.phase === 'roll') {
       if (type !== 'harvest6' && type !== 'harvest12') return;
       const sides = type === 'harvest6' ? 6 : 12, egoist = !!(extra && extra.egoist) && att.coins >= 1;
-      const res = await CD.roll(sides, att, 'Recaudación ' + (sides === 6 ? 'Segura (d6)' : 'Arriesgada (d12)'), sides === 6 ? 'maf_safe' : 'maf_risk');
+      const mine = await CD.roll(sides, att, 'Recaudación ' + (sides === 6 ? 'Segura (d6)' : 'Arriesgada (d12)'), sides === 6 ? 'maf_safe' : 'maf_risk');
+      const shared = CD.shared != null ? CD.shared : mine;                   // tus objetos (Crupier) solo cambian TU cobro; los rivales cobran con la tirada original
+      if (shared !== mine) CD.log(`🎲 ${att.name} cobra en el distrito [${mine}] gracias a sus contactos; los demás cobran en el [${shared}].`);
       if (egoist) { att.coins -= 1; CD.log(`🔥 ${att.name} paga 1💵 y LAVA DINERO (solo él cobra).`); }
       const insp = MK.eventsOn() && MK.ev() === 'inspectores';
       if (insp && sides === 6 && Math.random() < 0.5) { CD.float(att.slot, '🕵️ INSPECCIÓN', 'miss'); CD.log('🕵️ ¡GUERRA DE INSPECTORES! Inspección sorpresa: nadie cobra en esta recaudación.'); G.phase = 'action'; return; }
-      const paid = [];
-      if (sides === 12 && res > 6) CD.log(`🚓 Cobro en el distrito [${res}]: demasiada vigilancia policial, nadie cobra.`);
+      const paid = [], resOf = p => p === att ? mine : shared, res = mine;
+      if (sides === 12 && mine > 6 && shared > 6) CD.log(`🚓 Cobro en el distrito [${res}]: demasiada vigilancia policial, nadie cobra.`);
       else {
         for (const p of egoist ? [att] : G.players) {
-          if (!p.parcels.includes(res)) continue;
+          const res = resOf(p);
+          if (res > 6 || !p.parcels.includes(res)) continue;
           if (p.raids[res] > 0) { CD.log(`❌ ${p.name} falla en el distrito [${res}] (en redada).`); continue; }
           let gain = (sides === 12 ? 3 : 1) * (insp ? 2 : 1);                                             // Inspectores: recaudación x2
           if (MK.has(p, 'contact_arquitecto')) gain = MK.pct(gain, 0.10);                              // Red de Protección: +10% (redondeo sin sesgo)
           p.coins += gain; paid.push(p.name + ' +' + gain + '💵'); CD.float(p.slot, '+' + gain + ' 💵', 'loot');
         }
-        CD.log(`🎲 Cobro en el distrito [${res}]: ` + (paid.length ? paid.join(', ') : 'nadie cobra') + '.');
+        CD.log(`🎲 Cobro en el distrito [${shared === mine ? res : mine + '/' + shared}]: ` + (paid.length ? paid.join(', ') : 'nadie cobra') + '.');
       }
       G.phase = 'action'; return;
     }

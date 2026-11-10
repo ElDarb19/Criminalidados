@@ -26,6 +26,7 @@ const EXP = {
     });
     CD.log('💰 ¡Inicia ' + (G.maxDives === 1 ? 'el Atraco Único' : 'el Atraco ' + G.dive + ' de ' + G.maxDives) + ' a la bóveda!');
     CD.log('🎲 Sorteo: empieza ' + G.players[G.turn].name + '.');
+    MK.turnStart(G);                            // Ley Seca del primer turno de los atracos 2 y 3 (en el 1.º lo hace el núcleo)
   },
   async nextStage(G) {                         // contrato único con Mercado Negro: dinero según el botín del atraco y tienda
     if (MK.on() && !MK.party()) {
@@ -55,8 +56,11 @@ const EXP = {
   card(p) {
     const state = p.alive ? (p.hp < 5 ? 'danger' : '') : (p.arrested ? 'dead' : 'done');
     const status = p.alive ? '🏦 Dentro' : p.arrested ? '🚨 Arrestado' : '✅ A salvo';
-    return { pct:p.max ? p.hp / p.max * 100 : 0, color:p.hp <= 5 ? 'var(--accent-red)' : 'var(--accent-cyan)',
-      label:`${p.hp || 0}/${p.max || 0} COB · 💰 ${p.temp || 0} · 🔒 ${p.secured || 0}<br>${status}`, state, img:p.alive ? 'idle' : p.arrested ? 'lose' : 'win' };
+    const max = p.max || 0, hp = p.hp || 0, scale = Math.max(max, hp) || 1, over = Math.max(0, hp - max);
+    const segs = [{ pct:Math.min(hp, max) / scale * 100, color:hp <= 5 ? 'var(--accent-red)' : 'var(--accent-cyan)' }];
+    if (over > 0) segs.push({ pct:over / scale * 100, color:'#f1c40f' });                      // escudo de la Adrenalina por encima del máximo, en dorado
+    return { segs, pct:0, color:'',
+      label:`${hp}/${max} COB${over > 0 ? ' (+' + over + ' escudo)' : ''} · 💰 ${p.temp || 0} · 🔒 ${p.secured || 0}${p.alive ? MK.tags(p) : ''}<br>${status}`, state, img:p.alive ? 'idle' : p.arrested ? 'lose' : 'win' };
   },
 
   // ---- acciones ----
@@ -69,7 +73,8 @@ const EXP = {
       const r = await CD.roll(6, att, 'Saquear Cajas Fuertes', 'exp_boxes');
       if (r <= 2) {
         let trap = this.TRAP + (MK.eventsOn() && MK.ev() === 'purga' ? 2 : 0) + (MK.boss() === att.slot ? 1 : 0);          // Purga +2 · el Carnicero +1
-        att.mult = 1; this.damage(att, trap, 'Trampa de seguridad', false);
+        if ((att.mult || 1) > 1) CD.log('🥃 El Whisky se pierde en la trampa.');
+        att.mult = 1; this.damage(att, MK.chofer(att, trap), 'Trampa de seguridad', false);
       }
       else { const n = Math.round((r === 6 ? 3 : 1) * (att.mult || 1)); att.mult = 1; att.temp += n; CD.float(att.slot, '+' + n + ' 💰', 'loot'); CD.log(`💵 ${att.name} saca ${n} fajo(s) de billetes (lleva ${att.temp}).`); }
     } else if (type === 'deep') {
@@ -82,13 +87,13 @@ const EXP = {
         CD.log(`💎 ¡La puerta cede! ${att.name} embolsa ${loot} bolsas (lleva ${att.temp}).`);
       } else {
         att.mult = 1; let heavy = this.HEAVY + (MK.boss() === att.slot ? 1 : 0);
-        if (CD.nat === 1 && MK.has(att, 'contact_dinamita')) { heavy = Math.max(0, heavy - 2); CD.log(`🧨 ¡Tramposo de la Casa! Con el 1, ${att.name} esquiva parte de la alarma (-2 de daño).`); }
-        this.damage(att, heavy, 'Alarma pesada', true);
+        if (CD.nat === 1 && MK.has(att, 'contact_dinamita')) { heavy = Math.max(0, heavy - 2); CD.float(att.slot, '🧨 TRAMPOSO −2', 'status'); CD.log(`🧨 ¡Tramposo de la Casa! Con el 1, ${att.name} esquiva parte de la alarma (-2 de daño).`); }
+        this.damage(att, MK.chofer(att, heavy), 'Alarma pesada', true);
       }
     } else if (type === 'repair') {
       if (this.party()) att.repairCooldown = 5; else att.repairUses++;
       const h = MK.heal(att, await CD.roll(4, att, 'Reforzar Cobertura', 'exp_cover'));      // Ley Seca y Matasanos
-      att.hp = Math.min(att.max, att.hp + h); CD.float(att.slot, '+' + h + ' COB', 'heal');
+      att.hp = Math.max(att.hp, Math.min(att.max, att.hp + h)); CD.float(att.slot, '+' + h + ' COB', 'heal');
       CD.log(`🔧 ${att.name} se atrinchera y recupera ${h} de Cobertura (queda con ${att.hp}).`);
     } else if (type === 'sabotage') {
       att.torpedoUses++;
@@ -96,6 +101,8 @@ const EXP = {
       if (MK.has(att, 'contact_maton') && !att.matonUsed) { d += 2; att.matonUsed = true; CD.float(att.slot, '+2 MATÓN', 'crit'); CD.log(`🥊 ¡Matón a Sueldo! La primera granada de ${att.name} recibe +2.`); }
       if (MK.eventsOn() && MK.ev() === 'purga') d += 2;                                  // Noche de Purga
       if (MK.boss() === att.slot) d += 1;                                                // el Carnicero lanza con +1
+      if ((att.mult || 1) > 1) { d = Math.round(d * att.mult); CD.log(`🥃 ¡Whisky! La granada de ${att.name} hace x${att.mult}.`); }     // Whisky: x2 al daño de la granada
+      att.mult = 1;
       if (MK.boss() === def.slot) d += 1;                                                // y recibe +1
       d = MK.chofer(def, d);                                                             // Chófer de Huida
       const real = Math.min(d, def.hp); def.tookDmg = true; MK.hurt(G, def, { n:real, from:att.slot });

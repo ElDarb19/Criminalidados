@@ -82,6 +82,7 @@ const ACCOUNT = {
       await this.push();
       if (typeof renderAll === 'function') PROFILE.toMenu();
       if (!$$('modal-profile').classList.contains('hidden')) PROFILE.tab(PROFILE.cur);
+      if (!$$('modal-shop').classList.contains('hidden')) PROFILE.renderShop();
     } catch (e) { console.warn('No se pudo leer el perfil de la nube', e); this.msg('No se pudo sincronizar. Revisa las reglas de Firebase.'); }
   },
   merge(a, b) {

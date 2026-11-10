@@ -42,7 +42,10 @@ window.addEventListener('error', function (e) {
   b.textContent += '⚠ ' + e.message + (e.filename ? ' — ' + e.filename.split('/').slice(-2).join('/') + ':' + e.lineno : '') + '\n';
 });
 </script>
-<button id="btn-profile" class="btn-guide-trigger" type="button" onclick="PROFILE.open()">👤 PERFIL</button>
+<div id="top-btns" class="top-btns">
+  <button id="btn-shop" class="btn-guide-trigger" type="button" onclick="PROFILE.openShop()"><i class="coin" aria-hidden="true"></i> TIENDA</button>
+  <button id="btn-profile" class="btn-guide-trigger" type="button" onclick="PROFILE.open()">👤 PERFIL</button>
+</div>
 <main id="menu-screen" class="menu">
   <!-- Reemplazable por <img src="logo.png"> -->
   <h1 id="game-title" class="title">CRIMINAL DICE</h1>
@@ -115,7 +118,7 @@ window.addEventListener('error', function (e) {
     <hr class="set-sep">
     <button id="set-install" class="set-row set-act" type="button" onclick="installApp()"><span>📲 Instalar como app</span></button>
     <p id="set-install-msg" class="set-msg hidden" role="status"></p>
-    <button class="set-row set-act" type="button" onclick="settingsToggle(false); openManualGuide()"><span>📖 Manual del Capo</span></button>
+    <button id="set-manual" class="set-row set-act" type="button" onclick="settingsToggle(false); openManualGuide()"><span>📖 Manual del Capo</span></button>
     <button id="set-tutorial" class="set-row set-act" type="button" onclick="settingsToggle(false); TUT.start()"><span>🎓 Repetir tutorial</span></button>
     <button id="set-exit" class="set-row set-act set-danger hidden" type="button" onclick="settingsToggle(false); CD.askExit()"><span>🚪 Salir al menú</span></button>
   </div>
@@ -190,11 +193,16 @@ window.addEventListener('error', function (e) {
     <button class="tab-btn active" type="button" data-tab="capo" onclick="PROFILE.tab('capo')">🎩 TU CAPO</button>
     <button class="tab-btn" type="button" data-tab="hist" onclick="PROFILE.tab('hist')">📜 HISTORIAL</button>
     <button class="tab-btn" type="button" data-tab="ach" onclick="PROFILE.tab('ach')">🏅 LOGROS</button>
-    <button class="tab-btn" type="button" data-tab="shop" onclick="PROFILE.tab('shop')"><i class="coin" aria-hidden="true"></i> TIENDA</button>
     <button class="tab-btn" type="button" data-tab="top" onclick="PROFILE.tab('top')">🏆 TOP</button>
   </div>
   <div id="profile-body"></div>
   <button class="btn-cancel" type="button" onclick="PROFILE.close()">CERRAR</button>
+</div></div>
+<div id="modal-shop" class="modal-overlay hidden" style="z-index:4050" role="dialog" aria-modal="true" aria-labelledby="shop-title"><div class="modal-content profile-box">
+  <h2 id="shop-title"><i class="coin big" aria-hidden="true"></i> Tienda del Capo</h2>
+  <p class="pf-purse" aria-live="polite"><i class="coin" aria-hidden="true"></i> <b id="shop-gold">0</b> de oro</p>
+  <div id="shop-body"></div>
+  <button class="btn-cancel" type="button" onclick="PROFILE.closeShop()">CERRAR</button>
 </div></div>
 <div id="ach-toast" class="ach-toast hidden" role="status"></div>
 
@@ -322,9 +330,11 @@ window.addEventListener('error', function (e) {
         <h3>🍷 Ley Seca Clandestina</h3>
         <p><b>Contratos:</b> los 4.</p>
         <ul>
-          <li>Los d6 bajan 1, sin bajar de 1 (el Soborno Relámpago no se ve afectado).</li>
-          <li>Las curaciones se reducen a la mitad.</li>
+          <li>No afecta siempre: al empezar cada turno hay un <b>40% de probabilidad</b> de que apriete. Cuando pasa, lo verás sobre el Capo de ese turno (🍷 LEY SECA).</li>
+          <li>En ese turno los d6 bajan 1, sin bajar de 1 (el Soborno Relámpago no se ve afectado).</li>
+          <li>En ese turno las curaciones se reducen a la mitad.</li>
           <li>Primero se aplica la Ley Seca y después los objetos como el Crupier o el Tallador.</li>
+          <li>No cuenta como daño recibido (no te quita el logro Intocable).</li>
         </ul>
 
         <h3>💀 Jefe: El Carnicero</h3>

@@ -74,7 +74,7 @@ const POK = {
         else { this.move(def, att, win); CD.log(`🎉 ¡JACKPOT! ${att.name} arrasa la mesa y le roba ${win} fichas a ${def.name} (${att.name}: ${att.tokens} · ${def.name}: ${def.tokens}).`); }
       } else {
         const trick = CD.nat === 1 && MK.has(att, 'contact_dinamita');       // Tramposo de la Casa: con un 1 solo pierdes 1 ficha
-        const l = Math.min(trick ? 1 : 3, att.tokens); if (trick) CD.log(`🧨 ¡Tramposo de la Casa! ${att.name} saca 1 y solo arriesga 1 ficha.`);
+        const l = Math.min(trick ? 1 : 3, att.tokens); if (trick) CD.float(att.slot, '🧨 TRAMPOSO', 'status'); if (trick) CD.log(`🧨 ¡Tramposo de la Casa! ${att.name} saca 1 y solo arriesga 1 ficha.`);
         this.move(att, def, l); CD.log(`💀 Sale mal. ${def.name} gana ${l === 1 ? 'la ficha' : 'las ' + l + ' fichas'} del riesgo (${att.name}: ${att.tokens} · ${def.name}: ${def.tokens}).`);
       }
     } else if (type === 'cheat') {

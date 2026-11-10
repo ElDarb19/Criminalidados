@@ -76,6 +76,41 @@ test('Expediente · El daño se anota a quien ataca y a quien lo recibe', async 
   eq(s[0].dealt, 4, 'daño causado'); eq(s[1].taken, 4, 'daño recibido'); eq(s[0].acts, 1, 'acciones');
 });
 
+// ---------- Mercado Negro y Eventos ----------
+// Como dice(), pero pasando por los objetos y eventos (MK.modRoll), igual que en una partida real con Mercado Negro.
+function diceMk(...vals) { const CD = E('CD'); CD.roll = async (sides, p, desc) => { if (!vals.length) throw new Error('dado de más: ' + desc); const v = vals.shift(); CD.nat = v; return E('MK').modRoll(p, sides, v, false); }; }
+function withMarket(G, slot, contacts) { const CD = E('CD'); CD.cfg.market = true; Object.assign(G.players[slot], { contacts, consumable:null, money:0, mult:1 }); return G.players[slot]; }
+test('Mercado · Crupier en Imperio: solo cambia tu cobro (sacas 2, tú cobras en el 3, el rival en el 2)', async () => {
+  const G = maf(); G.players[0].parcels = [3]; G.players[1].parcels = [2, 3]; withMarket(G, 0, ['contact_crupier']);
+  diceMk(2); await E('MAF').act(G, G.players[0], 'harvest6', null, { egoist:false });
+  eq(G.players[0].coins, 1, 'efectivo del dueño del Crupier'); eq(G.players[1].coins, 1, 'efectivo del rival (solo el distrito 2)');
+});
+test('Mercado · Tallador en Apuestas: el 1 se vuelve 4 y gana la apuesta', async () => {
+  const G = pok(); withMarket(G, 0, ['contact_tallador']); diceMk(1); await E('POK').act(G, G.players[0], 'bet', 1); eq(G.players[0].tokens, 9, 'fichas');
+});
+test('Mercado · Whisky: curarse no lo gasta y duplica la granada', async () => {
+  const G = await exp(), p = withMarket(G, 0, []); p.hp = 15; p.consumable = 'item_whisky'; await E('MK').use(G, p);
+  E('MK').turnEnd(G, p); dice(2); await E('EXP').act(G, p, 'repair'); eq(p.mult, 2, 'el Whisky sigue activo tras reforzar');
+  diceMk(3); await E('EXP').act(G, p, 'sabotage', 1); eq(G.players[1].hp, 14, 'Cobertura del rival (granada 3 x2)'); eq(p.mult, 1, 'el Whisky se gastó');
+});
+test('Mercado · Adrenalina da +4 aunque pase del máximo (escudo)', async () => {
+  const G = rpg(), p = withMarket(G, 0, []); p.consumable = 'item_adrenalina'; await E('MK').use(G, p); eq(p.hp, 24, 'salud');
+});
+test('Mercado · Chófer de Huida baja 2 las trampas con menos del 25%', async () => {
+  const G = await exp(), p = withMarket(G, 0, ['contact_chofer']); p.hp = 4; diceMk(1); await E('EXP').act(G, p, 'explore'); eq(p.hp, 3, 'Cobertura (trampa 3 - 2)');
+});
+test('Eventos · Ley Seca afecta ~40% de los turnos y no cuenta como daño', async () => {
+  const G = rpg(), CD = E('CD'), MK = E('MK'); CD.cfg.events = true; G.event = { code:'ley_seca' };
+  let n = 0; for (let i = 0; i < 3000; i++) { MK.turnStart(G); if (G.dry) n++; }
+  ok(n > 1050 && n < 1350, 'turnos con Ley Seca: ' + n + ' de 3000');
+  G.dry = true; G.stats = {}; diceMk(4); const v = await CD.roll(6, G.players[0], 'x'); eq(v, 3, 'd6 con Ley Seca');
+  eq((G.stats[0] || { taken:0 }).taken, 0, 'daño recibido');
+});
+test('IA · Con Soborno en Imperio cobra con la d6', async () => {
+  const G = maf(), me = G.players[0]; E('CD').contract = 'maf'; E('CD').G = G; me.force6 = true;
+  for (let i = 0; i < 20; i++) eq(E('AI').maf(G, me).type, 'harvest6', 'recaudación');
+});
+
 // ---------- Archivos ----------
 test('Sprites · Existen las 21 poses de cada personaje del menú y del bot en todos los colores', async () => {
   const poses = ['idle', 'win', 'lose', 'exp_boxes', 'exp_cover', 'exp_getaway', 'exp_grenade', 'exp_vault', 'maf_bribe', 'maf_buy', 'maf_harvest', 'maf_raid', 'maf_risk', 'maf_safe', 'pok_bet', 'pok_cheat', 'pok_slam', 'rpg_doctor', 'rpg_rat', 'rpg_sniper', 'rpg_tommy'];
@@ -93,15 +128,16 @@ test('Tienda · El oro de los logros alcanza para casi toda la tienda, pero no t
   const cost = E('CHARACTERS').concat(E('DICE_ITEMS')).reduce((n, c) => n + (c.price || 0), 0);   // capos y dados
   ok(gold < cost && gold >= cost * 0.85, 'los logros dan ' + gold + ' de oro y la tienda cuesta ' + cost + ' (debe quedar entre el 85% y el 99%)');
 });
-test('Tienda · Oro online: solo humanos; 2.º solo con 4 humanos; Party alto solo a 3+ victorias', async () => {
+test('Tienda · Oro online: más bots, menos oro; 2.º solo con 4 capos; Party alto solo a 3+ victorias', async () => {
   const P = E('PROFILE'), cfg = (mode, wins) => ({ online:true, mode, winsNeeded:wins });
-  const g = (c, humans, place) => P.onlineGold(c, humans, place);
-  ok(g(cfg('single'), 1, 1) === 0, 'contra solo bots no paga');
-  ok(g(cfg('single'), 2, 1) === 60 && g(cfg('single'), 3, 2) === 0, 'contrato único con 2-3 humanos: solo el 1.º');
-  ok(g(cfg('single'), 4, 2) === 15 && g(cfg('single'), 4, 3) === 0, 'contrato único con 4 humanos: 2.º cobra 15');
-  ok(g(cfg('party', 3), 4, 1) === 150 && g(cfg('party', 3), 4, 2) === 40, 'Party a 3 victorias paga 150 / 40');
-  ok(g(cfg('party', 2), 2, 1) === 60, 'Party a menos de 3 victorias paga como un contrato único');
-  ok(g({ online:false, mode:'single' }, 4, 1) === 0, 'en local no paga');
+  const g = (c, humans, place, total) => P.onlineGold(c, humans, place, total);
+  ok(g(cfg('single'), 1, 1, 4) === 0, 'una persona sola con bots no cobra');
+  ok(g(cfg('single'), 2, 1, 2) === 60 && g(cfg('single'), 3, 2, 3) === 0, 'sin 4 capos solo cobra el 1.º');
+  ok(g(cfg('single'), 4, 2, 4) === 15 && g(cfg('single'), 3, 2, 4) === 10 && g(cfg('single'), 2, 2, 4) === 5, '2.º con 4 capos: 15 / 10 / 5 según los bots');
+  ok(g(cfg('single'), 3, 1, 4) === 50 && g(cfg('single'), 2, 1, 4) === 40 && g(cfg('single'), 4, 3, 4) === 0, '1.º: 60 / 50 / 40 según los bots');
+  ok(g(cfg('party', 3), 4, 1, 4) === 150 && g(cfg('party', 3), 4, 2, 4) === 40 && g(cfg('party', 3), 2, 1, 4) === 100 && g(cfg('party', 3), 2, 2, 4) === 20, 'Party a 3 victorias: 150/40 sin bots, 100/20 con 2 bots');
+  ok(g(cfg('party', 2), 2, 1, 2) === 60, 'Party a menos de 3 victorias paga como un contrato único');
+  ok(g({ online:false, mode:'single' }, 4, 1, 4) === 0, 'en local no paga');
 });
 test('Tienda · Cada dado decorado se dibuja (animado y estático) sin errores', async () => {
   const fx = E('DICEFX'), bad = [], warm = document.createElement('canvas'); warm.width = warm.height = 96; document.body.appendChild(warm);

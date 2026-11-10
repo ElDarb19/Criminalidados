@@ -38,8 +38,9 @@ const TUT = {
     // ---- Modo Party, Mercado Negro y eventos (vistas de solo lectura) ----
     { view:'menu', focus:'#contract-card .switch', text:'<b>🎉 Modo Party</b>: se activa aquí, en el menú. Marcas varios contratos y eliges cuántas victorias hacen falta. Se juegan seguidos; tras cada uno hay podio y recompensa en 💲 según tu puesto. Gana quien llegue primero a esas victorias.', button:'Siguiente' },
     { view:'market', html:() => 'Este es el <b>🕶️ Mercado Negro</b> (se activa en el menú). Compras <b>contactos</b> que funcionan solos (máximo ' + ECON.MAX_PASSIVES + ') y un <b>consumible</b> que usas desde tu turno. Empiezas con ' + ECON.START_PARTY + '💲 en Party (' + ECON.START_SINGLE + '💲 en un solo contrato) y ganas más según tu puesto.', button:'Siguiente' },
-    { view:'event', focus:'#g-event', html:() => 'Con los <b>📰 Eventos de Ciudad</b> un titular cambia las reglas del contrato y queda arriba, en esta franja. Aquí, con la <b>Ley Seca</b>, cada d6 baja 1: la Apuesta Básica gana menos veces. Otros: <b>Noche de Purga</b> (+2 de daño) o <b>El Carnicero</b>, un jefe que paga el doble a quien lo vence.', button:'Siguiente' },
-    { view:'home', text:'¡Listo, Capo! Este es el menú: elige tu personaje y color, añade amigos o bots y monta tu partida, local u online. Pulsa <b>Saltar tutorial</b> y empieza a jugar.', last:true }
+    { view:'event', focus:'#g-event', html:() => 'Con los <b>📰 Eventos de Ciudad</b> un titular cambia las reglas del contrato y queda arriba, en esta franja. Aquí, con la <b>Ley Seca</b>, en cada turno hay un 40% de que los d6 bajen 1: la Apuesta Básica gana menos veces. Otros: <b>Noche de Purga</b> (+2 de daño) o <b>El Carnicero</b>, un jefe que paga el doble a quien lo vence.', button:'Siguiente' },
+    { view:'settings', focus:'#set-manual', text:'¿Dudas sobre una regla, un objeto o un evento? Abre <b>⚙️ Ajustes</b> (arriba a la izquierda) y entra en el <b>📖 Manual del Capo</b>: ahí están todos los contratos, el Mercado Negro y los Eventos de Ciudad.', button:'Siguiente' },
+    { view:'home', focus:'#top-btns', text:'¡Listo, Capo! Arriba a la derecha tienes tu <b>👤 Perfil</b> (logros, historial y TOP) y la <b>Tienda</b>, donde gastas el oro en capos y dados. Elige tu personaje y color, añade amigos o bots y monta tu partida, local u online. Pulsa <b>Saltar tutorial</b> y empieza a jugar.', last:true }
   ],
 
   start() {
@@ -89,11 +90,13 @@ const TUT = {
   view(v) {                                         // cambia la pantalla de fondo; nada de lo que muestra se puede usar
     const G = CD.G, menu = $$('menu-screen'), game = $$('game-screen'), was = this.v;
     if (was === v) return; this.v = v;
-    if (was === 'menu') { menu.classList.add('hidden'); game.classList.remove('hidden'); }
+    if (was === 'settings') settingsToggle(false);
+    if (was === 'menu' || was === 'settings') { menu.classList.add('hidden'); game.classList.remove('hidden'); }
     if (was === 'market' && G) G.market = null;
     if (was === 'event' && G) G.event = null;
     menu.inert = false; document.body.classList.remove('tut-over');
-    if (v === 'menu' || v === 'home') { game.classList.add('hidden'); menu.classList.remove('hidden'); menu.inert = true; window.scrollTo(0, 0); }
+    if (v === 'menu' || v === 'home' || v === 'settings') { game.classList.add('hidden'); menu.classList.remove('hidden'); menu.inert = true; window.scrollTo(0, 0); }
+    if (v === 'settings') settingsToggle(true);                // muestra dónde está el Manual del Capo
     if (v === 'market') {                           // tienda de muestra con objetos reales al azar
       const p = G.players[0];
       Object.assign(p, { money:ECON.START_PARTY, contacts:[], consumable:null, stock:MK.newStock(), rerollCost:ECON.REROLL_BASE });

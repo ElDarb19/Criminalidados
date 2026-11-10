@@ -33,7 +33,7 @@ CD.beginContract = async function (G) {      // mercado (contrato único) → ev
   await MK.rollEvent(G);
   await CD.mod().init(G);
   MK.contractStart(G);
-  G.started = true; G.wait = false; CD.publish(); render(); CD.next();
+  G.started = true; G.wait = false; MK.turnStart(G); CD.publish(); render(); CD.next();
 };
 CD.applyContractUI = function () {                         // tema de color y título según el contrato actual
   document.body.className = 'theme-' + CD.contract + (CD.cfg.tutorial && !TUT.off ? ' tutorial' : ''); $$('g-title').textContent = GAME_TITLES[CD.contract];
@@ -311,7 +311,7 @@ let fxId = 0, promptId = 0;
 CD.roll = async function (sides, p, desc, img, sound, opt) {
   const G = CD.G, human = !p.bot, manual = CD.cfg.dice === 'real' && human;
   let val, forced = false;
-  if (G.started && p.force6 && sides === 6) { val = 6; forced = true; p.force6 = false; CD.log('🤝 ¡Soborno aplicado! El d6 de ' + p.name + ' queda en 6.'); }
+  if (G.started && p.force6 && sides === 6) { val = 6; forced = true; p.force6 = false; CD.log('🤝 ¡Soborno aplicado! El d6 de ' + p.name + ' queda en 6.'); CD.float(p.slot, '🤝 SOBORNO: 6', 'status'); }
   else if (manual) {
     if (!CD.cfg.online || p.slot === CD.me) val = await askManual(sides, desc + ' · ' + p.name);
     else {
@@ -393,7 +393,7 @@ CD.advance = function () {
     if (j === start) crossed = true;
     if (G.players[j].alive) {
       if (crossed) { G.round++; if (CD.mod().onRound) CD.mod().onRound(G); }
-      G.turn = j; if (CD.mod().onTurnStart) CD.mod().onTurnStart(G, G.players[j]); return;
+      G.turn = j; if (CD.mod().onTurnStart) CD.mod().onTurnStart(G, G.players[j]); MK.turnStart(G); return;
     }
   }
 };

@@ -95,11 +95,14 @@ const PROFILE = {
   },
   // Oro por partidas online (solo cuentan los jugadores humanos, nunca los bots). Con 2-3 humanos cobra solo el 1.º;
   // con 4 humanos también el 2.º (mucho menos). El Modo Party paga más solo si se juega a 3 victorias o más.
-  ONLINE_GOLD: { single:[60, 15], party:[150, 40], PARTY_MIN_WINS:3 },
-  onlineGold(cfg, humans, place) {
+  // Oro online según cuántos bots hay en la sala (posición 0 = sin bots, 1 = un bot, 2 = dos bots): más bots, menos oro.
+  // El 1.º siempre cobra; el 2.º solo si hay 4 capos en la partida (personas o bots).
+  ONLINE_GOLD: { single:{ first:[60, 50, 40], second:[15, 10, 5] }, party:{ first:[150, 125, 100], second:[40, 30, 20] }, PARTY_MIN_WINS:3 },
+  onlineGold(cfg, humans, place, total) {
     if (!cfg || !cfg.online || humans < 2 || !(place >= 1)) return 0;
-    const t = this.ONLINE_GOLD, row = cfg.mode === 'party' && (cfg.winsNeeded || 0) >= t.PARTY_MIN_WINS ? t.party : t.single;
-    return place === 1 ? row[0] : place === 2 && humans >= 4 ? row[1] : 0;
+    total = Math.max(humans, total || humans);
+    const t = this.ONLINE_GOLD, row = cfg.mode === 'party' && (cfg.winsNeeded || 0) >= t.PARTY_MIN_WINS ? t.party : t.single, bots = Math.min(2, total - humans);
+    return place === 1 ? row.first[bots] : place === 2 && total >= 4 ? row.second[bots] : 0;
   },
   goldOf(d) {                                      // oro = lo cobrado por logros y partidas online − lo gastado en la tienda (sirve para combinar dispositivos)
     const won = ACHIEVEMENTS.filter(a => d.paid[a.id]).reduce((n, a) => n + TIERS[a.tier].gold, 0) + (d.earned || 0);
@@ -117,7 +120,7 @@ const PROFILE = {
     if (!(await askConfirm('¿Comprar ' + (c.kind === 'aura' ? 'el aura ' : c.kind === 'fin' ? 'los dados ' : '') + c.label + '?', 'Cuesta ' + c.price + ' de oro. Te quedarán ' + (d.gold - c.price) + '.', 'COMPRAR'))) return;
     d.gold -= c.price; d.owned[key] = true; this.save(); playSound('coin');
     if (typeof renderAll === 'function') renderAll();
-    this.tab('shop');
+    this.renderShop();
   },
 
   // ---------- llevar el perfil al menú ----------
@@ -148,10 +151,10 @@ const PROFILE = {
     const ctx = { G, p, s, d, won, party, single:g => !party && CD.contract === g };
     ACHIEVEMENTS.forEach(a => { if (!d.ach[a.id] && a.test(ctx)) this.unlock(a.id, true); });
     this.checkAll();
-    if (CD.cfg.online) {                           // oro por el puesto final (1.º, o 2.º con 4 humanos)
-      const humans = (CD.cfg.players || []).filter(q => !q.bot).length, pod = (G.result.podium || []).find(e => e.slot === p.slot);
+    if (CD.cfg.online) {                           // oro por el puesto final (1.º, o 2.º con 4 capos); los bots bajan el oro
+      const all = CD.cfg.players || [], humans = all.filter(q => !q.bot).length, pod = (G.result.podium || []).find(e => e.slot === p.slot);
       const place = won ? 1 : pod && pod.place > 1 ? pod.place : 0;      // un empate en el 1.º puesto no paga como victoria
-      const g = this.onlineGold(CD.cfg, humans, place);
+      const g = this.onlineGold(CD.cfg, humans, place, all.length);
       if (g) { d.earned = (d.earned || 0) + g; d.gold += g; this.notify('<i class="coin big" aria-hidden="true"></i>', 'ORO DE LA PARTIDA ONLINE', '+' + g + ' de oro · ' + (place === 1 ? '1.er' : '2.º') + ' puesto'); }
     }
     this.save();
@@ -215,9 +218,17 @@ const PROFILE = {
   },
 
   // ---------- ventana del perfil ----------
-  open() { this.load(); settingsToggle(false); this.tab(this.cur); $$('modal-profile').classList.remove('hidden'); },
+  open() { this.load(); settingsToggle(false); this.closeShop(); this.tab(this.cur); $$('modal-profile').classList.remove('hidden'); },
   close() { $$('modal-profile').classList.add('hidden'); },
+  // ---------- ventana de la tienda (aparte del perfil, con su propio botón) ----------
+  openShop() { this.load(); settingsToggle(false); this.close(); this.renderShop(); $$('modal-shop').classList.remove('hidden'); },
+  closeShop() { const m = $$('modal-shop'); if (m) m.classList.add('hidden'); },
+  renderShop() {
+    const b = $$('shop-body'); if (!b) return;
+    b.innerHTML = this.shopHtml(); $$('shop-gold').textContent = this.load().gold; this.dicePreviews();
+  },
   tab(t) {
+    if (t === 'shop') t = 'capo';                  // la tienda ya no es una pestaña del perfil
     this.cur = t;
     document.querySelectorAll('#modal-profile .tab-btn').forEach(b => { const on = b.dataset.tab === t; b.classList.toggle('active', on); b.setAttribute('aria-selected', on); });
     $$('profile-body').innerHTML = t === 'capo' ? this.capoHtml() : t === 'hist' ? this.histHtml() : t === 'shop' ? this.shopHtml() : t === 'top' ? ACCOUNT.topHtml() : this.achHtml();
@@ -258,7 +269,7 @@ const PROFILE = {
   },
   dicePreviews() {                                 // anima los dados de muestra que haya en el perfil
     const col = this.prefs().color || 'Color_R';
-    document.querySelectorAll('#profile-body .dice-prev').forEach(cv => DICEFX.show(cv, { sides:20, color:col, val:20, fin:cv.dataset.fin || null, aura:cv.dataset.aura || null }));
+    document.querySelectorAll('#profile-body .dice-prev, #shop-body .dice-prev').forEach(cv => DICEFX.show(cv, { sides:20, color:col, val:20, fin:cv.dataset.fin || null, aura:cv.dataset.aura || null }));
   },
   histHtml() {
     const d = this.load(), pct = d.games ? Math.round(d.wins / d.games * 100) : 0;
@@ -281,7 +292,11 @@ const PROFILE = {
   shopHtml() {
     const d = this.load(), col = this.prefs().color || 'Color_R';
     const items = CHARACTERS.filter(c => c.price);
-    return `<p class="pf-note">Gana oro con los logros (cuanto más difícil, más paga) y ganando partidas online contra otras personas: el 1.º cobra ${this.ONLINE_GOLD.single[0]} (${this.ONLINE_GOLD.party[0]} en un Modo Party a ${this.ONLINE_GOLD.PARTY_MIN_WINS} victorias o más) y, si son 4 personas, el 2.º cobra ${this.ONLINE_GOLD.single[1]} (${this.ONLINE_GOLD.party[1]}). Los bots no cuentan. Los logros alcanzan para casi toda la tienda; el resto, online.</p>
+    const T = this.ONLINE_GOLD, s = T.single, p = T.party;
+    const cell = (r, i) => `<td><b>${r.first[i]}</b> · ${r.second[i]}</td>`;
+    return `<p class="pf-note">Gana oro con los logros (cuanto más difícil, más paga) y ganando partidas online con al menos otra persona. Los logros alcanzan para casi toda la tienda; el resto, online. Más bots en la sala, menos oro. El 2.º puesto solo cobra si la partida es de 4 capos.</p>
+      <table class="gold-table"><caption>Oro online: <b>1.º</b> · 2.º</caption><thead><tr><th></th><th>Sin bots</th><th>1 bot</th><th>2 bots</th></tr></thead>
+        <tbody><tr><th>Contrato único</th>${[0, 1, 2].map(i => cell(s, i)).join('')}</tr><tr><th>Party a ${T.PARTY_MIN_WINS}+ victorias</th>${[0, 1, 2].map(i => cell(p, i)).join('')}</tr></tbody></table>
       <h3 class="pf-h">Capos</h3><div class="shop">${items.map(c => { const own = this.owns(c.key), can = d.gold >= c.price;
         return `<div class="shop-item ${own ? 'own' : ''}" style="--pc:${COLORS[col]}"><div class="avatar"><img src="assets/characters/${c.key}/${col}/idle.png" alt=""></div>
           <b>${esc(c.label)}</b>${own ? '<span class="shop-own">✔ Tuyo</span>'
@@ -300,4 +315,4 @@ const PROFILE = {
 };
 
 document.addEventListener('DOMContentLoaded', () => { if (!new URLSearchParams(location.search).get('room')) PROFILE.toMenu(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$$('modal-profile').classList.contains('hidden')) PROFILE.close(); });
+document.addEventListener('keydown', e => { if (e.key !== 'Escape') return; if (!$$('modal-profile').classList.contains('hidden')) PROFILE.close(); PROFILE.closeShop(); });

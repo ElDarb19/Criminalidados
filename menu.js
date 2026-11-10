@@ -393,6 +393,10 @@ function marketManualHtml() {
       <li><b>Protección Policial + Red de Protección:</b> la Red bloquea seguro la primera Redada o Soplón; después la Protección Policial sigue con su 80%.</li>
       <li><b>Tallador de Dados y El Cobrador de la Mesa:</b> no se combinan. Si tienes uno, la tienda no te ofrece el otro.</li>
       <li><b>Ley Seca + Crupier o Tallador:</b> primero baja el d6 la Ley Seca y después actúa el objeto.</li>
+      <li><b>Crupier en Imperio Criminal:</b> solo cambia el distrito en el que cobras tú. Si sacas 2 y el Crupier lo sube a 3, tú cobras en el 3 y los rivales en el 2.</li>
+      <li><b>Whisky Clandestino:</b> el x2 espera a tu próxima acción que haga daño o botín. Curarte, poner un Soplón, reforzar o huir no lo gasta. Un disparo fallido o una trampa al saquear sí. Si duplica un disparo por encima de la salud del rival, el sobredaño lo anula.</li>
+      <li><b>Chófer de Huida:</b> mientras te proteja verás 🚗 en tu tarjeta.</li>
+      <li><b>Inyección de Adrenalina:</b> puede dejarte por encima de tu salud o Cobertura inicial; ese escudo se ve en dorado.</li>
       <li><b>Matón a Sueldo:</b> el +2 es solo para la primera Granada de cada atraco o la primera Trampa de Tahúr del contrato.</li>
       <li><b>Llamada Falsa Alarma:</b> cuando un rival te afecta, el juego te pregunta si quieres usarla en ese momento. Si la guardas, puedes usarla después en tu turno, hasta que termine.</li>
     </ul>`;

@@ -20,7 +20,7 @@ const RPG = {
     const segs = [{ pct:Math.min(hp, max) / scale * 100, color:p.poison > 0 ? '#9b59b6' : 'var(--theme-accent)' }];
     if (over > 0) segs.push({ pct:over / scale * 100, color:'#f1c40f' });                    // la salud por encima de la inicial se ve en dorado
     return { segs, pct:0, color:'',
-      label:p.alive ? (max ? hp + '/' + max + ' SALUD' + (over > 0 ? ' · +' + Math.round(over / max * 100) + '% extra' : '') : '— SALUD') + (p.poison > 0 ? ' · 🕵️ soplón ' + p.poison : '') + (p.blocked ? ' · 🚫 médico' : '') : '💀 ELIMINADO',
+      label:p.alive ? (max ? hp + '/' + max + ' SALUD' + (over > 0 ? ' · +' + Math.round(over / max * 100) + '% extra' : '') : '— SALUD') + (p.poison > 0 ? ' · 🕵️ soplón ' + p.poison : '') + (p.blocked ? ' · 🚫 médico' : '') + MK.tags(p) : '💀 ELIMINADO',
       state:p.alive ? '' : 'dead', img:p.alive ? 'idle' : 'lose' };
   },
   ranking(G) {                                // 1.º el último en pie; después, quien cayó más tarde
