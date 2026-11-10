@@ -95,7 +95,11 @@ function playSound(name) {
       case 'trophy':        // propio de los logros: campanitas que suben (sol-si-re-sol) y un destello agudo al final
         [783.99, 987.77, 1174.66, 1567.98].forEach((f, i) => { tone(ctx, 'triangle', [f], .38, .14, i * .08); tone(ctx, 'sine', [f * 2], .26, .05, i * .08); });
         tone(ctx, 'sine', [2093, 3136], .5, .06, .36); break;
-      case 'tommy':         for (let i = 0; i < 6; i++) tone(ctx, 'sawtooth', [75 + Math.random() * 25, 60], .05, .3, i * .065); break;
+      case 'grand':         // todos los logros: fanfarria de tres acordes que suben, redoble de monedas y un brillo final
+        [[523.25, 659.25, 783.99], [587.33, 739.99, 880], [783.99, 987.77, 1174.66, 1567.98]].forEach((ch, i) => ch.forEach(f => { tone(ctx, 'triangle', [f], i === 2 ? 1.4 : .32, .1, i * .3); tone(ctx, 'sawtooth', [f / 2], i === 2 ? 1.2 : .3, .025, i * .3); }));
+        for (let i = 0; i < 10; i++) tone(ctx, 'sine', [1318.51 + i * 90, 1975.53], .18, .05, .95 + i * .07);
+        tone(ctx, 'sine', [2093, 4186], 1.1, .05, 1.7); break;
+      case 'tommy':       for (let i = 0; i < 6; i++) tone(ctx, 'sawtooth', [75 + Math.random() * 25, 60], .05, .3, i * .065); break;
       case 'sniper_reload': tone(ctx, 'sine', [1200, 400], .08, .2); break;
       case 'sniper_shot':   tone(ctx, 'square', [900, 60], .3, .35); break;
     }

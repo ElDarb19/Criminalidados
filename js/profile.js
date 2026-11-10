@@ -58,6 +58,7 @@ const PROFILE = {
     const raise = (saved.goldv || 1) < 2 ? ACHIEVEMENTS.filter(a => this.d.paid[a.id]).reduce((n, a) => n + TIERS[a.tier].gold - (GOLD_V1[a.tier] || 0), 0) : 0;
     this.d.gold += raise; this.d.goldv = 2;
     if (back || raise) { this.save(); setTimeout(() => this.notify('<i class="coin big" aria-hidden="true"></i>', 'ORO POR TUS LOGROS', '+' + (back + raise) + ' de oro'), 600); }
+    setTimeout(() => this.checkAll(true), 700);       // quien ya tenía todos los logros antes de existir el premio también lo recibe
     return this.d;
   },
   save(local) {                                    // local: solo en el dispositivo (sin subir a la nube)
@@ -146,6 +147,7 @@ const PROFILE = {
     row.titles.forEach(t => { d.titles[t.key] = (d.titles[t.key] || 0) + 1; });
     const ctx = { G, p, s, d, won, party, single:g => !party && CD.contract === g };
     ACHIEVEMENTS.forEach(a => { if (!d.ach[a.id] && a.test(ctx)) this.unlock(a.id, true); });
+    this.checkAll();
     if (CD.cfg.online) {                           // oro por el puesto final (1.º, o 2.º con 4 humanos)
       const humans = (CD.cfg.players || []).filter(q => !q.bot).length, pod = (G.result.podium || []).find(e => e.slot === p.slot);
       const place = won ? 1 : pod && pod.place > 1 ? pod.place : 0;      // un empate en el 1.º puesto no paga como victoria
@@ -161,9 +163,50 @@ const PROFILE = {
     if (!quiet) this.save();
     this.notify(a.icon, 'LOGRO DESBLOQUEADO', a.name + (g ? ' · +' + g + ' de oro' : a.unlocks ? ' · capo secreto' : ''));
   },
+  // ---------- todos los logros: premio del Dado del Capo y gran celebración (una sola vez en la vida del perfil) ----------
+  ALL_PRIZE:'fin:capo',                            // el dado del logo: llegará a DICE_ITEMS como acabado secreto (sin precio)
+  checkAll(save) {
+    const d = this.load(); if (d.allAt || !ACHIEVEMENTS.every(a => d.ach[a.id])) return false;
+    d.allAt = Date.now(); d.owned[this.ALL_PRIZE] = true;
+    if (save) this.save();
+    this.queue.push({ grand:true }); if (this.queue.length === 1) this.toast();
+    return true;
+  },
+  grand() {                                        // pantalla de celebración: lluvia de oro, fanfarria y el premio
+    const box = document.createElement('div'), calm = typeof reducedMotion === 'function' && reducedMotion();
+    box.id = 'ach-grand'; box.className = 'ach-grand' + (calm ? ' calm' : ''); box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-labelledby', 'ach-grand-t');
+    box.innerHTML = `<canvas aria-hidden="true"></canvas><div class="ach-grand-card"><div class="ach-grand-ic" aria-hidden="true">🏆</div>
+      <small>${ACHIEVEMENTS.length} DE ${ACHIEVEMENTS.length} LOGROS</small><h2 id="ach-grand-t">CAPO DE CAPOS</h2>
+      <p>Completaste todos los logros de Criminal Dice. La ciudad entera lleva tu nombre.</p>
+      <p class="ach-grand-prize">🎲 Premio: el <b>Dado del Capo</b>, el dado del logo. Llegará muy pronto a tus dados.</p>
+      <button type="button" class="start">¡A LA CIMA!</button></div>`;
+    document.body.appendChild(box); playSound('grand');
+    const done = () => { box.classList.add('out'); setTimeout(() => { box.remove(); this.queue.shift(); this.toast(); }, 400); };
+    box.querySelector('button').onclick = done; box.querySelector('button').focus();
+    if (!calm) this.rain(box.querySelector('canvas'));
+  },
+  rain(cv) {                                       // partículas: estallido de monedas y destellos dorados que caen
+    const ctx = cv.getContext('2d'), W = cv.width = innerWidth, H = cv.height = innerHeight, cols = ['#f1c40f', '#e8c860', '#c9a44a', '#fff4c2', '#a81515'];
+    const ps = Array.from({ length:160 }, (_, i) => { const a = Math.random() * Math.PI * 2, v = 4 + Math.random() * 9;
+      return { x:W / 2, y:H * .42, vx:Math.cos(a) * v, vy:Math.sin(a) * v - 5, r:3 + Math.random() * 5, c:cols[i % cols.length], coin:i % 3 === 0, s:Math.random() * 6, life:0 }; });
+    const t0 = performance.now();
+    const step = now => {
+      if (!cv.isConnected) return;
+      ctx.clearRect(0, 0, W, H);
+      if (now - t0 < 2600 && Math.random() < .5) ps.push({ x:Math.random() * W, y:-10, vx:0, vy:2 + Math.random() * 2, r:3 + Math.random() * 4, c:cols[Math.floor(Math.random() * 4)], coin:Math.random() < .5, s:Math.random() * 6, life:0 });
+      ps.forEach(p => { p.vy += .18; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.s += .15; p.life++;
+        ctx.fillStyle = p.c;
+        if (p.coin) { ctx.beginPath(); ctx.ellipse(p.x, p.y, p.r * Math.abs(Math.cos(p.s)) + .5, p.r, 0, 0, Math.PI * 2); ctx.fill(); }
+        else { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.s); ctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r * .5); ctx.restore(); } });
+      for (let i = ps.length - 1; i >= 0; i--) if (ps[i].y > H + 20) ps.splice(i, 1);
+      if (ps.length || now - t0 < 2600) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  },
   notify(icon, head, text) { this.queue.push({ icon, head, text }); if (this.queue.length === 1) this.toast(); },
   toast() {                                        // avisos de logro y de oro, uno tras otro, por encima de cualquier pantalla
     const a = this.queue[0], t = $$('ach-toast'); if (!a) return;
+    if (a.grand) return this.grand();
     document.body.appendChild(t);                  // último del documento: queda sobre cualquier ventana abierta después
     t.innerHTML = `<span class="ach-ic">${a.icon}</span><span><small>${a.head}</small><b>${esc(a.text)}</b></span>`;
     t.className = 'ach-toast in'; playSound('trophy');
