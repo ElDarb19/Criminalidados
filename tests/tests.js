@@ -88,10 +88,20 @@ test('Sprites · Existen las 21 poses de cada personaje del menú y del bot en t
 });
 
 // ---------- Tienda ----------
-test('Tienda · El oro de todos los logros alcanza para comprar toda la tienda', async () => {
+test('Tienda · El oro de los logros alcanza para casi toda la tienda, pero no toda (el resto se gana online)', async () => {
   const gold = E('ACHIEVEMENTS').reduce((n, a) => n + E('TIERS')[a.tier].gold, 0);
   const cost = E('CHARACTERS').concat(E('DICE_ITEMS')).reduce((n, c) => n + (c.price || 0), 0);   // capos y dados
-  ok(gold >= cost, 'los logros dan ' + gold + ' de oro y la tienda cuesta ' + cost + ': sube recompensas o añade logros');
+  ok(gold < cost && gold >= cost * 0.85, 'los logros dan ' + gold + ' de oro y la tienda cuesta ' + cost + ' (debe quedar entre el 85% y el 99%)');
+});
+test('Tienda · Oro online: solo humanos; 2.º solo con 4 humanos; Party alto solo a 3+ victorias', async () => {
+  const P = E('PROFILE'), cfg = (mode, wins) => ({ online:true, mode, winsNeeded:wins });
+  const g = (c, humans, place) => P.onlineGold(c, humans, place);
+  ok(g(cfg('single'), 1, 1) === 0, 'contra solo bots no paga');
+  ok(g(cfg('single'), 2, 1) === 60 && g(cfg('single'), 3, 2) === 0, 'contrato único con 2-3 humanos: solo el 1.º');
+  ok(g(cfg('single'), 4, 2) === 15 && g(cfg('single'), 4, 3) === 0, 'contrato único con 4 humanos: 2.º cobra 15');
+  ok(g(cfg('party', 3), 4, 1) === 150 && g(cfg('party', 3), 4, 2) === 40, 'Party a 3 victorias paga 150 / 40');
+  ok(g(cfg('party', 2), 2, 1) === 60, 'Party a menos de 3 victorias paga como un contrato único');
+  ok(g({ online:false, mode:'single' }, 4, 1) === 0, 'en local no paga');
 });
 test('Tienda · Cada dado decorado se dibuja (animado y estático) sin errores', async () => {
   const fx = E('DICEFX'), bad = [], warm = document.createElement('canvas'); warm.width = warm.height = 96; document.body.appendChild(warm);

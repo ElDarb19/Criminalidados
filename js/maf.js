@@ -104,7 +104,7 @@ const MAF = {
       att.prestige = Math.min(G.winScore, att.prestige + pts); CD.float(att.slot, '+' + pts + ' INFLUENCIA', 'heal');
       CD.log(`🎩 ${r === 20 ? '¡CONTROL POLÍTICO TOTAL!' : r <= 9 ? 'Soborno menor' : 'Trato jugoso'} (sacó ${r}). ${att.name} gana +${pts} Influencia (${att.prestige}/${G.winScore}).`);
       if (att.prestige >= G.winScore) { CD.finish(att.slot, 'Dominio Total — ' + G.players.map(p => p.name + ': ' + p.prestige).join(' · ')); return; }
-      if (r === 20 && MK.has(att, 'contact_quimico')) await this.extraRaid(G, att);
+      if (r === 20 && MK.has(att, 'contact_quimico') && await this.extraRaid(G, att)) skipTick = true;   // la redada extra empieza a contar desde el turno siguiente
     } else if (type === 'raid') {
       const t = G.players[tSlot];
       if (!t || t === att || att.coins < 3 || this.active(t) >= 3 || !t.parcels.includes(extra) || t.raids[extra] > 0) return;
@@ -112,7 +112,7 @@ const MAF = {
       if (blk) { if (blk.kind === 'bunker') att.coins = Math.max(0, att.coins - 3); CD.log(blk.text); skipTick = true; }     // el búnker cuesta la redada; la policía la intercepta gratis
       else {
         const turns = await CD.roll(4, att, 'Duración de la Redada → ' + t.name, 'maf_raid');
-        att.coins -= 3; t.raids[extra] = turns; skipTick = true;
+        att.coins -= 3; t.raids[extra] = turns; skipTick = true; MK.hurt(G, t, { raid:extra, from:att.slot });
         CD.float(t.slot, 'REDADA [' + extra + ']', 'crit');
         CD.log(`🚨 ¡SOPLO! ${att.name} envía una redada al Distrito [${extra}] de ${t.name} por ${turns} turnos.`);
       }
@@ -133,8 +133,9 @@ const MAF = {
     const blk = MK.block(t, 'la Redada Extra de ' + att.name);
     if (blk) { CD.log(blk.text); return; }
     const turns = await CD.roll(4, att, 'Redada del Químico → ' + t.name, 'maf_raid');
-    t.raids[d] = turns; CD.float(t.slot, 'REDADA [' + d + ']', 'crit');
+    t.raids[d] = turns; MK.hurt(G, t, { raid:d, from:att.slot }); CD.float(t.slot, 'REDADA [' + d + ']', 'crit');
     CD.log(`🧪 ¡El Químico Corruptor de ${att.name} lanza una redada extra al Distrito [${d}] de ${t.name} por ${turns} turnos!`);
+    return true;
   },
   endTurn(G, skipTick) {                       // las redadas pierden 1 al acabar cualquier turno (salvo el de su lanzamiento)
     if (!skipTick) G.players.forEach(p => { Object.keys(p.raids).forEach(d => { if (p.raids[d] > 0 && --p.raids[d] === 0) { delete p.raids[d]; CD.log(`🏢 El Distrito [${d}] de ${p.name} reabre sus puertas.`); } }); });

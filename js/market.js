@@ -16,41 +16,41 @@ const ECON = {
 };
 const ITEMS = [
   { id:'contact_armero', icon:'🔫', name:'Armero Clandestino', cost:320, kind:'p', desc:'+2 a tiradas d20 (máximo 20).', incompatible:[] },
-  { id:'contact_tahur', icon:'🃏', name:'El Cobrador de la Mesa', cost:140, kind:'p', desc:'Si sacas 1 en d6, ganas +50💲 para tu dinero del Mercado Negro.', incompatible:[], econ:true },
+  { id:'contact_tahur', icon:'🃏', name:'El Cobrador de la Mesa', cost:140, kind:'p', desc:'Si sacas 1 en d6, ganas +50💲 para tu dinero del Mercado Negro. No se combina con el Tallador de Dados.', incompatible:[], econ:true, excludes:['contact_tallador'] },
   { id:'contact_crupier', icon:'🎲', name:'Crupier de Esquina', cost:130, kind:'p', desc:'Un resultado par de d6 recibe +1, sin superar 6.', incompatible:[] },
-  { id:'contact_tallador', icon:'🎯', name:'Tallador de Dados', cost:150, kind:'p', desc:'En Guerra, Atraco y Apuestas, transforma un 1 en d6 en un valor seguro (Atraco: 3; los demás: 2).', incompatible:['maf'] },
+  { id:'contact_tallador', icon:'🎯', name:'Tallador de Dados', cost:150, kind:'p', desc:'En Atraco y Apuestas, transforma un 1 en d6 en un valor seguro (Atraco: 3; Apuestas: 2). No se combina con El Cobrador de la Mesa.', incompatible:['maf', 'rpg'], excludes:['contact_tahur'] },
   { id:'contact_matematico', icon:'🧮', name:'Matemático del Sindicato', cost:200, kind:'p', desc:'Sacar el máximo en cualquier dado otorga +15💲.', incompatible:[], econ:true },
   { id:'contact_matasanos', icon:'🩺', name:'Médico Matasanos', cost:380, kind:'p', desc:'+50% a toda curación recibida.', incompatible:['maf', 'pok'] },
   { id:'contact_desguace', icon:'🔧', name:'Dueño del Desguace', cost:90, kind:'p', desc:'Vender artículos te devuelve el 75% de su valor.', incompatible:[], econ:true },
   { id:'contact_policia', icon:'🚓', name:'Protección Policial', cost:180, kind:'p', desc:'80% de probabilidad de bloquear una Redada o un Infiltrar Soplón.', incompatible:['exp', 'pok'] },
-  { id:'contact_dinamita', icon:'🧨', name:'Tramposo de la Casa', cost:160, kind:'p', desc:'En Saquear Cajas, un fallo propio recibe +1 daño. En Apuesta Básica, un fallo propio hace que el rival pierda 2 fichas.', incompatible:['rpg', 'maf'] },
-  { id:'contact_contador', icon:'📒', name:'Contador de la Mafia', cost:160, kind:'p', desc:'Multiplica x1.5 la recompensa final si conservas HP > 50%.', incompatible:['maf', 'pok'], econ:true },
+  { id:'contact_dinamita', icon:'🧨', name:'Tramposo de la Casa', cost:160, kind:'p', desc:'En Atraco, sacar 1 en el d20 de Forzar Bóveda te quita 2 de daño de la alarma. En Apuestas, sacar 1 en el d20 del Golpe a la Mesa hace que solo pierdas 1 ficha.', incompatible:['rpg', 'maf'] },
+  { id:'contact_contador', icon:'📒', name:'Contador de la Mafia', cost:160, kind:'p', desc:'Multiplica x1.5 la recompensa final de Guerra si conservas más del 50% de tu salud.', incompatible:['maf', 'pok', 'exp'], econ:true },
   { id:'contact_usurero', icon:'💰', name:'Inversionista Usurero', cost:150, kind:'p', desc:'Al salir de la tienda, +15% de interés sobre tu dinero (máx. 200).', incompatible:[], econ:true },
   { id:'contact_prestamista', icon:'🩸', name:'Prestamista Siniestro', cost:250, kind:'p', desc:'+150💲 al inicio de minijuego, pero -4 HP/COB máxima.', incompatible:['maf', 'pok'], econ:true },
   { id:'contact_extorsionador', icon:'💼', name:'Extorsionador de Barrio', cost:170, kind:'p', desc:'Ganas +4💲 por cada turno finalizado sin recibir daño.', incompatible:[], econ:true },
   { id:'contact_maton', icon:'🥊', name:'Matón a Sueldo', cost:150, kind:'p', desc:'+2 al resultado del d4 de tu primera Lanzar Granada de CADA atraco (Atraco) y de tu primera Trampa de Tahúr (Apuestas).', incompatible:['rpg', 'maf'] },
   { id:'contact_chofer', icon:'🚗', name:'Chófer de Huida', cost:200, kind:'p', desc:'Si tu HP/COB está por debajo del 25%, recibes -2 daño.', incompatible:['maf', 'pok'] },
-  { id:'contact_quimico', icon:'🧪', name:'Químico Corruptor', cost:190, kind:'p', desc:'En Guerra, un crítico envenena 3 rondas. En Imperio, un 20 en Sobornar Político permite una Redada extra.', incompatible:['exp', 'pok'] },
+  { id:'contact_quimico', icon:'🧪', name:'Químico Corruptor', cost:190, kind:'p', desc:'En Guerra, un Francotirador que acierta con 20 en el d20 envenena 3 rondas. En Imperio, un 20 en Sobornar Político permite una Redada extra.', incompatible:['exp', 'pok'] },
   { id:'contact_arquitecto', icon:'🏛️', name:'Red de Protección', cost:260, kind:'p', desc:'+10% a ingresos y curaciones. Bloquea la primera Redada o Infiltrar Soplón que recibas.', incompatible:['exp', 'pok'] },
   { id:'item_puro', icon:'🚬', name:'Puro del Capo', cost:80, kind:'c', desc:'Repite la última tirada de dado (te lo ofrece tras cada tirada de tu turno).', incompatible:[] },
   { id:'item_whisky', icon:'🥃', name:'Whisky Clandestino', cost:70, kind:'c', desc:'Duplica el daño/botín de tu próxima acción, pero resta 2 HP/Cobertura.', incompatible:['maf', 'pok'] },
   { id:'item_soborno', icon:'🤝', name:'Soborno Relámpago', cost:90, kind:'c', desc:'Fuerza un 6 en tu próximo d6.', incompatible:[] },
   { id:'item_adrenalina', icon:'💉', name:'Inyección Adrenalina', cost:90, kind:'c', desc:'Cura +4 HP/Cobertura al instante (hasta tu máximo inicial).', incompatible:['maf', 'pok'] },
-  { id:'item_falsa_alarma', icon:'📞', name:'Llamada Falsa Alarma', cost:110, kind:'c', desc:'Cancela los efectos o estados negativos del turno rival previo.', incompatible:[] }
+  { id:'item_falsa_alarma', icon:'📞', name:'Llamada Falsa Alarma', cost:110, kind:'c', desc:'Cancela lo que te hicieron los rivales desde tu último turno (daño, Soplón, Redadas o fichas robadas). Puedes usarla en cuanto te afecten o en tu turno.', incompatible:[] }
 ];
 const ITEM_BY_ID = Object.fromEntries(ITEMS.map(i => [i.id, i]));
 const EVENTS = {
   purga:       { title:'📰 NOCHE DE PURGA', desc:'Guerra: Tommy/Francotirador +2 daño · Atraco: Trampa/Granada +2 daño', games:['rpg', 'exp'] },
   ley_seca:    { title:'📰 LEY SECA CLANDESTINA', desc:'-50% a curaciones · -1 a las tiradas de d6', games:['rpg', 'exp', 'maf', 'pok'] },
   inspectores: { title:'📰 GUERRA DE INSPECTORES', desc:'Recaudación x2 · 50% de riesgo de inspección en la Recaudación Segura', games:['maf'] },
-  carnicero:   { title:'💀 JEFE: EL CARNICERO', desc:'El jefe tiene +10 HP/COB, +1 daño y recibe +1 daño. Vencerlo otorga x2 de recompensa.', games:['rpg', 'exp'] },
+  carnicero:   { title:'💀 JEFE: EL CARNICERO', desc:'El jefe tiene +10 HP/COB, +1 daño y recibe +1 daño. Vencerlo otorga x2 de recompensa; si gana el jefe, se lleva x1.5.', games:['rpg', 'exp'] },
   comisionado: { title:'💀 JEFE: COMISIONADO CORRUPTO', desc:'-10% de Efectivo/Fichas/Botín al terminar tu turno', games:['exp', 'maf', 'pok'] }
 };
 // Utilidad (0-1) de cada objeto por contrato: la usa la IA para comprar. Si falta un dato, vale 0.5.
 const ITEM_VALUE = {
   contact_armero:{ rpg:.55, exp:.6, maf:1, pok:.9 }, contact_tahur:{ rpg:.8, exp:.15, maf:.3, pok:.1 }, contact_crupier:{ rpg:.45, exp:.1, maf:.1, pok:.1 },
-  contact_tallador:{ rpg:.3, exp:.3, pok:.1 }, contact_matematico:{ rpg:.55, exp:.45, maf:.6, pok:.2 }, contact_matasanos:{ rpg:1, exp:.35 },
-  contact_desguace:{ rpg:.2, exp:.2, maf:.2, pok:.2 }, contact_policia:{ rpg:.3, maf:.35 }, contact_dinamita:{ exp:.1, pok:.45 }, contact_contador:{ rpg:.3, exp:.3 },
+  contact_tallador:{ exp:.3, pok:.1 }, contact_matematico:{ rpg:.55, exp:.45, maf:.6, pok:.2 }, contact_matasanos:{ rpg:1, exp:.35 },
+  contact_desguace:{ rpg:.2, exp:.2, maf:.2, pok:.2 }, contact_policia:{ rpg:.3, maf:.35 }, contact_dinamita:{ exp:.2, pok:.2 }, contact_contador:{ rpg:.3 },
   contact_usurero:{ rpg:.35, exp:.35, maf:.35, pok:.35 }, contact_prestamista:{ rpg:.2, exp:.1 }, contact_extorsionador:{ rpg:.5, exp:.45, maf:.9, pok:.3 },
   contact_maton:{ exp:.15, pok:.35 }, contact_chofer:{ rpg:.45, exp:.15 }, contact_quimico:{ rpg:.3, maf:.1 }, contact_arquitecto:{ rpg:.1, maf:.8 },
   item_puro:{ rpg:.35, exp:.1, maf:.1, pok:.35 }, item_whisky:{ rpg:.3, exp:.3 }, item_soborno:{ rpg:.15, exp:.05, maf:.05, pok:.35 },
@@ -74,15 +74,31 @@ const MK = {
   initEcon(G) {
     G.players.forEach(p => Object.assign(p, { money:this.party() ? ECON.START_PARTY : ECON.START_SINGLE, contacts:[], consumable:null, stock:[], rerollCost:ECON.REROLL_BASE }));
   },
-  newStock() {                                  // 4 objetos al azar; en un único contrato solo los que funcionan en él y sirven para esa partida
+  newStock(p) {                                 // 4 objetos al azar; en un único contrato solo los que funcionan en él y sirven para esa partida
     const single = !this.party();
-    return ITEMS.filter(i => !single || (this.compatible(i.id, CD.contract) && !(i.econ && CD.contract !== 'exp'))).sort(() => Math.random() - .5).slice(0, ECON.STOCK).map(i => i.id);
+    return ITEMS.filter(i => (!single || (this.compatible(i.id, CD.contract) && !(i.econ && CD.contract !== 'exp'))) && !this.clash(p, i.id))
+      .sort(() => Math.random() - .5).slice(0, ECON.STOCK).map(i => i.id);
+  },
+  clash(p, id) {                                // objetos que no se combinan (Tallador ↔ Cobrador): si tienes uno, no te ofrecen el otro
+    return !!p && (ITEM_BY_ID[id].excludes || []).some(x => (p.contacts || []).includes(x));
+  },
+  // ---------- lo que te hacen los rivales (para la Llamada Falsa Alarma) ----------
+  // Cada jugador guarda lo que le hicieron los rivales desde que terminó su último turno: { n:daño o fichas, from:quién, poison, raid, tick }.
+  hurt(G, q, info) {
+    const cur = G.players[G.turn]; if (!q || (cur && cur.slot === q.slot)) return;      // lo que te pasa en tu propio turno no cuenta
+    q.hurt = (q.hurt || []).concat(info);
+  },
+  falsaUseful(G, p) {
+    const h = p.hurt || [];
+    if (CD.contract === 'rpg') return p.poison > 0 || h.some(x => x.n > 0);
+    if (CD.contract === 'maf') return Object.keys(p.raids || {}).some(d => p.raids[d] > 0);
+    if (CD.contract === 'pok') return h.some(x => x.n > 0 && x.from != null);
+    return h.some(x => x.n > 0);
   },
   gain(p, n, text) { p.money = (p.money || 0) + n; CD.float(p.slot, '+' + n + '💲' + (text ? ' ' + text : ''), 'loot'); },
   contractStart(G) {                            // reinicio de banderas por contrato y efectos de inicio
-    G.lastNeg = null;
     G.players.forEach(p => {
-      Object.assign(p, { bunkerUsed:false, matonUsed:false, tookDmg:false, force6:false, mult:1 });
+      Object.assign(p, { bunkerUsed:false, matonUsed:false, tookDmg:false, force6:false, mult:1, hurt:[] });
       if (this.has(p, 'contact_prestamista')) {
         this.gain(p, ECON.PRESTAMISTA_MONEY, 'PRESTAMISTA');
         CD.log(`🩸 ${p.name} usa al Prestamista Siniestro: +${ECON.PRESTAMISTA_MONEY}💲 y -${ECON.PRESTAMISTA_HP} de HP/COB máxima.`);
@@ -131,7 +147,7 @@ const MK = {
       }
     }
     if (this.has(p, 'contact_extorsionador') && !p.tookDmg && !(CD.contract === 'exp' && !p.alive)) { this.gain(p, ECON.EXTORSIONADOR, 'EXTORSIONADOR'); }
-    p.tookDmg = false; p.mult = 1;
+    p.tookDmg = false; p.mult = 1; p.hurt = [];
   },
 
   // ---------- eventos de ciudad ----------
@@ -155,6 +171,7 @@ const MK = {
       const pct = (CD.contract === 'rpg' || CD.contract === 'exp') && p.max > 0 ? p.hp / p.max : 1;
       if (this.has(p, 'contact_contador') && pct > 0.5) { r = Math.floor(r * 1.5); note += ' (Contador x1.5)'; }
       if (this.boss() != null && winnerSlot === p.slot && p.slot !== this.boss()) { r *= 2; note += ' (¡venció al Carnicero! x2)'; }
+      else if (this.boss() != null && winnerSlot === p.slot) { r = Math.floor(r * 1.5); note += ' (el Carnicero gana: x1.5)'; }
       p.money = (p.money || 0) + r; out[p.slot] = { amount:r, note };
     });
     return out;
@@ -167,8 +184,10 @@ const MK = {
   buy(p, id) {
     const it = ITEM_BY_ID[id]; if (!it || !(p.stock || []).includes(id) || p.money < it.cost) return false;
     if (it.kind === 'p' ? (p.contacts.length >= ECON.MAX_PASSIVES || p.contacts.includes(id)) : !!p.consumable) return false;
+    if (this.clash(p, id)) return false;
     p.money -= it.cost; p.stock = p.stock.filter(x => x !== id);
     if (it.kind === 'p') p.contacts.push(id); else p.consumable = id;
+    p.stock = p.stock.filter(x => !this.clash(p, x));                                   // lo que ya no se combina con lo comprado sale de tu tienda
     CD.log(`🛒 ${p.name} compra ${it.icon} ${it.name}.`); return true;
   },
   sell(p, id) {
@@ -177,7 +196,7 @@ const MK = {
     if (it.kind === 'p' && p.contacts.includes(id)) p.contacts = p.contacts.filter(x => x !== id); else if (p.consumable === id) p.consumable = null; else return false;
     const back = Math.floor(it.cost * rate); p.money += back; CD.log(`💱 ${p.name} vende ${it.icon} ${it.name} por ${back}💲.`); return true;
   },
-  reroll(p) { if (p.money < p.rerollCost) return false; p.money -= p.rerollCost; p.rerollCost += ECON.REROLL_STEP; p.stock = this.newStock(); return true; },
+  reroll(p) { if (p.money < p.rerollCost) return false; p.money -= p.rerollCost; p.rerollCost += ECON.REROLL_STEP; p.stock = this.newStock(p); return true; },
   leave(p) {                                    // al salir de la tienda: interés del Usurero
     if (p.contacts.includes('contact_usurero')) { const n = Math.min(ECON.USURERO_MAX, Math.floor(p.money * ECON.USURERO)); if (n > 0) { p.money += n; CD.log(`💰 El Usurero le paga a ${p.name} ${n}💲 de interés.`); } }
   },
@@ -196,14 +215,32 @@ const MK = {
     else if (id === 'item_falsa_alarma') this.falsa(G, p);
     return true;
   },
-  falsa(G, p) {                                 // cancela el último efecto negativo recibido
-    const n = G.lastNeg && G.lastNeg.target === p.slot ? G.lastNeg : null;
-    if (CD.contract === 'rpg') { p.poison = 0; if (n) { p.hp = Math.max(p.hp, Math.min(p.max, p.hp + n.amount)); CD.float(p.slot, '+' + n.amount + ' 📞', 'heal'); } CD.log('📞 Estado purificado y Soplón cancelado.'); }
-    else if (CD.contract === 'exp') { if (n) { p.hp = Math.min(p.max, p.hp + n.amount); CD.float(p.slot, '+' + n.amount + ' COB 📞', 'heal'); CD.log('📞 Cobertura dañada por granada restaurada.'); } }
+  falsa(G, p) {                                 // cancela lo que te hicieron los rivales desde tu último turno
+    const h = p.hurt || [], sum = h.reduce((s, x) => s + (x.n || 0), 0);
+    if (CD.contract === 'rpg') { p.poison = 0; if (sum) { p.hp += sum; CD.float(p.slot, '+' + sum + ' 📞', 'heal'); } CD.log(`📞 Soplón cancelado${sum ? ' y ' + sum + ' de salud recuperada' : ''}.`); }
+    else if (CD.contract === 'exp') { if (sum) { p.hp = Math.min(p.max, p.hp + sum); CD.float(p.slot, '+' + sum + ' COB 📞', 'heal'); CD.log(`📞 Recupera ${sum} de Cobertura dañada por granadas.`); } }
     else if (CD.contract === 'maf') { p.raids = {}; CD.float(p.slot, '📞 REDADAS CANCELADAS', 'status'); CD.log('📞 Redadas sobre tus distritos canceladas.'); }
-    else if (CD.contract === 'pok') { if (n && n.thief != null) { const t = G.players[n.thief], amt = Math.min(t.tokens, n.amount); t.tokens -= amt; p.tokens += amt; CD.float(p.slot, '+' + amt + ' 🎰 📞', 'heal'); CD.log(`📞 Recobradas ${amt} fichas.`);
-      if (t.alive && t.tokens <= 0) { POK.bust(G, t); if (CD.alive().length <= 1) POK.finishGame(G, 'Último en pie'); } } }
-    if (n) G.lastNeg = null;
+    else if (CD.contract === 'pok') {
+      let got = 0;
+      h.filter(x => x.n > 0 && x.from != null).forEach(x => { const t = G.players[x.from], amt = Math.min(t.tokens, x.n); t.tokens -= amt; p.tokens += amt; got += amt;
+        if (t.alive && t.tokens <= 0) POK.bust(G, t); });
+      if (got) CD.float(p.slot, '+' + got + ' 🎰 📞', 'heal'); CD.log(`📞 Recobradas ${got} fichas.`);
+      if (CD.alive().length <= 1) POK.finishGame(G, 'Último en pie');
+    }
+    p.hurt = [];
+  },
+  async offerFalsa(G, att, before) {            // tras la acción de un rival: quien tenga la Falsa Alarma y haya sido afectado puede usarla al momento
+    if (!this.on()) return;
+    for (const q of G.players) {
+      if (G.over || G.between) return;
+      const fresh = (q.hurt || []).slice(before[q.slot] || 0).filter(x => !x.tick);
+      if (q === att || !fresh.length || q.consumable !== 'item_falsa_alarma' || !this.compatible('item_falsa_alarma', CD.contract) || !q.alive || !this.falsaUseful(G, q)) continue;
+      const use = q.bot ? AI.falsaNow(G, q, CD.contract)
+        : await CD.askPlayer(q.slot, { title:'📞 LLAMADA FALSA ALARMA', text:`${att.name} acaba de afectarte. ¿Usas la Falsa Alarma ahora para cancelarlo? (cancela todo lo que te hicieron desde tu último turno)`,
+          options:[{ label:'📞 Usar ahora', value:true }, { label:'✋ Guardarla', value:false }] }) === true;
+      if (!use || q.consumable !== 'item_falsa_alarma') continue;
+      q.consumable = null; CD.log(`📞 ${q.name} usa la Llamada Falsa Alarma.`); this.falsa(G, q); CD.publish(); render();
+    }
   },
   async offerPuro(p, sides, val) {              // tras una tirada del propio turno
     if (p.bot) return AI.puro ? AI.puro(sides, val) : false;
@@ -213,8 +250,8 @@ const MK = {
 
   useBtn(p) {                                   // botón "usar consumible" durante tu turno
     if (!this.on() || !p.consumable || p.consumable === 'item_puro') return null;
-    const it = ITEM_BY_ID[p.consumable], ok = this.compatible(it.id, CD.contract);
-    return { type:'use', label:it.icon + ' Usar ' + it.name, sub:ok ? it.desc : 'No funciona en este contrato', disabled:!ok, wide:true };
+    const it = ITEM_BY_ID[p.consumable], ok = this.compatible(it.id, CD.contract), idle = ok && it.id === 'item_falsa_alarma' && !this.falsaUseful(CD.G, p);
+    return { type:'use', label:it.icon + ' Usar ' + it.name, sub:!ok ? 'No funciona en este contrato' : idle ? 'Nada que cancelar todavía' : it.desc, disabled:!ok || idle, wide:true };
   },
   // ---------- interfaz de la tienda ----------
   hud(p) {

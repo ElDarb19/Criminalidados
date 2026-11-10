@@ -32,7 +32,8 @@ const ACHIEVEMENTS = [
   { id:'sin_medico',   tier:'dificil', icon:'💪', name:'Sin Médico',            desc:'Gana una Guerra de Bandas sin curarte.',                 test:c => c.won && c.single('rpg') && c.s.healed === 0 },
   { id:'maquinas',     tier:'dificil', icon:'🤖', name:'Domador de Máquinas',   desc:'Gana contra 3 bots.',                                    test:c => c.won && c.G.players.filter(q => q.bot).length >= 3 },
   { id:'trebol',       tier:'dificil', icon:'🍀', name:'Trébol de Cuatro Hojas', desc:'Saca tres 20 naturales en una misma partida.',          test:c => c.s.nat20 >= 3 },
-  { id:'intocable',    tier:'dificil', icon:'🛡️', name:'Intocable',             desc:'Gana una partida sin recibir daño ni pérdidas.',          test:c => c.won && c.s.taken === 0 },
+  { id:'intocable',    tier:'dificil', icon:'🛡️', name:'Intocable',             desc:'Gana una partida sin recibir daño ni pérdidas (Imperio Criminal no cuenta).',
+    test:c => c.won && c.s.taken === 0 && !(c.party ? (CD.cfg.games || []).every(g => g === 'maf') : c.single('maf')) },   // en Imperio Criminal nunca se recibe daño: sería un logro regalado
   { id:'coleccionista', tier:'leyenda', icon:'🗂️', name:'Coleccionista',        desc:'Consigue los 8 títulos del Expediente.',                 test:c => FILE.TITLES.every(t => c.d.titles[t.key] > 0) },
   { id:'leyenda',      tier:'leyenda', icon:'👑', name:'Leyenda de la Ciudad',  desc:'Gana 25 partidas.',                                      test:c => c.d.wins >= 25 },
   { id:'juicio_final', tier:'secreto', icon:'⚙️', name:'Juicio Final', hidden:true, unlocks:'Terminator',
@@ -45,7 +46,7 @@ const PROFILE = {
   blank() {
     return { name:'', color:null, char:null, games:0, wins:0, online:0,
       by:Object.fromEntries(GAMES.map(g => [g, { p:0, w:0 }])), party:{ p:0, w:0 },
-      tot:{ dealt:0, gained:0, healed:0, nat20:0, nat1:0, acts:0 }, titles:{}, ach:{}, gold:0, paid:{}, owned:{}, react:null, fin:null, aura:null, goldv:2 };
+      tot:{ dealt:0, gained:0, healed:0, nat20:0, nat1:0, acts:0 }, titles:{}, ach:{}, gold:0, earned:0, paid:{}, owned:{}, react:null, fin:null, aura:null, goldv:2 };
   },
   load() {
     if (this.d) return this.d;
@@ -91,8 +92,16 @@ const PROFILE = {
     if (a.unlocks) d.owned[a.unlocks] = true;
     return g;
   },
-  goldOf(d) {                                      // oro = lo cobrado por logros − lo gastado en la tienda (sirve para combinar dispositivos)
-    const won = ACHIEVEMENTS.filter(a => d.paid[a.id]).reduce((n, a) => n + TIERS[a.tier].gold, 0);
+  // Oro por partidas online (solo cuentan los jugadores humanos, nunca los bots). Con 2-3 humanos cobra solo el 1.º;
+  // con 4 humanos también el 2.º (mucho menos). El Modo Party paga más solo si se juega a 3 victorias o más.
+  ONLINE_GOLD: { single:[60, 15], party:[150, 40], PARTY_MIN_WINS:3 },
+  onlineGold(cfg, humans, place) {
+    if (!cfg || !cfg.online || humans < 2 || !(place >= 1)) return 0;
+    const t = this.ONLINE_GOLD, row = cfg.mode === 'party' && (cfg.winsNeeded || 0) >= t.PARTY_MIN_WINS ? t.party : t.single;
+    return place === 1 ? row[0] : place === 2 && humans >= 4 ? row[1] : 0;
+  },
+  goldOf(d) {                                      // oro = lo cobrado por logros y partidas online − lo gastado en la tienda (sirve para combinar dispositivos)
+    const won = ACHIEVEMENTS.filter(a => d.paid[a.id]).reduce((n, a) => n + TIERS[a.tier].gold, 0) + (d.earned || 0);
     const spent = this.items().filter(c => d.owned[c.key]).reduce((n, c) => n + c.price, 0);
     return Math.max(0, won - spent);
   },
@@ -137,6 +146,12 @@ const PROFILE = {
     row.titles.forEach(t => { d.titles[t.key] = (d.titles[t.key] || 0) + 1; });
     const ctx = { G, p, s, d, won, party, single:g => !party && CD.contract === g };
     ACHIEVEMENTS.forEach(a => { if (!d.ach[a.id] && a.test(ctx)) this.unlock(a.id, true); });
+    if (CD.cfg.online) {                           // oro por el puesto final (1.º, o 2.º con 4 humanos)
+      const humans = (CD.cfg.players || []).filter(q => !q.bot).length, pod = (G.result.podium || []).find(e => e.slot === p.slot);
+      const place = won ? 1 : pod && pod.place > 1 ? pod.place : 0;      // un empate en el 1.º puesto no paga como victoria
+      const g = this.onlineGold(CD.cfg, humans, place);
+      if (g) { d.earned = (d.earned || 0) + g; d.gold += g; this.notify('<i class="coin big" aria-hidden="true"></i>', 'ORO DE LA PARTIDA ONLINE', '+' + g + ' de oro · ' + (place === 1 ? '1.er' : '2.º') + ' puesto'); }
+    }
     this.save();
   },
   unlock(id, quiet) {
@@ -223,7 +238,7 @@ const PROFILE = {
   shopHtml() {
     const d = this.load(), col = this.prefs().color || 'Color_R';
     const items = CHARACTERS.filter(c => c.price);
-    return `<p class="pf-note">Gana oro con los logros: cuanto más difícil, más paga. Con todos los logros tendrás oro para comprar toda la tienda.</p>
+    return `<p class="pf-note">Gana oro con los logros (cuanto más difícil, más paga) y ganando partidas online contra otras personas: el 1.º cobra ${this.ONLINE_GOLD.single[0]} (${this.ONLINE_GOLD.party[0]} en un Modo Party a ${this.ONLINE_GOLD.PARTY_MIN_WINS} victorias o más) y, si son 4 personas, el 2.º cobra ${this.ONLINE_GOLD.single[1]} (${this.ONLINE_GOLD.party[1]}). Los bots no cuentan. Los logros alcanzan para casi toda la tienda; el resto, online.</p>
       <h3 class="pf-h">Capos</h3><div class="shop">${items.map(c => { const own = this.owns(c.key), can = d.gold >= c.price;
         return `<div class="shop-item ${own ? 'own' : ''}" style="--pc:${COLORS[col]}"><div class="avatar"><img src="assets/characters/${c.key}/${col}/idle.png" alt=""></div>
           <b>${esc(c.label)}</b>${own ? '<span class="shop-own">✔ Tuyo</span>'
@@ -236,7 +251,7 @@ const PROFILE = {
   },
   async reset() {
     if (!(await askConfirm('¿Borrar historial y logros?', 'Tu nombre, personaje y color se conservan, y también tu oro y lo que compraste. Los logros ya cobrados no vuelven a pagar. Esto no se puede deshacer.', 'SÍ, BORRAR'))) return;
-    const d = this.load(), keep = { name:d.name, color:d.color, char:d.char, gold:d.gold, paid:d.paid, owned:d.owned, owner:d.owner, fin:d.fin, aura:d.aura, react:d.react };
+    const d = this.load(), keep = { name:d.name, color:d.color, char:d.char, gold:d.gold, earned:d.earned, paid:d.paid, owned:d.owned, owner:d.owner, fin:d.fin, aura:d.aura, react:d.react };
     this.d = Object.assign(this.blank(), keep); this.save(); this.tab('hist');
   }
 };

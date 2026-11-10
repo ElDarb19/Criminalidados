@@ -6,17 +6,17 @@
 // El color del jugador se conserva siempre (para saber de quién es la tirada). Cada acabado y cada aura se compra
 // una vez con oro y se elige en Perfil → Tu Capo.
 const DICE_ITEMS = [
-  { key:'fin:oro',       kind:'fin',  id:'oro',      label:'Oro',      sub:'contorno y números dorados', price:300 },
-  { key:'fin:balazo',    kind:'fin',  id:'balazo',   label:'Balazo',   sub:'plomo con agujero de bala',  price:300 },
-  { key:'aura:fuego',    kind:'aura', id:'fuego',    label:'Fuego',    sub:'llamas que suben',           price:200 },
-  { key:'aura:aire',     kind:'aura', id:'aire',     label:'Aire',     sub:'remolino de viento',         price:200 },
-  { key:'aura:tierra',   kind:'aura', id:'tierra',   label:'Tierra',   sub:'rocas que orbitan',          price:200 },
-  { key:'aura:agua',     kind:'aura', id:'agua',     label:'Agua',     sub:'gotas en ola',               price:200 },
-  { key:'aura:rayo',     kind:'aura', id:'rayo',     label:'Rayo',     sub:'chispas eléctricas',         price:200 },
-  { key:'aura:humo',     kind:'aura', id:'humo',     label:'Humo',     sub:'niebla de callejón',         price:200 },
-  { key:'aura:billetes', kind:'aura', id:'billetes', label:'Billetes', sub:'lluvia de dólares',          price:200 },
-  { key:'aura:monedas',  kind:'aura', id:'monedas',  label:'Monedas',  sub:'oro que cae girando',        price:200 },
-  { key:'aura:neon',     kind:'aura', id:'neon',     label:'Neón',     sub:'letrero de club nocturno',   price:200 }
+  { key:'fin:oro',       kind:'fin',  id:'oro',      label:'Oro',      sub:'contorno y números dorados', price:500 },
+  { key:'fin:balazo',    kind:'fin',  id:'balazo',   label:'Balazo',   sub:'plomo con agujero de bala',  price:500 },
+  { key:'aura:fuego',    kind:'aura', id:'fuego',    label:'Fuego',    sub:'llamas que suben',           price:400 },
+  { key:'aura:aire',     kind:'aura', id:'aire',     label:'Aire',     sub:'remolino de viento',         price:400 },
+  { key:'aura:tierra',   kind:'aura', id:'tierra',   label:'Tierra',   sub:'rocas que orbitan',          price:400 },
+  { key:'aura:agua',     kind:'aura', id:'agua',     label:'Agua',     sub:'gotas en ola',               price:400 },
+  { key:'aura:rayo',     kind:'aura', id:'rayo',     label:'Rayo',     sub:'chispas eléctricas',         price:400 },
+  { key:'aura:humo',     kind:'aura', id:'humo',     label:'Humo',     sub:'niebla de callejón',         price:400 },
+  { key:'aura:billetes', kind:'aura', id:'billetes', label:'Billetes', sub:'lluvia de dólares',          price:400 },
+  { key:'aura:monedas',  kind:'aura', id:'monedas',  label:'Monedas',  sub:'oro que cae girando',        price:400 },
+  { key:'aura:neon',     kind:'aura', id:'neon',     label:'Neón',     sub:'letrero de club nocturno',   price:400 }
 ];
 
 const DICEFX = (() => {

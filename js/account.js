@@ -89,7 +89,7 @@ const ACCOUNT = {
     const d = PROFILE.blank(), max = (x, y) => Math.max(x || 0, y || 0);
     d.name = b.name || a.name || ''; d.color = b.color || a.color || null; d.char = b.char || a.char || null; d.react = b.react || a.react || null;
     d.fin = b.fin || a.fin || null; d.aura = b.aura || a.aura || null; d.goldv = Math.max(b.goldv || 1, a.goldv || 1);   // dados elegidos y versión de las recompensas
-    ['games', 'wins', 'online'].forEach(k => { d[k] = max(a[k], b[k]); });
+    ['games', 'wins', 'online', 'earned'].forEach(k => { d[k] = max(a[k], b[k]); });   // earned: oro ganado en partidas online
     GAMES.forEach(g => ['p', 'w'].forEach(k => { d.by[g][k] = max(a.by && a.by[g] && a.by[g][k], b.by && b.by[g] && b.by[g][k]); }));
     ['p', 'w'].forEach(k => { d.party[k] = max(a.party && a.party[k], b.party && b.party[k]); });
     Object.keys(d.tot).forEach(k => { d.tot[k] = max(a.tot && a.tot[k], b.tot && b.tot[k]); });

@@ -211,187 +211,152 @@ window.addEventListener('error', function (e) {
       </div>
 
       <div id="tab-content-1" class="guide-text-box">
-        <h3>Guerra Total por la Ciudad</h3>
-        <p>El Modo Party es una playlist de varios contratos. El primer Capo en alcanzar la mayoría de victorias es nombrado <b>Jefe Absoluto</b>.</p>
+        <h3>Modo Party: guerra total por la ciudad</h3>
+        <p>Se juegan varios contratos seguidos. Antes de empezar eliges cuántas <b>victorias</b> hacen falta para ganar: el primer Capo que llega a esa cifra es el <b>Jefe Absoluto</b>. Si las victorias son menos que los contratos marcados, salen al azar; si son más, todos se juegan al menos una vez.</p>
+        <p>Con el <b>Mercado Negro</b> activado, cada Capo empieza con <b>100💲</b> y, tras cada contrato, cobra según su puesto: <b>110 · 85 · 65 · 50💲</b>. El mercado abre entre un contrato y el siguiente.</p>
 
-        <h3>Antes vs. Después (Cambios de Balance):</h3>
-
-        <p><b class="highlight-gold">1. El Gran Atraco:</b></p>
+        <h3>Diferencias entre el Modo Party y un contrato único</h3>
+        <p><b class="highlight-gold">El Gran Atraco</b></p>
         <ul>
-          <li><b>Original:</b> Disputado a 3 Inmersiones acumulativas. Granadas/Torpedos hasta 3 usos. Reparación de 1 solo uso por inmersión.</li>
-          <li><b>En Modo Party:</b> Se juega a <b>1 Inmersión Única</b>. Granada/Torpedo limitada a <b>1 solo uso</b>. Reforzar Cobertura pasa a tener un tiempo de recarga de <b>5 rondas</b> (`1/5 Rd`).</li>
+          <li><b>Contrato único:</b> 3 atracos seguidos (gana quien asegure más botín en total). Hasta 3 Granadas y 1 Reforzar Cobertura por atraco. Quien empieza se sortea en cada atraco.</li>
+          <li><b>Modo Party:</b> 1 solo atraco. 1 Granada y Reforzar Cobertura cada 5 rondas.</li>
+        </ul>
+        <p><b class="highlight-gold">Imperio Criminal</b></p>
+        <ul>
+          <li><b>Contrato único:</b> gana quien llegue a <b>15 de Influencia</b>.</li>
+          <li><b>Modo Party:</b> la meta baja a <b>10 de Influencia</b>.</li>
+        </ul>
+        <p><b class="highlight-gold">Apuestas Clandestinas</b></p>
+        <ul>
+          <li><b>Contrato único:</b> la Trampa de Tahúr se recarga en 3 rondas.</li>
+          <li><b>Modo Party:</b> la Trampa de Tahúr tiene 1 solo uso.</li>
+        </ul>
+        <p><b class="highlight-gold">Guerra de Bandas</b></p>
+        <ul>
+          <li><b>Sin cambios:</b> mismas reglas en los dos modos.</li>
         </ul>
 
-        <p><b class="highlight-gold">2. Imperio Criminal:</b></p>
-        <ul>
-          <li><b>Original:</b> Requiere alcanzar <b>15 Puntos de Influencia</b> para adueñarse de la ciudad.</li>
-          <li><b>En Modo Party:</b> La meta se acelera a <b>10 Puntos de Influencia</b>.</li>
-        </ul>
-
-        <p><b class="highlight-gold">3. Apuestas Clandestinas (Suma Cero P2P):</b></p>
-        <ul>
-          <li><b>Original:</b> Interacción contra la Banca. Ambos Capos arrancaban con 12 Fichas.</li>
-          <li><b>En Modo Party P2P:</b> Inician con <b>8 Fichas cada uno</b>. La transferencia de monedas es <b>directa entre jugadores</b>. La Trampa de Tahúr se limita a <b>1 único uso por partida</b>.</li>
-        </ul>
-
-        <p><b class="highlight-gold">4. Guerra de Bandas:</b></p>
-        <ul>
-          <li><b>Sin Cambios:</b> Mantienen las mismas reglas de duelo a muerte con Salud inicial aleatoria de <b>3d6 + 10</b> (13 a 28 HP).</li>
-        </ul>
+        <h3>Mercado Negro en un contrato único</h3>
+        <p>Empiezas con <b>350💲</b> y el mercado abre antes de jugar, solo con objetos que sirven en ese contrato. En El Gran Atraco abre también después del 1.º y del 2.º atraco: cada bolsa de botín asegurada en ese atraco te da <b>10💲</b>.</p>
       </div>
 
       <div id="tab-content-2" class="guide-text-box hidden">
+        <p>En cada turno eliges <b>una acción</b> y, si ataca, <b>a qué rival</b> va dirigida. Quien empieza cada contrato se sortea.</p>
         <h3>1. Guerra de Bandas</h3>
+        <p>Cada Capo empieza con <b class="highlight-gold">3d6 + 10</b> de Salud (de 13 a 28). Gana el último en pie.</p>
         <ul>
-          <li><b>Tommy Gun:</b> Tira <b class="highlight-gold">1d6</b>. Inflige de 1 a 6 de daño directo (Si el daño supera el HP restante del rival, el tiro es Nulo y no hace daño).</li>
-          <li><b>Francotirador:</b> Tira <b class="highlight-gold">1d20</b> para precisión. Requiere sacar <b class="highlight-green">11 o más</b> (50% de probabilidad). Si acierta, tira <b class="highlight-gold">1d12</b> de daño.</li>
-          <li><b>Médico Matasanos:</b> Tira <b class="highlight-gold">1d8</b> para recuperar de 1 a 8 de Salud. Inhabilitado en la Ronda 1. Bloqueado tras 3 usos seguidos hasta que realices un ataque.</li>
-          <li><b>Infiltrar Soplón:</b> Tira <b class="highlight-gold">1d4</b>. Infiltra al topo durante 1 a 4 rondas. Inflige -1 de Salud al rival en CADA TURNO del combate (Tanto aliado como enemigo).</li>
+          <li><b>⚡ Ráfaga Tommy Gun:</b> tira <b class="highlight-gold">1d6</b> de daño.</li>
+          <li><b>🔫 Francotirador:</b> tira <b class="highlight-gold">1d20</b> y necesita <b class="highlight-green">11 o más</b>; si acierta, tira <b class="highlight-gold">1d12</b> de daño. Con un 20, <b>+2 de daño crítico</b>.</li>
+          <li><b>🩺 Médico de calle:</b> tira <b class="highlight-gold">1d8</b> de Salud. Curándote puedes llegar hasta <b>35</b>; la salud por encima de la inicial se ve en dorado. Tras 3 curaciones seguidas, el médico se bloquea hasta que uses otra acción.</li>
+          <li><b>🕵️ Infiltrar Soplón:</b> tira <b class="highlight-gold">1d4</b>. El rival pierde 1 de Salud al final de cada turno durante ese número de turnos. No se puede poner a quien ya tiene uno.</li>
+          <li><b>Sobredaño:</b> si un disparo hace más daño que la salud que le queda al rival, se anula y no hace nada.</li>
         </ul>
 
         <h3>2. El Gran Atraco</h3>
+        <p>Cada Capo entra con <b>20 de Cobertura</b>. Si llega a 0 te arrestan y pierdes el botín no asegurado. Gana quien asegure más botín.</p>
         <ul>
-          <li><b>Saquear Cajas:</b> Tira <b class="highlight-gold">1d6</b>.
-            <br>&nbsp;&nbsp;• <b>1 - 2:</b> Trampa de seguridad (-3 Cobertura; el Carnicero recibe +1 daño y un Tramposo de la Casa añade +1).
-            <br>&nbsp;&nbsp;• <b>3 - 5:</b> Éxito (+1 Fajo de billetes).
-            <br>&nbsp;&nbsp;• <b>6:</b> Éxito crítico (+3 Fajos de billetes).
+          <li><b>📦 Saquear Cajas:</b> tira <b class="highlight-gold">1d6</b>.
+            <br>&nbsp;&nbsp;• <b>1 - 2:</b> trampa de seguridad (-3 Cobertura).
+            <br>&nbsp;&nbsp;• <b>3 - 5:</b> +1 de botín.
+            <br>&nbsp;&nbsp;• <b>6:</b> +3 de botín.
           </li>
-          <li><b>Forzar Bóveda:</b> Tira <b class="highlight-gold">1d20</b> para destreza.
-            <br>&nbsp;&nbsp;• <b>11 a 20:</b> Éxito. Tira <b class="highlight-gold">1d12</b> y embolsa de 1 a 12 Bolsas de Botín.
-            <br>&nbsp;&nbsp;• <b>1 a 10:</b> Fallo. Alarma pesada (-6 Cobertura; el Carnicero recibe +1, por lo que sufre 7).
+          <li><b>🏦 Forzar Bóveda:</b> tira <b class="highlight-gold">1d20</b>.
+            <br>&nbsp;&nbsp;• <b>11 a 20:</b> tira <b class="highlight-gold">1d12</b> de botín (con un 20, +2).
+            <br>&nbsp;&nbsp;• <b>1 a 10:</b> alarma pesada (-6 Cobertura).
           </li>
-          <li><b>Reforzar Cobertura:</b> Tira <b class="highlight-gold">1d4</b>. Recupera de 1 a 4 de Cobertura (Máximo 20).</li>
-          <li><b>Lanzar Granada:</b> Tira <b class="highlight-gold">1d4</b>. Inflige de 1 a 4 de daño a la cobertura rival.</li>
-          <li><b>Coche de Escape:</b> Asegura todo el botín acumulado en la reserva permanente y sale del atraco a salvo.</li>
+          <li><b>🔧 Reforzar Cobertura:</b> tira <b class="highlight-gold">1d4</b> y recuperas esa Cobertura (sin pasar de tu máximo).</li>
+          <li><b>💣 Lanzar Granada:</b> tira <b class="highlight-gold">1d4</b> de daño a la Cobertura del rival que elijas.</li>
+          <li><b>🚗 Coche de Escape:</b> aseguras todo tu botín y sales del atraco a salvo.</li>
         </ul>
 
         <h3>3. Imperio Criminal</h3>
+        <p>La ciudad tiene 6 distritos y cada Capo empieza con 2. Cada turno tiene dos pasos: <b>recaudar</b> y luego <b>una acción</b>.</p>
         <ul>
-          <li><b>Recaudación Segura:</b> Tira <b class="highlight-gold">1d6</b>. Si cae en un distrito bajo tu control, cobras <b class="highlight-green">+1💵</b> de Efectivo por distrito.</li>
-          <li><b>Golpe Arriesgado:</b> Tira <b class="highlight-gold">1d12</b>.
-            <br>&nbsp;&nbsp;• <b>1 - 6:</b> Cobras <b class="highlight-green">+3💵</b> por distrito controlado.
-            <br>&nbsp;&nbsp;• <b>7 - 12:</b> Vigilancia policial. Nadie cobra.
+          <li><b>🎲 Recaudación Segura:</b> tira <b class="highlight-gold">1d6</b>. Cobra <b class="highlight-green">1💵</b> cada Capo que controle el distrito que salió.</li>
+          <li><b>🎰 Recaudación Arriesgada:</b> tira <b class="highlight-gold">1d12</b>.
+            <br>&nbsp;&nbsp;• <b>1 - 6:</b> cobra <b class="highlight-green">3💵</b> cada Capo que controle ese distrito.
+            <br>&nbsp;&nbsp;• <b>7 - 12:</b> demasiada vigilancia: nadie cobra.
           </li>
-          <li><b>Lavar Dinero (Opcional):</b> Pagas 1💵 antes de recaudar. Solo tú cobras si el dado marca uno de tus distritos.</li>
-          <li><b>Controlar Distrito:</b> Compra la propiedad de un distrito libre. Costo = Distritos poseídos + 1💵.</li>
-          <li><b>Sobornar Político:</b> Pagas 5💵. Tira <b class="highlight-gold">1d20</b>:
-            <br>&nbsp;&nbsp;• <b>1 - 9:</b> Soborno Menor (<b class="highlight-gold">+1 Influencia</b>).
-            <br>&nbsp;&nbsp;• <b>10 - 19:</b> Trato Jugoso (<b class="highlight-gold">+2 Influencia</b>).
-            <br>&nbsp;&nbsp;• <b>20:</b> Control Político Total (<b class="highlight-gold">+4 Influencia</b>).
+          <li><b>🔥 Lavar Dinero (opcional):</b> pagas 1💵 antes de recaudar y solo cobras tú.</li>
+          <li><b>🏢 Controlar Distrito:</b> cuesta tus distritos + 1💵 (máximo 6).</li>
+          <li><b>🎩 Sobornar Político:</b> pagas 5💵 y tiras <b class="highlight-gold">1d20</b>:
+            <br>&nbsp;&nbsp;• <b>1 - 9:</b> +1 de Influencia.
+            <br>&nbsp;&nbsp;• <b>10 - 19:</b> +2 de Influencia.
+            <br>&nbsp;&nbsp;• <b>20:</b> +4 de Influencia.
           </li>
-          <li><b>Redada Policial:</b> Pagas 3💵. Tira <b class="highlight-gold">1d4</b>. Clausura un distrito rival durante 1 a 4 rondas.</li>
+          <li><b>🚨 Redada Policial:</b> pagas 3💵, eliges un distrito de un rival y tiras <b class="highlight-gold">1d4</b>: ese distrito no cobra durante ese número de turnos (máximo 3 redadas a la vez sobre un rival). Empieza a contar desde el turno siguiente.</li>
+          <li><b>⏳ Pasar turno:</b> guardas tu Efectivo.</li>
         </ul>
+        <p>Gana quien llegue primero a <b>15 de Influencia</b> (10 en Modo Party).</p>
 
-        <h3>4. Apuestas Clandestinas (Suma Cero P2P)</h3>
+        <h3>4. Apuestas Clandestinas</h3>
+        <p>Todos empiezan con <b>8 fichas</b> y se juegan <b>8 rondas</b>. Quien se queda sin fichas cae en bancarrota. Gana el último en pie o quien tenga más fichas al final.</p>
         <ul>
-          <li><b>Apuesta Básica:</b> Arriesgas 1 moneda. Tira <b class="highlight-gold">1d6</b>.
-            <br>&nbsp;&nbsp;• <b>4 - 6:</b> Éxito (Le quitas 1 moneda directamente al rival).
-            <br>&nbsp;&nbsp;• <b>1 - 3:</b> Fallo (El rival te quita 1 moneda; con Tramposo de la Casa, el rival pierde 2 fichas en su lugar).
+          <li><b>🎰 Apuesta Básica:</b> arriesgas 1 ficha y tiras <b class="highlight-gold">1d6</b>.
+            <br>&nbsp;&nbsp;• <b>4 - 6:</b> le ganas 1 ficha al rival.
+            <br>&nbsp;&nbsp;• <b>1 - 3:</b> el rival te gana 1 ficha.
           </li>
-          <li><b>Golpe a la Mesa:</b> Arriesgas 3 monedas. Tira <b class="highlight-gold">1d20</b> para riesgo.
-            <br>&nbsp;&nbsp;• <b>11 a 20:</b> Éxito. Tira <b class="highlight-gold">1d12</b> y le robas esa cantidad de monedas al rival.
-            <br>&nbsp;&nbsp;• <b>1 a 10:</b> Fallo (El rival se queda con tus 3 monedas arriesgadas).
+          <li><b>💥 Golpe a la Mesa:</b> arriesgas 3 fichas y tiras <b class="highlight-gold">1d20</b>.
+            <br>&nbsp;&nbsp;• <b>11 a 20:</b> tira <b class="highlight-gold">1d12</b> y le robas esas fichas al rival (con un 20, +2). Si es más de lo que tiene, el golpe se anula.
+            <br>&nbsp;&nbsp;• <b>1 a 10:</b> el rival se queda con tus 3 fichas.
           </li>
-          <li><b>Trampa de Tahúr:</b> Tira <b class="highlight-gold">1d4</b>. Roba de 1 a 4 fichas directamente al rival.</li>
+          <li><b>🎭 Trampa de Tahúr:</b> tira <b class="highlight-gold">1d4</b> y robas esas fichas sin riesgo. Luego espera 3 rondas (en Modo Party, 1 uso).</li>
         </ul>
       </div>
 
       <div id="tab-content-3" class="guide-text-box hidden">
-        <h3>🛒 Mercado Negro</h3>
-        <p>En el Mercado Negro cada Capo puede tener hasta <b>3 contactos pasivos</b> y <b>1 consumible</b>. Los contactos incompatibles con el contrato aparecen marcados y no producen efecto durante ese minijuego. Los objetos se conservan entre contratos del Modo Roguelike.</p>
-
-        <h3>🟣 Contactos pasivos</h3>
-        <ul>
-          <li><b>🔫 Armero Clandestino — $150:</b> +2 a las tiradas d20, máximo 20.</li>
-          <li><b>🃏 El Cobrador de la Mesa — $120:</b> si un d6 termina en 1, ganas <b>+50💲</b> para el dinero del Mercado Negro. Ya no entrega fichas.</li>
-          <li><b>🎰 Crupier de Esquina — $220:</b> un resultado par de d6 recibe +1, pero nunca supera 6. Ej.: 2→3, 4→5, 6→6.</li>
-          <li><b>🎲 Tallador de Dados — $320:</b> en Guerra de Bandas, Gran Atraco y Apuestas Clandestinas, un 1 de d6 se transforma en un valor seguro. <b>No funciona en Imperio Criminal.</b></li>
-          <li><b>🧮 Matemático del Sindicato — $240:</b> sacar el máximo natural de cualquier dado concede +100💲.</li>
-          <li><b>🩺 Médico Matasanos — $200:</b> +50% a las curaciones de RPG y EXP. No funciona en MAF ni POK.</li>
-          <li><b>🏭 Dueño del Desguace — $140:</b> al vender un objeto, recuperas 75% de su precio en vez de 50%.</li>
-          <li><b>🚓 Protección Policial — $250:</b> 80% de probabilidad de bloquear cada Redada Policial o cada Infiltrar Soplón. El 20% restante deja pasar el efecto.</li>
-          <li><b>🧨 Tramposo de la Casa — $350:</b> en <b>Saquear Cajas</b>, un fallo propio recibe +1 daño. En <b>Apuesta Básica</b>, un fallo propio hace que el rival pierda 2 fichas; no es daño reflejado.</li>
-          <li><b>📊 Contador de la Mafia — $500:</b> multiplica x1.5 la recompensa final si terminas con más de 50% de HP/Cobertura.</li>
-          <li><b>📈 Inversionista Usurero — $250:</b> al salir del Mercado Negro, recibe 10% de interés sobre su dinero, con máximo +200💲.</li>
-          <li><b>🩸 Prestamista Siniestro — $300:</b> al comenzar el minijuego concede +150💲 y reduce en 4 el HP/Cobertura máxima.</li>
-          <li><b>💼 Extorsionador de Barrio — $130:</b> +10💲 al finalizar un turno sin recibir daño/penalización correspondiente.</li>
-          <li><b>🥊 Matón a Sueldo — $160:</b> en Gran Atraco, el primer <b>Lanzar Granada</b> recibe +2 al resultado del d4. En Apuestas, la primera <b>Trampa de Tahúr</b> recibe +2 al resultado del d4.</li>
-          <li><b>🚗 Chófer de Huida — $210:</b> si estás por debajo del 25% de HP/Cobertura, recibes <b>-2 daño</b>.</li>
-          <li><b>🧪 Químico Corruptor — $310:</b> en RPG, un crítico del Francotirador puede aplicar Veneno durante 3 rondas. En MAF, un 20 final en Sobornar Político permite una Redada Policial extra si el rival tiene menos de 3 activas.</li>
-          <li><b>🏛️ Red de Protección — $340:</b> +10% a ingresos y curaciones. Bloquea la primera <b>Redada o Infiltrar Soplón</b> que recibas.</li>
-        </ul>
-
-        <h3>🟢 Consumibles</h3>
-        <ul>
-          <li><b>🚬 Puro del Capo — $80:</b> repite la última tirada.</li>
-          <li><b>🥃 Whisky Clandestino — $100:</b> duplica el multiplicador de daño/botín del siguiente turno, pero resta 2 HP/Cobertura. Solo RPG/EXP.</li>
-          <li><b>🤝 Soborno Relámpago — $150:</b> fuerza tu próximo d6 a 6.</li>
-          <li><b>💉 Inyección Adrenalina — $90:</b> recupera +4 HP/Cobertura. Solo RPG/EXP.</li>
-          <li><b>📞 Llamada Falsa Alarma — $120:</b> cancela/recupera el efecto negativo relevante del turno rival anterior. En RPG purifica Soplón y recupera el último daño registrado; en EXP restaura el último daño de Granada; en MAF elimina Redadas; en POK recupera el último robo de fichas.</li>
-        </ul>
-
-        <h3>🔗 Interacciones importantes</h3>
-        <ul>
-          <li><b>Protección Policial + Red de Protección:</b> la Red de Protección es un escudo garantizado de un solo uso; después, Protección Policial sigue teniendo su 80% de bloqueo.</li>
-          <li><b>Crupier + Ley Seca:</b> Ley Seca ajusta primero el d6 y después se aplica el Crupier; el resultado del Crupier no supera 6.</li>
-          <li><b>Tallador + Ley Seca:</b> el Tallador actúa después del ajuste de Ley Seca.</li>
-          <li><b>Matón + Granada/Trampa:</b> el +2 se aplica al primer uso calificable de ese contrato, no a todos los usos.</li>
-          <li><b>Tramposo de la Casa + Carnicero:</b> ambos modificadores se acumulan sobre el daño que recibe el jugador que falla Saquear Cajas.</li>
-        </ul>
+        <!-- Se llena desde menu.js con el catálogo real (ITEMS de js/market.js), ordenado por precio -->
       </div>
 
       <div id="tab-content-4" class="guide-text-box hidden">
         <h3>🌆 Eventos de Ciudad</h3>
-        <p>En modo Roguelike hay un <b>65% de probabilidad</b> de que aparezca un Evento de Ciudad en cada contrato. Los eventos disponibles dependen del minijuego.</p>
+        <p>Con los Eventos de Ciudad activados, hay un <b>65% de probabilidad</b> de que aparezca uno en cada contrato. Los posibles eventos dependen del contrato.</p>
 
         <h3>📰 Noche de Purga</h3>
-        <p><b>Disponible:</b> Guerra de Bandas y Gran Atraco.</p>
+        <p><b>Contratos:</b> Guerra de Bandas y El Gran Atraco.</p>
         <ul>
-          <li><b>RPG:</b> Tommy Gun y Francotirador infligen +2 daño.</li>
-          <li><b>EXP:</b> Trampa de Saquear Cajas y Lanzar Granada infligen +2 daño.</li>
+          <li><b>Guerra de Bandas:</b> la Ráfaga Tommy Gun y el Francotirador hacen +2 de daño.</li>
+          <li><b>El Gran Atraco:</b> las trampas de Saquear Cajas y las Granadas hacen +2 de daño.</li>
         </ul>
 
         <h3>🍷 Ley Seca Clandestina</h3>
-        <p><b>Disponible:</b> los 4 contratos.</p>
+        <p><b>Contratos:</b> los 4.</p>
         <ul>
-          <li>Los resultados de d6 se reducen en 1, sin bajar de 1.</li>
-          <li>Las curaciones se reducen al 50%.</li>
-          <li>El orden de modificación de d6 es Ley Seca → pasivas como Crupier/Tallador.</li>
+          <li>Los d6 bajan 1, sin bajar de 1 (el Soborno Relámpago no se ve afectado).</li>
+          <li>Las curaciones se reducen a la mitad.</li>
+          <li>Primero se aplica la Ley Seca y después los objetos como el Crupier o el Tallador.</li>
         </ul>
 
         <h3>💀 Jefe: El Carnicero</h3>
-        <p><b>Disponible:</b> Guerra de Bandas y Gran Atraco. Uno de los Capos asume aleatoriamente el rol de Jefe.</p>
+        <p><b>Contratos:</b> Guerra de Bandas y El Gran Atraco. Un Capo al azar se convierte en el Jefe.</p>
         <ul>
-          <li><b>RPG:</b> +10 HP máximo, +1 daño al atacar y recibe +1 daño cuando el rival lo golpea.</li>
-          <li><b>EXP:</b> +10 Cobertura máxima (30 total), +1 daño al atacar y recibe +1 daño por sus propios fallos/ataques recibidos.</li>
-          <li><b>Recompensa:</b> derrotar al Carnicero otorga x2 Botín.</li>
-          <li>Por eso, por ejemplo, un fallo de Saquear Cajas pasa de <b>3→4</b> y un fallo de Forzar Bóveda de <b>6→7</b> para el Carnicero.</li>
+          <li><b>Guerra de Bandas:</b> +10 de Salud y recibe +1 de daño en cada golpe.</li>
+          <li><b>El Gran Atraco:</b> +10 de Cobertura (30). Sus trampas y alarmas le hacen +1, sus Granadas hacen +1 y las que recibe también le hacen +1.</li>
+          <li><b>Recompensa (Modo Party):</b> si un rival gana el contrato, cobra el doble (x2). Si gana el propio Carnicero, cobra x1.5.</li>
         </ul>
 
         <h3>🚓 Guerra de Inspectores</h3>
-        <p><b>Disponible:</b> Imperio Criminal.</p>
+        <p><b>Contratos:</b> Imperio Criminal.</p>
         <ul>
-          <li>En Recaudación Segura (d6), existe un <b>50% de riesgo</b> de que aparezcan Inspectores.</li>
-          <li>Si aparecen, nadie cobra esa recaudación y el combo se reinicia.</li>
-          <li>Si no aparecen, la recaudación se multiplica x2.</li>
+          <li>Toda la recaudación se paga doble (x2).</li>
+          <li>En la Recaudación Segura (d6) hay un <b>50% de riesgo</b> de inspección: si llega, nadie cobra esa vez.</li>
         </ul>
 
         <h3>💀 Jefe: Comisionado Corrupto</h3>
-        <p><b>Disponible:</b> Gran Atraco, Imperio Criminal y Apuestas Clandestinas.</p>
+        <p><b>Contratos:</b> El Gran Atraco, Imperio Criminal y Apuestas Clandestinas.</p>
         <ul>
-          <li>Al finalizar un turno, confisca <b>10%</b> del recurso correspondiente.</li>
-          <li><b>EXP:</b> 10% del botín temporal.</li>
-          <li><b>MAF:</b> 10% del Efectivo.</li>
-          <li><b>POK:</b> 10% de las Fichas.</li>
-          <li>La reducción usa redondeo hacia abajo.</li>
+          <li>Al terminar tu turno te confisca el <b>10%</b> (redondeando a su favor):</li>
+          <li><b>El Gran Atraco:</b> del botín que aún no aseguraste.</li>
+          <li><b>Imperio Criminal:</b> de tu Efectivo.</li>
+          <li><b>Apuestas Clandestinas:</b> de tus fichas.</li>
         </ul>
 
-        <h3>📌 Compatibilidad</h3>
+        <h3>📌 Qué eventos salen en cada contrato</h3>
         <ul>
-          <li><b>RPG:</b> Purga, Ley Seca, Carnicero.</li>
-          <li><b>EXP:</b> Purga, Ley Seca, Carnicero, Comisionado.</li>
-          <li><b>MAF:</b> Ley Seca, Inspectores, Comisionado.</li>
-          <li><b>POK:</b> Ley Seca, Comisionado.</li>
+          <li><b>Guerra de Bandas:</b> Purga, Ley Seca y Carnicero.</li>
+          <li><b>El Gran Atraco:</b> Purga, Ley Seca, Carnicero y Comisionado.</li>
+          <li><b>Imperio Criminal:</b> Ley Seca, Inspectores y Comisionado.</li>
+          <li><b>Apuestas Clandestinas:</b> Ley Seca y Comisionado.</li>
         </ul>
       </div>
 

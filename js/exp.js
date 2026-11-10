@@ -16,7 +16,10 @@ const EXP = {
     this.startDive(G);
   },
   startDive(G) {
-    G.turn = CD.firstTurn(G); G.start = G.turn; G.round = 1; G.focus = null;   // sorteo del primer turno en cada atraco
+    // Sorteo del primer turno en cada atraco, sin repetir a quien empezó el atraco anterior (en el tutorial empiezas tú).
+    let first = CD.firstTurn(G);
+    if (G.dive > 1 && G.prevStart != null && G.players.length > 1 && !CD.cfg.tutorial) { const others = G.players.map(p => p.slot).filter(s => s !== G.prevStart); first = others[Math.floor(Math.random() * others.length)]; }
+    G.turn = first; G.start = G.turn; G.prevStart = first; G.round = 1; G.focus = null;
     G.players.forEach(p => {
       const m = this.MAX_COB + (MK.boss() === p.slot ? 10 : 0) - (MK.has(p, 'contact_prestamista') ? ECON.PRESTAMISTA_HP : 0);   // Carnicero +10 · Prestamista -4
       Object.assign(p, { max:m, hp:m, temp:0, alive:true, arrested:false, repairUses:0, repairCooldown:0, torpedoUses:0, matonUsed:false, sec0:p.secured || 0 });   // el Matón vuelve a estar disponible en cada atraco
@@ -66,7 +69,6 @@ const EXP = {
       const r = await CD.roll(6, att, 'Saquear Cajas Fuertes', 'exp_boxes');
       if (r <= 2) {
         let trap = this.TRAP + (MK.eventsOn() && MK.ev() === 'purga' ? 2 : 0) + (MK.boss() === att.slot ? 1 : 0);          // Purga +2 · el Carnicero +1
-        if (MK.has(att, 'contact_dinamita')) { trap += 1; CD.log(`🧨 ¡Tramposo de la Casa! El fallo de ${att.name} se agrava en +1 daño.`); }
         att.mult = 1; this.damage(att, trap, 'Trampa de seguridad', false);
       }
       else { const n = Math.round((r === 6 ? 3 : 1) * (att.mult || 1)); att.mult = 1; att.temp += n; CD.float(att.slot, '+' + n + ' 💰', 'loot'); CD.log(`💵 ${att.name} saca ${n} fajo(s) de billetes (lleva ${att.temp}).`); }
@@ -78,7 +80,11 @@ const EXP = {
         const loot = Math.round((base + crit) * (att.mult || 1)); att.mult = 1;                                             // Whisky: botín x2
         att.temp += loot; CD.float(att.slot, '+' + loot + ' 💰', crit ? 'crit' : 'loot');
         CD.log(`💎 ¡La puerta cede! ${att.name} embolsa ${loot} bolsas (lleva ${att.temp}).`);
-      } else { att.mult = 1; this.damage(att, this.HEAVY + (MK.boss() === att.slot ? 1 : 0), 'Alarma pesada', true); }
+      } else {
+        att.mult = 1; let heavy = this.HEAVY + (MK.boss() === att.slot ? 1 : 0);
+        if (CD.nat === 1 && MK.has(att, 'contact_dinamita')) { heavy = Math.max(0, heavy - 2); CD.log(`🧨 ¡Tramposo de la Casa! Con el 1, ${att.name} esquiva parte de la alarma (-2 de daño).`); }
+        this.damage(att, heavy, 'Alarma pesada', true);
+      }
     } else if (type === 'repair') {
       if (this.party()) att.repairCooldown = 5; else att.repairUses++;
       const h = MK.heal(att, await CD.roll(4, att, 'Reforzar Cobertura', 'exp_cover'));      // Ley Seca y Matasanos
@@ -92,7 +98,7 @@ const EXP = {
       if (MK.boss() === att.slot) d += 1;                                                // el Carnicero lanza con +1
       if (MK.boss() === def.slot) d += 1;                                                // y recibe +1
       d = MK.chofer(def, d);                                                             // Chófer de Huida
-      const real = Math.min(d, def.hp); def.tookDmg = true; G.lastNeg = { target:def.slot, amount:real, thief:att.slot };
+      const real = Math.min(d, def.hp); def.tookDmg = true; MK.hurt(G, def, { n:real, from:att.slot });
       def.hp = Math.max(0, def.hp - d); CD.float(def.slot, '-' + d + ' COB', 'crit');
       CD.log(`💣 ¡SABOTAJE! ${att.name} lanza una granada a ${def.name}: -${d} COB (le quedan ${def.hp}).`);
       if (def.hp <= 0) this.arrest(def, '🚨 ¡Emboscada policial! ' + def.name + ' queda atrapado y pierde su botín.');

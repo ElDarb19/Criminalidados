@@ -377,8 +377,26 @@ function emitStart(c) {
   window.dispatchEvent(new CustomEvent('criminaldice:start', { detail:cfg }));
 }
 
-// ---------- Manual del Capo (igual que la versión anterior) ----------
-function openManualGuide() { $('modal-manual-guide').classList.remove('hidden'); }
+// ---------- Manual del Capo ----------
+function openManualGuide() { $('tab-content-3').innerHTML = marketManualHtml(); $('modal-manual-guide').classList.remove('hidden'); }
+// La pestaña del Mercado se arma con el catálogo real (ITEMS, js/market.js), ordenada por precio: si cambia un objeto, el manual cambia solo.
+function marketManualHtml() {
+  if (typeof ITEMS === 'undefined') return '';
+  const works = it => ['rpg', 'exp', 'maf', 'pok'].filter(c => !it.incompatible.includes(c)).map(c => CONTRACT_NAMES[c]);
+  const li = it => { const w = works(it); return `<li><b>${it.icon} ${esc(it.name)} — ${it.cost}💲:</b> ${esc(it.desc)} <small class="mk-works">Funciona en: ${w.length === 4 ? 'todos los contratos' : w.join(', ')}.</small></li>`; };
+  const list = kind => ITEMS.filter(i => i.kind === kind).slice().sort((a, b) => a.cost - b.cost || a.name.localeCompare(b.name)).map(li).join('');
+  return `<h3>🛒 Mercado Negro</h3>
+    <p>Cada Capo puede tener hasta <b>${ECON.MAX_PASSIVES} contactos pasivos</b> y <b>1 consumible</b>. La tienda ofrece ${ECON.STOCK} objetos al azar y puedes renovarla (${ECON.REROLL_BASE}💲, y cada vez ${ECON.REROLL_STEP}💲 más). Al vender recuperas el ${Math.round(ECON.SELL * 100)}% de su precio. Los objetos se conservan entre los contratos del Modo Party; en un contrato donde no funcionan aparecen apagados y no hacen nada.</p>
+    <h3>🟣 Contactos pasivos <small>(de menor a mayor precio)</small></h3><ul>${list('p')}</ul>
+    <h3>🟢 Consumibles <small>(un solo uso, de menor a mayor precio)</small></h3><ul>${list('c')}</ul>
+    <h3>🔗 Interacciones importantes</h3><ul>
+      <li><b>Protección Policial + Red de Protección:</b> la Red bloquea seguro la primera Redada o Soplón; después la Protección Policial sigue con su 80%.</li>
+      <li><b>Tallador de Dados y El Cobrador de la Mesa:</b> no se combinan. Si tienes uno, la tienda no te ofrece el otro.</li>
+      <li><b>Ley Seca + Crupier o Tallador:</b> primero baja el d6 la Ley Seca y después actúa el objeto.</li>
+      <li><b>Matón a Sueldo:</b> el +2 es solo para la primera Granada de cada atraco o la primera Trampa de Tahúr del contrato.</li>
+      <li><b>Llamada Falsa Alarma:</b> cuando un rival te afecta, el juego te pregunta si quieres usarla en ese momento. Si la guardas, puedes usarla después en tu turno, hasta que termine.</li>
+    </ul>`;
+}
 function closeManualGuide() { $('modal-manual-guide').classList.add('hidden'); }
 function switchManualTab(t) {
   for (let i = 1; i <= 4; i++) {

@@ -170,7 +170,7 @@ const AI = {
   },
   useItem(G, p, contract) {                     // ¿conviene usar ahora el consumible? (antes de elegir la acción)
     const id = p.consumable; if (!id || !MK.compatible(id, contract)) return false;
-    const foes = G.players.filter(q => q.alive && q !== p), n = G.lastNeg && G.lastNeg.target === p.slot ? G.lastNeg : null;
+    const foes = G.players.filter(q => q.alive && q !== p);
     switch (id) {
       case 'item_adrenalina': return (contract === 'rpg' || contract === 'exp') && p.hp < p.max && p.hp <= Math.max(5, p.max * .4);
       case 'item_whisky':
@@ -183,14 +183,17 @@ const AI = {
         if (contract === 'pok') return p.tokens >= 2 && foes.some(f => f.tokens >= 1);
         if (contract === 'maf') return G.phase === 'roll' && p.parcels.includes(6);
         return false;
-      case 'item_falsa_alarma':
-        if (contract === 'rpg') return p.poison >= 2 || (n && n.amount >= 4);
-        if (contract === 'exp') return !!n && n.amount >= 3;
-        if (contract === 'maf') return Object.keys(p.raids || {}).filter(d => p.raids[d] > 0).length >= 2;
-        if (contract === 'pok') return !!n && n.thief != null && n.amount >= 2;
-        return false;
+      case 'item_falsa_alarma': return this.falsaNow(G, p, contract);
       default: return false;
     }
+  },
+  falsaNow(G, p, contract) {                    // ¿vale la pena cancelar ya lo que le hicieron los rivales?
+    const h = p.hurt || [], sum = h.reduce((s, x) => s + (x.n || 0), 0);
+    if (contract === 'rpg') return p.poison >= 2 || sum >= 4;
+    if (contract === 'exp') return sum >= 3;
+    if (contract === 'maf') return Object.keys(p.raids || {}).filter(d => p.raids[d] > 0).length >= 2;
+    if (contract === 'pok') return h.filter(x => x.from != null).reduce((s, x) => s + (x.n || 0), 0) >= 2;
+    return false;
   },
   puro(sides, val) { return val <= Math.ceil(sides * 0.3); }          // repite las tiradas malas
 };

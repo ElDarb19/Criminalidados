@@ -58,19 +58,19 @@ const RPG = {
           const base = await CD.roll(12, att, 'Daño del Francotirador', 'rpg_sniper', 'sniper_shot');
           let crit = 0;
           if (acc === 20) { if (base + 2 <= def.hp) { crit = 2; CD.log('🎯 ¡Tiro perfecto! +2 de daño crítico.'); } else CD.log('🎯 ¡Tiro perfecto! Daño calibrado para el remate.'); }
-          this.hit(att, def, base, crit, true);
+          this.hit(att, def, base, crit, true, acc === 20);
         } else { att.mult = 1; CD.float(def.slot, 'FALLÓ', 'miss'); CD.log(`💨 El francotirador de ${att.name} falló contra ${def.name} (sacó ${acc}).`); }
       } else if (type === 'poison') {
         if (def.poison > 0) return;
         const blk = MK.block(def, 'el Soplón de ' + att.name); if (blk) { CD.log(blk.text); return; }     // Red de Protección / Protección Policial
         const t = await CD.roll(4, att, 'Infiltrar Soplón → ' + def.name, 'rpg_rat');
-        def.poison = t; CD.float(def.slot, '🕵️ SOPLÓN', 'status'); CD.log(`🕵️ ${att.name} infiltra un soplón en ${def.name} por ${t} rondas.`);
+        def.poison = t; MK.hurt(G, def, { poison:true, from:att.slot }); CD.float(def.slot, '🕵️ SOPLÓN', 'status'); CD.log(`🕵️ ${att.name} infiltra un soplón en ${def.name} por ${t} rondas.`);
       }
     }
     if (this.check(G)) return;
     const died = [];
     for (const p of G.players) if (p.alive && p.poison > 0) {            // el soplón filtra al final de cada turno
-      p.hp -= 1; p.poison--; CD.float(p.slot, '-1', 'status');
+      p.hp -= 1; p.poison--; MK.hurt(G, p, { n:1, tick:true }); CD.float(p.slot, '-1', 'status');
       CD.log(`🧪 El soplón de ${p.name} filtra información (-1 salud, le quedan ${Math.max(0, p.hp)}). Quedan ${p.poison} rondas.`);
       if (p.hp <= 0) { p.hp = 0; p.alive = false; p.poison = 0; p.outRound = G.round; died.push(p); CD.log('💀 ' + p.name + ' cae por el soplón.'); }
     }
@@ -78,18 +78,18 @@ const RPG = {
     this.check(G);
   },
 
-  hit(att, def, base, crit, strong) {
+  hit(att, def, base, crit, strong, perfect) {        // perfect: el Francotirador sacó 20 en el d20 (Químico Corruptor)
     const G = CD.G;
     let dmg = base + (MK.eventsOn() && MK.ev() === 'purga' ? 2 : 0) + crit;               // Noche de Purga: +2 de daño
     dmg = Math.round(dmg * (att.mult || 1)); att.mult = 1;                                // Whisky: x2 a la próxima acción
     if (MK.boss() === def.slot && att.slot !== def.slot) dmg += 1;                       // el Carnicero recibe +1 de daño
     dmg = MK.chofer(def, dmg);                                                            // Chófer de Huida: -2 con HP < 25%
     if (dmg > def.hp) { CD.float(def.slot, '🛡️ ANULADO', 'miss'); CD.log(`🛡️ Disparo de ${att.name} anulado por sobredaño (${dmg} > ${def.hp}); ${def.name} conserva ${def.hp} de salud.`); return; }
-    def.hp -= dmg; def.tookDmg = true; G.lastNeg = { target:def.slot, amount:dmg, thief:att.slot };
+    def.hp -= dmg; def.tookDmg = true; MK.hurt(G, def, { n:dmg, from:att.slot });
     CD.float(def.slot, '-' + dmg, strong || dmg >= 8 ? 'crit' : 'dmg');
     CD.log(`💥 ${att.name} acierta e inflige ${dmg} de daño a ${def.name} (le quedan ${def.hp} de salud).`);
     if (def.hp === 0) { def.alive = false; def.poison = 0; def.outRound = G.round; def.elimN = G.elimCount = (G.elimCount || 0) + 1; CD.log('💀 ' + def.name + ' ha sido eliminado.'); }
-    else if (MK.has(att, 'contact_quimico') && (crit > 0 || strong) && !(def.poison > 0)) { def.poison = 3; CD.float(def.slot, 'VENENO 🧪', 'status'); CD.log(`🧪 ¡El Químico Corruptor de ${att.name} envenena a ${def.name} por 3 rondas!`); }
+    else if (MK.has(att, 'contact_quimico') && perfect && !(def.poison > 0)) { def.poison = 3; MK.hurt(G, def, { poison:true, from:att.slot }); CD.float(def.slot, 'VENENO 🧪', 'status'); CD.log(`🧪 ¡El Químico Corruptor de ${att.name} envenena a ${def.name} por 3 rondas!`); }
   },
 
   check(G) {                                  // gana el último en pie

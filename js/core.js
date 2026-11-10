@@ -319,6 +319,7 @@ CD.roll = async function (sides, p, desc, img, sound, opt) {
       val = await new Promise(r => { CD.rollResolve = r; }); CD.rollResolve = null; G.prompt = null;
     }
   } else val = 1 + Math.floor(Math.random() * sides);
+  CD.nat = val;                                               // resultado natural, antes de objetos y eventos (lo usa el Tramposo de la Casa)
   CD.trackRoll(p, sides, val);
   G.fx = { id:++fxId, sides, val, slot:p.slot, desc, img:img || 'idle', color:p.color, char:p.char || 'Mafioso', bot:p.bot, sound:sound || null, manual, fin:p.fin || null, aura:p.aura || null };
   CD.publish(); CD.emit('fx', G.fx); const t = playFx(G.fx); render(); await t;
@@ -375,7 +376,8 @@ CD.exec = async function (slot, type, target, extra) {
   if (G.over || G.wait || G.between || !p || p.slot !== slot) return;
   G.wait = true; CD.publish(); render();
   if (G.started) CD.stat(slot).acts++;
-  try { await CD.mod().act(G, p, type, target, extra); } catch (e) { console.error(e); }
+  const hurtBefore = G.players.map(q => (q.hurt || []).length);             // para saber a quién afectó esta acción (Falsa Alarma)
+  try { await CD.mod().act(G, p, type, target, extra); await MK.offerFalsa(G, p, hurtBefore); } catch (e) { console.error(e); }
   CD.publish(); render(); await sleep((G.over || G.between ? 900 : 1500) * (p.bot && SET.fast ? .5 : 1));     // momento para ver el daño sobre el personaje (más corto con "Bots rápidos")
   G.focus = null;
   const M = CD.mod();
@@ -473,7 +475,7 @@ CD.nextStage = async function () {            // botón de la pantalla intermedi
 // ---------- Mercado Negro (compras simultáneas online · por turnos en local) ----------
 CD.openMarket = async function (title, lines) {
   const G = CD.G, humans = G.players.filter(p => !p.bot);
-  G.players.forEach(p => { p.stock = MK.newStock(); p.rerollCost = ECON.REROLL_BASE; });
+  G.players.forEach(p => { p.stock = MK.newStock(p); p.rerollCost = ECON.REROLL_BASE; });
   G.market = { title, lines, order:humans.map(p => p.slot), cur:0, done:{} };
   G.players.filter(p => p.bot).forEach(p => { AI.shop(G, p); MK.leave(p); });
   CD.publish(); render();
