@@ -5,9 +5,15 @@
 //    se usa su versión estática: una decoración sólida que tampoco tapa el dado.
 // El color del jugador se conserva siempre (para saber de quién es la tirada). Cada acabado y cada aura se compra
 // una vez con oro y se elige en Perfil → Tu Capo.
+// online:true = artículo nuevo que ya no entra en el oro de los logros: se paga con el oro de las partidas online.
+// secret:true = no se vende; se gana (el Dado del Capo, al completar todos los logros).
 const DICE_ITEMS = [
+  { key:'fin:capo',      kind:'fin',  id:'capo',     label:'del Capo', sub:'el dado del logo, con su gorro', secret:true },
   { key:'fin:oro',       kind:'fin',  id:'oro',      label:'Oro',      sub:'contorno y números dorados', price:500 },
   { key:'fin:balazo',    kind:'fin',  id:'balazo',   label:'Balazo',   sub:'plomo con agujero de bala',  price:500 },
+  { key:'fin:marfil',    kind:'fin',  id:'marfil',   label:'Marfil',   sub:'hueso pulido, contorno de tu color',   price:500, online:true },
+  { key:'fin:billete',   kind:'fin',  id:'billete',  label:'Billete',  sub:'papel moneda verde, contorno de tu color', price:500, online:true },
+  { key:'fin:marmol',    kind:'fin',  id:'marmol',   label:'Mármol Negro', sub:'piedra negra con vetas, contorno de tu color', price:500, online:true },
   { key:'aura:fuego',    kind:'aura', id:'fuego',    label:'Fuego',    sub:'llamas que suben',           price:400 },
   { key:'aura:aire',     kind:'aura', id:'aire',     label:'Aire',     sub:'remolino de viento',         price:400 },
   { key:'aura:tierra',   kind:'aura', id:'tierra',   label:'Tierra',   sub:'rocas que orbitan',          price:400 },
@@ -16,8 +22,11 @@ const DICE_ITEMS = [
   { key:'aura:humo',     kind:'aura', id:'humo',     label:'Humo',     sub:'niebla de callejón',         price:400 },
   { key:'aura:billetes', kind:'aura', id:'billetes', label:'Billetes', sub:'lluvia de dólares',          price:400 },
   { key:'aura:monedas',  kind:'aura', id:'monedas',  label:'Monedas',  sub:'oro que cae girando',        price:400 },
-  { key:'aura:neon',     kind:'aura', id:'neon',     label:'Neón',     sub:'letrero de club nocturno',   price:400 }
+  { key:'aura:neon',     kind:'aura', id:'neon',     label:'Neón',     sub:'letrero de club nocturno',   price:400 },
+  { key:'aura:sirena',   kind:'aura', id:'sirena',   label:'Sirena',   sub:'luces de patrulla roja y azul', price:400, online:true }
 ];
+// Auras en prueba: se dibujan (para verlas en Versiones/Dados_opciones/nuevos.html) pero aún no se venden.
+const DICE_DRAFTS = ['casino'];
 
 const DICEFX = (() => {
   const C = 48, R = (a, b) => a + Math.random() * (b - a), pick = a => a[Math.floor(Math.random() * a.length)], SQ = (x, y) => Math.sqrt(x * x + y * y);
@@ -79,8 +88,41 @@ const DICEFX = (() => {
       spawn() { return { a:R(0, Math.PI * 2), life:0, max:R(30, 50), c:pick(['#ff4fd8', '#4ff2ff']) }; },
       step(p) { p.a += .03; },
       draw(g, p) { const t = p.life / p.max, x = C + Math.cos(p.a) * 30, y = C + Math.sin(p.a) * 30; g.globalAlpha = Math.sin(t * Math.PI) * (Math.random() < .08 ? .2 : 1);
-        g.fillStyle = p.c; g.fillRect(x | 0, y | 0, 2, 2); g.globalAlpha = .35; g.fillRect((x | 0) - 1, (y | 0) - 1, 4, 4); g.globalAlpha = 1; } }
+        g.fillStyle = p.c; g.fillRect(x | 0, y | 0, 2, 2); g.globalAlpha = .35; g.fillRect((x | 0) - 1, (y | 0) - 1, 4, 4); g.globalAlpha = 1; } },
+    // frame(g, ms): auras que se dibujan enteras en cada cuadro (sin partículas), detrás del dado.
+    sirena: { rate:0,                                     // luces de patrulla: un difuminado rojo (izquierda) y uno azul (derecha) que aparecen y desaparecen
+      frame(g, ms) { const w = Math.sin((ms % 1400) / 1400 * Math.PI * 2);
+        sirenGlow(g, Math.pow(Math.max(0, w), 1.4), Math.pow(Math.max(0, -w), 1.4)); } },
+    casino: { rate:0,                                     // marquesina de casino: bombillas que se encienden en cadena
+      frame(g, ms) { marquee(g, Math.floor(ms / 120)); } }
   };
+  // ---- piezas de la Sirena y la Marquesina (las usan la versión animada y la estática) ----
+  // Sirena: resplandor difuminado de cada lado (r = fuerza del rojo, b = del azul, de 0 a 1) con destellos de lente redondos
+  const SIREN = [{ x:C - 17, rgb:'255,40,30', core:'255,190,180', bokeh:[[-10, -9, 6], [2, 9, 7], [-6, 13, 3]] },
+                 { x:C + 17, rgb:'40,60,255', core:'200,190,255', bokeh:[[9, -8, 7], [-3, 10, 5], [11, 11, 3]] }];
+  function sirenGlow(g, r, b) {
+    [r, b].forEach((k, i) => { if (k < .02) return; const S = SIREN[i];
+      const gr = g.createRadialGradient(S.x, C, 0, S.x, C, 31);   // radio 31: se apaga antes del borde del lienzo
+      gr.addColorStop(0, 'rgba(' + S.core + ',' + (.95 * k) + ')'); gr.addColorStop(.2, 'rgba(' + S.rgb + ',' + (.85 * k) + ')');
+      gr.addColorStop(.55, 'rgba(' + S.rgb + ',' + (.35 * k) + ')'); gr.addColorStop(1, 'rgba(' + S.rgb + ',0)');
+      g.fillStyle = gr; g.fillRect(0, 0, 96, 96);
+      S.bokeh.forEach(([ox, oy, rad]) => { g.beginPath(); g.arc(S.x + ox, C + oy, rad, 0, Math.PI * 2);   // círculos de luz, como reflejos de lente
+        g.fillStyle = 'rgba(' + S.core + ',' + (.18 * k) + ')'; g.fill(); g.strokeStyle = 'rgba(255,255,255,' + (.22 * k) + ')'; g.lineWidth = 1; g.stroke(); }); });
+  }
+  function marquee(g, step, P) {                          // bombillas en un marco redondeado alrededor del dado
+    const pts = [], L = 14, Rr = 81, rad = 8;
+    for (let x = L + rad; x <= Rr - rad; x += 6) pts.push([x, L]);
+    for (let y = L + rad; y <= Rr - rad; y += 6) pts.push([Rr, y]);
+    for (let x = Rr - rad; x >= L + rad; x -= 6) pts.push([x, Rr]);
+    for (let y = Rr - rad; y >= L + rad; y -= 6) pts.push([L, y]);
+    const put = P || ((x, y, c) => { g.fillStyle = c; g.fillRect(x, y, 1, 1); });
+    for (let x = L + 2; x <= Rr - 2; x++) { put(x, L, '#3a2a10'); put(x, Rr, '#3a2a10'); }        // el marco
+    for (let y = L + 2; y <= Rr - 2; y++) { put(L, y, '#3a2a10'); put(Rr, y, '#3a2a10'); }
+    pts.forEach(([x, y], i) => { const lit = step == null ? i % 2 === 0 : (i + step) % 3 === 0;
+      const c = lit ? ['#fff6c8', '#ffd23a', '#c07a10'] : ['#7a5a20', '#5a3a12', '#3a2408'];
+      put(x, y, c[0]); [[-1, 0], [1, 0], [0, -1], [0, 1]].forEach(([ox, oy]) => put(x + ox, y + oy, c[1]));
+      [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([ox, oy]) => put(x + ox, y + oy, c[2])); });
+  }
 
   // ---------- auras estáticas: formas sólidas de pixel art, pintadas solo FUERA de la silueta del dado ----------
   const STILL = {
@@ -120,13 +162,26 @@ const DICEFX = (() => {
     neon(P) {                                             // dos anillos de neón, rosa y cian, con su resplandor
       for (let y = 0; y < 96; y++) for (let x = 0; x < 96; x++) { const r = SQ(x - C, y - C);
         const c = r > 31.5 && r < 33.5 ? (Math.abs(r - 32.5) < .5 ? '#ffd0f4' : '#ff4fd8') : r > 36 && r < 37.3 ? '#4ff2ff' : r > 30.3 && r < 31.5 || r > 33.5 && r < 34.8 ? '#5a1e50' : r > 37.3 && r < 38.4 ? '#1e4a50' : null;
-        if (c) P(x, y, c); } }
+        if (c) P(x, y, c); } },
+    sirena(P) {                                           // los dos resplandores encendidos a la vez (rojo izquierda, azul derecha)
+      const c = canvas(96), g = c.getContext('2d'); sirenGlow(g, .85, .85);
+      const d = g.getImageData(0, 0, 96, 96).data;
+      for (let i = 0; i < 96 * 96; i++) if (d[i * 4 + 3] > 4) P(i % 96, (i / 96) | 0, 'rgba(' + d[i * 4] + ',' + d[i * 4 + 1] + ',' + d[i * 4 + 2] + ',' + (d[i * 4 + 3] / 255).toFixed(3) + ')');
+    },
+    casino(P) { marquee(null, null, P); }                 // marquesina con las bombillas alternas encendidas
   };
 
   // ---------- el dado (48x48) con su acabado ----------
   const mix = (d, i, hex, t) => { const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
     d[i] += (r - d[i]) * t; d[i + 1] += (g - d[i + 1]) * t; d[i + 2] += (b - d[i + 2]) * t; };
   const rgb = hex => [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)];
+  // Materiales: at(x, y) da el color del material en cada píxel (la textura). Los números siguen blancos: van sobre su placa oscura.
+  const MATERIAL = {
+    marfil:  { at:(x, y) => ((x * 7 + y * 13) % 11 === 0 ? '#c8b890' : (y + (x >> 2)) % 9 === 0 ? '#d8cba6' : '#efe6cc') },        // vetas finas de hueso
+    billete: { at:(x, y) => ((x + y) % 4 === 0 ? '#6e9a62' : (x - y + 48) % 7 === 0 ? '#c8e2b4' : '#9cc48a') },              // guilloché de billete
+    marmol:  { at:(x, y) => { const v = Math.abs(Math.sin(x * .33 + Math.sin(y * .27) * 2.4 + y * .11));                                   // vetas grises sobre negro (no blancas: así no se pierden los números)
+      return v < .1 ? '#8a8a92' : v < .22 ? '#4e4e56' : (x * 5 + y * 3) % 13 === 0 ? '#2e2e34' : '#1c1c21'; } }
+  };
   const dieCache = {};
   function layers(sides, color, val) { const d = BASE + 'assets/D' + sides + '/';
     return { sh:sides > 6 ? img(d + 'Sombra.png') : null, col:img(d + color + '.png'), base:img(d + 'Capa 0.png'), num:img(d + val + '.png') }; }
@@ -138,12 +193,23 @@ const DICEFX = (() => {
     if (L.sh) g.drawImage(L.sh, 0, 0);
     const [cc, cx, cd] = layer(L.col);
     if (fin === 'balazo') { for (let i = 0; i < cd.data.length; i += 4) if (cd.data[i + 3]) mix(cd.data, i, '#7a8088', .55); cx.putImageData(cd, 0, 0); }   // plomo
+    let own = null;                                       // color del jugador (para el contorno de los materiales)
+    if (MATERIAL[fin]) {                                  // Marfil, Billete o Mármol: el material sustituye al color, con sus mismas luces y sombras
+      let n = 0, sr = 0, sg = 0, sb = 0, top = 0; const lum = i => cd.data[i] * .3 + cd.data[i + 1] * .59 + cd.data[i + 2] * .11;
+      for (let i = 0; i < cd.data.length; i += 4) if (cd.data[i + 3]) { top = Math.max(top, lum(i)); sr += cd.data[i]; sg += cd.data[i + 1]; sb += cd.data[i + 2]; n++; }
+      own = n ? [sr / n, sg / n, sb / n] : [200, 200, 200];
+      for (let y = 0; y < 48; y++) for (let x = 0; x < 48; x++) { const i = (y * 48 + x) * 4; if (!cd.data[i + 3]) continue;
+        const shade = .62 + .5 * (top ? lum(i) / top : 1), c = rgb(MATERIAL[fin].at(x, y));
+        cd.data[i] = Math.min(255, c[0] * shade); cd.data[i + 1] = Math.min(255, c[1] * shade); cd.data[i + 2] = Math.min(255, c[2] * shade); }
+      cx.putImageData(cd, 0, 0);
+    }
     g.drawImage(cc, 0, 0); g.drawImage(L.base, 0, 0);
     const all = g.getImageData(0, 0, 48, 48), on = (x, y) => x >= 0 && y >= 0 && x < 48 && y < 48 && all.data[(y * 48 + x) * 4 + 3] >= 128;
-    if (fin === 'oro') {                                  // contorno exterior de oro
+    if (fin === 'oro' || own) {                           // contorno exterior: de oro, o del color del jugador en los materiales
       const out = g.getImageData(0, 0, 48, 48);
       for (let y = 0; y < 48; y++) for (let x = 0; x < 48; x++) { if (!on(x, y) || (on(x - 1, y) && on(x + 1, y) && on(x, y - 1) && on(x, y + 1))) continue;
-        const i = (y * 48 + x) * 4, c = rgb(y < 24 ? '#e8c860' : '#b8922e'); out.data[i] = c[0]; out.data[i + 1] = c[1]; out.data[i + 2] = c[2]; out.data[i + 3] = 255; }
+        const i = (y * 48 + x) * 4, c = own ? own.map(v => v * (y < 24 ? 1.15 : .8)) : rgb(y < 24 ? '#e8c860' : '#b8922e');
+        out.data[i] = Math.min(255, c[0]); out.data[i + 1] = Math.min(255, c[1]); out.data[i + 2] = Math.min(255, c[2]); out.data[i + 3] = 255; }
       g.putImageData(out, 0, 0);
     }
     if (fin === 'balazo') {                               // agujero de bala con grietas, abajo a la izquierda de la cara
@@ -154,6 +220,9 @@ const DICEFX = (() => {
     }
     const [nc, nx, nd] = layer(L.num);
     if (fin === 'oro') { for (let i = 0; i < nd.data.length; i += 4) if (nd.data[i + 3] && nd.data[i] > 200 && nd.data[i + 1] > 200) { nd.data[i] = 242; nd.data[i + 1] = 209; nd.data[i + 2] = 107; } nx.putImageData(nd, 0, 0); }
+    if (own) { const under = g.getImageData(0, 0, 48, 48).data;                        // materiales claros: el número se oscurece solo donde el fondo es claro
+      for (let i = 0; i < nd.data.length; i += 4) if (nd.data[i + 3] && nd.data[i] > 200 && under[i] * .3 + under[i + 1] * .59 + under[i + 2] * .11 > 140) { nd.data[i] = 34; nd.data[i + 1] = 26; nd.data[i + 2] = 16; }
+      nx.putImageData(nd, 0, 0); }
     g.drawImage(nc, 0, 0);
     return (dieCache[k] = cv);
   }
@@ -199,12 +268,16 @@ const DICEFX = (() => {
   function paint(cv, s) {
     const g = cv.getContext('2d'); g.imageSmoothingEnabled = false; g.clearRect(0, 0, 96, 96);
     const dc = dieCanvas(s.sides, s.color, s.val, s.fin), A = s.aura && ANIM[s.aura];
-    if (s.aura && still()) { const st = stillAura(s.aura, s.sides, s.color, s.val, s.fin); if (st) g.drawImage(st, 0, 0); if (dc) g.drawImage(dc, 24, 24); return; }
-    if (A) { s.acc = (s.acc || 0) + A.rate; while (s.acc >= 1) { s.ps.push(A.spawn()); s.acc--; } }
+    const hat = () => { if (s.fin !== 'capo') return; const h = img(BASE + 'assets/D' + s.sides + '/Gorro.png'); if (ok(h)) g.drawImage(h, 0, 0); };   // Dado del Capo: el gorro (96x96, editable en Paint)
+    // calm: fuerza la versión estática (la usa la página de muestras)
+    if (s.aura && (s.calm || still())) { const st = stillAura(s.aura, s.sides, s.color, s.val, s.fin); if (st) g.drawImage(st, 0, 0); if (dc) g.drawImage(dc, 24, 24); hat(); return; }
+    if (A && A.frame) A.frame(g, performance.now());
+    if (A && A.rate) { s.acc = (s.acc || 0) + A.rate; while (s.acc >= 1) { s.ps.push(A.spawn()); s.acc--; } }
     const back = !A ? [] : A.behind ? s.ps : s.ps.filter(p => (p.y !== undefined ? p.y : C + Math.sin(p.a || 0) * 10) < C - 2);
     back.forEach(p => A.draw(g, p));
     if (dc) g.drawImage(dc, 24, 24);
-    if (A) { s.ps.forEach(p => { if (!back.includes(p)) A.draw(g, p); }); s.ps.forEach(p => { A.step(p); p.life++; }); s.ps = s.ps.filter(p => p.life < p.max); }
+    hat();
+    if (A && A.rate) { s.ps.forEach(p => { if (!back.includes(p)) A.draw(g, p); }); s.ps.forEach(p => { A.step(p); p.life++; }); s.ps = s.ps.filter(p => p.life < p.max); }
   }
   function loop() {
     raf = 0;

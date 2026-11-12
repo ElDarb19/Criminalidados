@@ -167,7 +167,7 @@ const PROFILE = {
     this.notify(a.icon, 'LOGRO DESBLOQUEADO', a.name + (g ? ' · +' + g + ' de oro' : a.unlocks ? ' · capo secreto' : ''));
   },
   // ---------- todos los logros: premio del Dado del Capo y gran celebración (una sola vez en la vida del perfil) ----------
-  ALL_PRIZE:'fin:capo',                            // el dado del logo: llegará a DICE_ITEMS como acabado secreto (sin precio)
+  ALL_PRIZE:'fin:capo',                            // el dado del logo: acabado secreto de DICE_ITEMS (sin precio)
   checkAll(save) {
     const d = this.load(); if (d.allAt || !ACHIEVEMENTS.every(a => d.ach[a.id])) return false;
     d.allAt = Date.now(); d.owned[this.ALL_PRIZE] = true;
@@ -181,7 +181,7 @@ const PROFILE = {
     box.innerHTML = `<canvas aria-hidden="true"></canvas><div class="ach-grand-card"><div class="ach-grand-ic" aria-hidden="true">🏆</div>
       <small>${ACHIEVEMENTS.length} DE ${ACHIEVEMENTS.length} LOGROS</small><h2 id="ach-grand-t">CAPO DE CAPOS</h2>
       <p>Completaste todos los logros de Criminal Dice. La ciudad entera lleva tu nombre.</p>
-      <p class="ach-grand-prize">🎲 Premio: el <b>Dado del Capo</b>, el dado del logo. Llegará muy pronto a tus dados.</p>
+      <p class="ach-grand-prize">🎲 Premio: el <b>Dado del Capo</b>, el dado del logo con su gorro. Ya es tuyo: elígelo en Perfil → Tu Capo → Acabado.</p>
       <button type="button" class="start">¡A LA CIMA!</button></div>`;
     document.body.appendChild(box); playSound('grand');
     const done = () => { box.classList.add('out'); setTimeout(() => { box.remove(); this.queue.shift(); this.toast(); }, 400); };
@@ -305,6 +305,7 @@ const PROFILE = {
       <div class="shop">${DICE_ITEMS.map(c => { const own = this.owns(c.key), can = d.gold >= c.price;
         return `<div class="shop-item ${own ? 'own' : ''}"><canvas class="dice-prev" width="96" height="96" data-fin="${c.kind === 'fin' ? c.id : ''}" data-aura="${c.kind === 'aura' ? c.id : ''}" aria-hidden="true"></canvas>
           <b>${c.kind === 'aura' ? 'Aura de ' : 'Dados '}${esc(c.label)}</b><small class="shop-sub">${esc(c.sub)}</small>${own ? '<span class="shop-own">✔ Tuyo</span>'
+          : c.secret ? '<small class="shop-sub">🔒 Se gana completando todos los logros</small>'
           : `<button type="button" class="shop-buy" ${can ? '' : 'disabled'} onclick="PROFILE.buy('${c.key}')"><i class="coin" aria-hidden="true"></i> ${c.price}</button>${can ? '' : `<small>Te faltan ${c.price - d.gold}</small>`}`}</div>`; }).join('')}</div>`;
   },
   async reset() {

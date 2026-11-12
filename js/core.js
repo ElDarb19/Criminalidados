@@ -442,7 +442,8 @@ CD.partyResult = function (winnerSlot, summary) {
   if (winnerSlot != null) G.wins[winnerSlot] = (G.wins[winnerSlot] || 0) + 1;
   const M = CD.mod(), rank = M.ranking ? M.ranking(G) : null, rew = MK.on() && rank ? MK.settle(G, rank, winnerSlot) : null;
   if (rew) CD.log('💲 Recompensas: ' + G.players.map(p => p.name + ' +' + rew[p.slot].amount).join(' · '));
-  const board = G.players.map(p => (p.name + ': ' + (G.wins[p.slot] || 0) + '/' + goal));
+  const board = G.players.slice().sort((a, b) => (G.wins[b.slot] || 0) - (G.wins[a.slot] || 0) || a.slot - b.slot)     // de más a menos victorias
+    .map(p => (p.name + ': ' + (G.wins[p.slot] || 0) + '/' + goal));
   CD.log(winnerSlot == null ? `🤝 ${name}: empate, nadie suma victoria.` : `🏅 ${G.players[winnerSlot].name} gana ${name}.`);
   playSound('win');
   if (winnerSlot != null && G.wins[winnerSlot] >= goal) {

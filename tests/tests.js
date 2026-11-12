@@ -125,7 +125,7 @@ test('Sprites · Existen las 21 poses de cada personaje del menú y del bot en t
 // ---------- Tienda ----------
 test('Tienda · El oro de los logros alcanza para casi toda la tienda, pero no toda (el resto se gana online)', async () => {
   const gold = E('ACHIEVEMENTS').reduce((n, a) => n + E('TIERS')[a.tier].gold, 0);
-  const cost = E('CHARACTERS').concat(E('DICE_ITEMS')).reduce((n, c) => n + (c.price || 0), 0);   // capos y dados
+  const cost = E('CHARACTERS').concat(E('DICE_ITEMS')).filter(c => !c.online).reduce((n, c) => n + (c.price || 0), 0);   // capos y dados (sin los nuevos de oro online)
   ok(gold < cost && gold >= cost * 0.85, 'los logros dan ' + gold + ' de oro y la tienda cuesta ' + cost + ' (debe quedar entre el 85% y el 99%)');
 });
 test('Tienda · Oro online: más bots, menos oro; 2.º solo con 4 capos; Party alto solo a 3+ victorias', async () => {

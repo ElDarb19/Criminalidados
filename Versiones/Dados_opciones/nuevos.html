@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dados nuevos · Criminal Dice</title>
+<style>
+  :root { --bg:#14110d; --card:#1f1a14; --line:#3a3024; --gold:#e4c77e; --cream:#e9dfc7; }
+  body { margin:0; padding:16px; background:var(--bg); color:var(--cream); font:15px/1.5 system-ui, sans-serif; }
+  h1 { color:var(--gold); margin:0 0 4px; } h2 { color:var(--gold); margin:28px 0 6px; font-size:1.1rem; }
+  p { margin:0 0 10px; color:#c9bda2; max-width:60rem; }
+  .row { display:flex; flex-wrap:wrap; gap:10px; }
+  figure { margin:0; background:var(--card); border:1px solid var(--line); border-radius:8px; padding:6px; text-align:center; }
+  canvas { width:144px; height:144px; image-rendering:pixelated; display:block; }
+  figcaption { font-size:.8rem; color:#b8ab8e; }
+</style>
+</head>
+<body>
+<h1>Dados nuevos (muestra)</h1>
+<p>Página solo para mirar: se abre desde el mismo servidor que el juego (…/Versiones/Dados_opciones/nuevos.html). Usa el código real del juego (js/dice.js), así que cualquier cambio que hagas en <b>assets/D*/Gorro.png</b> con Paint aparece aquí al recargar.</p>
+<div id="out"></div>
+<script src="../../js/dice.js"></script>
+<script>
+  DICEFX.base('../../');
+  const COLS = ['Color_R', 'Color_B', 'Color_G', 'Color_P', 'Color_Pu', 'Color_W', 'Color_Y'];
+  const out = document.getElementById('out');
+  function section(title, text, items) {
+    const h = document.createElement('h2'); h.textContent = title; out.appendChild(h);
+    if (text) { const p = document.createElement('p'); p.textContent = text; out.appendChild(p); }
+    const row = document.createElement('div'); row.className = 'row'; out.appendChild(row);
+    items.forEach(it => { const f = document.createElement('figure'), c = document.createElement('canvas'), cap = document.createElement('figcaption');
+      c.width = c.height = 96; cap.textContent = it.label; f.append(c, cap); row.appendChild(f); DICEFX.show(c, it.opt); });
+  }
+  section('Dado del Capo — todos los dados', 'El mismo gorro en los 5 dados: más grande en el D6 y más pequeño en el D4 para no tapar el número.',
+    [4, 6, 8, 12, 20].map(s => ({ label:'D' + s, opt:{ sides:s, color:'Color_R', val:s, fin:'capo' } })));
+  section('Dado del Capo — todos los colores', '', COLS.map(c => ({ label:c, opt:{ sides:20, color:c, val:20, fin:'capo' } })));
+  [['marfil', 'Marfil'], ['billete', 'Billete verde'], ['marmol', 'Mármol Negro']].forEach(([f, n]) =>
+    section('Dados ' + n, 'El material cambia el dado; el contorno conserva el color del jugador para saber de quién es la tirada.',
+      COLS.map(c => ({ label:c, opt:{ sides:20, color:c, val:20, fin:f } })).concat([6, 12].map(s => ({ label:'D' + s, opt:{ sides:s, color:'Color_B', val:s, fin:f } })))));
+  [['sirena', 'Sirena (luces de patrulla)', 'Animada: un difuminado rojo a la izquierda y uno azul a la derecha que aparecen y desaparecen por turnos. Estática: los dos encendidos.'],
+   ['neon', 'Neón (la que ya está en la tienda)', 'Letrero de club nocturno: anillos rosa y cian que parpadean.'],
+   ['casino', 'Marquesina de Casino (propuesta, aún no se vende)', 'Un marco con bombillas como los carteles de casino: las luces corren en cadena alrededor del dado.']].forEach(([a, n, t]) =>
+    section('Aura ' + n, t, [{ label:'Animada', opt:{ sides:20, color:'Color_R', val:20, aura:a } }, { label:'Estática', opt:{ sides:20, color:'Color_R', val:20, aura:a, calm:true } },
+      { label:'Animada (D6)', opt:{ sides:6, color:'Color_B', val:6, aura:a } }, { label:'Con el Dado del Capo', opt:{ sides:20, color:'Color_Y', val:20, fin:'capo', aura:a } }]));
+</script>
+</body>
+</html>
