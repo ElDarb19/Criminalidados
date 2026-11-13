@@ -407,12 +407,31 @@ function marketManualHtml() {
     </ul>`;
 }
 function closeManualGuide() { $('modal-manual-guide').classList.add('hidden'); }
-function switchManualTab(t) {
+function switchManualTab(t) {                     // pestañas de la libreta: la hoja nueva entra como una página que se pasa
   for (let i = 1; i <= 4; i++) {
     $('tab-btn-' + i).classList.toggle('active', t === i);
-    $('tab-content-' + i).classList.toggle('hidden', t !== i);
+    const page = $('tab-content-' + i); page.classList.toggle('hidden', t !== i);
+    if (t === i) { page.classList.remove('flip'); void page.offsetWidth; page.classList.add('flip'); page.scrollTop = 0; }
   }
 }
+
+// ---------- Créditos: final de película que sube solo (se detiene si el jugador toca o desplaza) ----------
+let creditsRaf = 0;
+function openCredits() {
+  const m = $('modal-credits'), reel = $('credits-reel'); m.classList.remove('hidden'); reel.scrollTop = 0;
+  cancelAnimationFrame(creditsRaf);
+  if (typeof reducedMotion === 'function' && reducedMotion()) return;   // con "Reducir animaciones" no se mueve solo
+  let hold = false, pos = 0, last = performance.now();
+  const stop = () => { hold = true; }; ['wheel', 'touchstart', 'pointerdown', 'keydown'].forEach(e => reel.addEventListener(e, stop, { once:true, passive:true }));
+  const step = now => {
+    if (hold || m.classList.contains('hidden')) return;
+    pos += (now - last) * .028; last = now; reel.scrollTop = pos;                        // ~28 px por segundo
+    if (reel.scrollTop + reel.clientHeight < reel.scrollHeight - 1) creditsRaf = requestAnimationFrame(step);
+  };
+  setTimeout(() => { last = performance.now(); creditsRaf = requestAnimationFrame(step); }, 1200);
+}
+function closeCredits() { cancelAnimationFrame(creditsRaf); $('modal-credits').classList.add('hidden'); }
+document.addEventListener('keydown', e => { if (e.key !== 'Escape') return; closeCredits(); closeManualGuide(); });
 
 // ---------- arranque ----------
 document.addEventListener('DOMContentLoaded', () => {

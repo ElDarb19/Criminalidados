@@ -100,7 +100,6 @@ body:has(#game-screen:not(.hidden)) #btn-shop{display:none}          /* en parti
 .set-row[aria-checked="true"] .set-state{background:var(--gold);color:var(--ink)}
 .settings-panel{max-height:calc(100vh - 80px);overflow-y:auto}
 .set-sep{width:100%;border:0;border-top:1px solid var(--line);margin:4px 0}
-.set-vol{display:grid;grid-template-columns:1fr auto;align-items:center;gap:2px 10px;padding:6px 12px 2px;font-family:var(--font-ui);font-size:.78rem;letter-spacing:1px;color:var(--cream-2)}
 /* retos del día y misiones de la semana (js/retos.js): Perfil → Retos y, en pequeño, al final de la partida */
 .retos{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-direction:column;gap:6px;text-align:left}
 .reto{display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"ic t n" "ic bar bar";gap:2px 10px;align-items:center;padding:8px 10px;background:var(--ink);border:1px solid var(--line);border-radius:var(--radius-sm)}
@@ -122,13 +121,44 @@ body:has(#game-screen:not(.hidden)) #btn-shop{display:none}          /* en parti
 .over-retos .reto-t small{display:none}
 .over-retos .reto-ic{font-size:.85rem}.over-retos .reto-n{font-size:.72rem}.over-retos .reto-bar{height:3px}
 .reto-up{margin-left:4px;font-size:.62rem;color:var(--ink);background:var(--gold-2);border-radius:999px;padding:0 5px;vertical-align:1px}
-.manual-credits{margin:12px 0 8px;font-size:.75rem;line-height:1.5;color:var(--cream-3);text-align:center}
-.manual-credits a{color:var(--gold-2)}
-.set-vol output{color:var(--gold-2);font-size:.75rem}
-.set-vol input{grid-column:1/-1;width:100%;height:44px;margin:0;accent-color:var(--gold);cursor:pointer}
-.set-vol input:disabled{opacity:.4;cursor:not-allowed}.set-act{justify-content:flex-start;color:var(--gold-2)}
+.set-act{justify-content:flex-start;color:var(--gold-2)}
 .set-danger{color:#e07a6a;border-color:rgba(158,31,31,.5)}
 .set-msg{margin:0;padding:8px 10px;font-size:.8rem;line-height:1.45;color:var(--cream-2);background:var(--ink-2);border-radius:var(--radius-sm);font-family:var(--font-ui);letter-spacing:.3px}
+/* ===== Ajustes: radio antigua de válvulas ===== */
+.settings-panel.radio{width:min(290px,calc(100vw - 24px));gap:7px;padding:14px 12px 12px;border:0;border-radius:34px 34px 10px 10px;
+  background:radial-gradient(ellipse 80% 40% at 50% 0%,rgba(255,220,170,.16),transparent 70%),repeating-linear-gradient(100deg,rgba(0,0,0,.07) 0 3px,transparent 3px 9px),linear-gradient(180deg,#6b3f1e,#3e2210 70%,#2e180a);
+  box-shadow:inset 0 2px 0 rgba(255,220,170,.22),inset 0 -3px 0 rgba(0,0,0,.35),0 16px 34px rgba(0,0,0,.7)}
+.radio-top{display:flex;flex-direction:column;gap:8px;margin-bottom:2px}
+.radio-grill{position:relative;height:62px;border-radius:24px 24px 6px 6px;background:repeating-linear-gradient(90deg,#2a160a 0 4px,#c9a24a 4px 6px);box-shadow:inset 0 0 18px rgba(0,0,0,.75)}
+.radio-brand{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);padding:1px 10px;border-radius:10px;background:linear-gradient(180deg,#f3dfa6,#b8913e);color:#3a2410;
+  font-family:var(--font-display);font-size:.72rem;letter-spacing:2px;white-space:nowrap;box-shadow:0 2px 4px rgba(0,0,0,.5)}
+.radio-dial{position:relative;display:flex;justify-content:space-between;gap:2px;padding:6px 8px;border-radius:4px;background:linear-gradient(180deg,#f3dfa6,#c9a24a);
+  box-shadow:inset 0 0 8px rgba(120,80,20,.6);font-family:var(--font-ui);font-size:.5rem;letter-spacing:.5px;color:#3a2410}
+#radio-needle{position:absolute;top:2px;bottom:2px;width:2px;margin-left:-1px;background:#a3241c;box-shadow:0 0 6px rgba(255,80,60,.7);transition:left .6s cubic-bezier(.3,1.3,.5,1)}
+#radio-needle.off{opacity:0}
+.radio-knobs{display:flex;align-items:center;gap:12px;padding:2px 2px 4px}
+.knob-wrap{display:flex;flex-direction:column;align-items:center;gap:3px;font-family:var(--font-ui);font-size:.58rem;letter-spacing:1.5px;color:var(--gold-3)}
+.knob-wrap output{color:var(--gold-2)}
+.knob{--turn:-67deg;position:relative;width:56px;height:56px;border-radius:50%;cursor:grab;touch-action:none;
+  background:radial-gradient(circle at 35% 30%,#fff3c4 0 6%,#f3dfa6 14%,#c9a24a 48%,#8a6a26 78%);box-shadow:0 4px 9px rgba(0,0,0,.6),inset 0 -3px 6px rgba(0,0,0,.35)}
+.knob i{position:absolute;inset:0;transform:rotate(var(--turn));transition:transform .12s}
+.knob i::after{content:"";position:absolute;top:6px;left:50%;width:4px;height:15px;margin-left:-2px;border-radius:2px;background:#3a2410}
+.knob:focus-visible{outline:2px solid var(--gold-3);outline-offset:4px}
+.knob.off{filter:grayscale(.8) brightness(.7);cursor:not-allowed}
+.radio-knobs .set-row{flex:1}
+/* interruptores: teclas de baquelita con su luz */
+.settings-panel.radio .set-row{background:linear-gradient(180deg,#2b1a10,#1a0f08);border:1px solid #120a05;border-radius:6px;color:var(--cream);
+  box-shadow:inset 0 1px 0 rgba(255,220,170,.12),0 2px 0 #0d0703;font-size:.82rem}
+.settings-panel.radio .set-row:hover{border-color:var(--gold)}
+.settings-panel.radio .set-row:active{transform:translateY(1px)}
+.settings-panel.radio .set-state{width:14px;height:14px;padding:0;border-radius:50%;font-size:0;background:#3a2a1a;box-shadow:inset 0 1px 2px rgba(0,0,0,.7)}
+.settings-panel.radio .set-row[aria-checked="true"] .set-state{background:radial-gradient(circle at 35% 35%,#fff3c4,#f0b030 55%,#a86a10);box-shadow:0 0 8px rgba(240,176,48,.85)}
+.settings-panel.radio .set-sep{border-top:1px dashed rgba(243,223,166,.25)}
+/* botones de acción: teclas de memoria color marfil */
+.settings-panel.radio .set-act{background:linear-gradient(180deg,#efe6cf,#cbbd99);color:#3a2410;border-color:#8a6a26;font-weight:600}
+.settings-panel.radio .set-act:hover{background:linear-gradient(180deg,#fff3d6,#d8c9a3)}
+.settings-panel.radio .set-danger{background:linear-gradient(180deg,#c9493a,#8a2018);color:#fff3e6;border-color:#5a1410}
+.settings-panel.radio .set-msg{background:rgba(0,0,0,.35);color:var(--cream)}
 .set-msg b{color:var(--gold-2)}
 @media (prefers-reduced-motion:reduce){.settings-panel{animation:none}}
 
@@ -169,6 +199,22 @@ html.cb .ctag{display:inline-flex;align-items:center;justify-content:center;min-
 .pf-card{display:flex;flex-direction:column;align-items:center;gap:6px;flex:0 0 auto}
 .pf-card .avatar{width:110px;height:110px}
 .pf-plate{font-family:var(--font-type);font-size:.8rem;color:var(--gold-2);max-width:120px;text-align:center;word-break:break-word}
+/* ---- Tu Capo: ficha policial ---- */
+.ficha{position:relative;align-items:stretch;gap:0;width:220px;padding:12px;background:linear-gradient(180deg,#e9dfc7,#d6c8a2);color:#1b140c;border-radius:3px;
+  box-shadow:0 12px 26px rgba(0,0,0,.6);transform:rotate(-1.2deg)}
+.ficha::before{content:"";position:absolute;top:-9px;left:40%;width:44px;height:16px;background:rgba(230,220,190,.6);transform:rotate(3deg)}   /* cinta adhesiva */
+.ficha-head{display:flex;justify-content:space-between;gap:6px;font-family:var(--font-ui);font-size:.6rem;letter-spacing:1.5px;border-bottom:2px solid #1b140c;padding-bottom:3px}
+.ficha-photo{position:relative;height:170px;margin:8px 0;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;
+  background:repeating-linear-gradient(180deg,transparent 0 16px,rgba(0,0,0,.35) 16px 17px),linear-gradient(#5d5a52,#3a3832);border-bottom:4px solid var(--pc,#555)}
+.ficha-photo::before{content:"6'—\A\A 5'6\A\A 5'—\A\A 4'6";white-space:pre;position:absolute;left:5px;top:3px;font-family:var(--font-ui);font-size:.5rem;line-height:8.5px;color:#e9dfc7;opacity:.8}
+.ficha-photo img{width:136px;height:136px;margin-bottom:22px;image-rendering:pixelated;filter:var(--rim);animation:cd-bob 2.6s ease-in-out infinite}
+.ficha-board{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);max-width:92%;background:#111;color:#f2ece0;font-family:var(--font-ui);font-size:.66rem;line-height:1.25;
+  letter-spacing:1.5px;padding:3px 8px;text-align:center;border:2px solid #555;word-break:break-word}
+.ficha-stamp{position:absolute;right:10px;top:52px;transform:rotate(14deg);border:3px solid #a3241c;color:#a3241c;font-family:var(--font-ui);font-weight:700;letter-spacing:3px;padding:1px 6px;font-size:.78rem;opacity:.85;pointer-events:none}
+.ficha-rows{display:grid;grid-template-columns:auto 1fr;gap:2px 8px;font-family:var(--font-type);font-size:.72rem;align-items:baseline}
+.ficha-rows b{font-family:var(--font-ui);letter-spacing:1px;font-size:.62rem}
+.ficha-prints{display:flex;gap:5px;margin-top:6px}
+.ficha-prints i{width:24px;height:30px;border-radius:50% 50% 45% 45%;background:repeating-radial-gradient(ellipse at 50% 60%,#2b2219 0 1px,transparent 1px 3px);opacity:.5}
 .pf-fields{flex:1;min-width:0;display:flex;flex-direction:column}
 .pf-label{font-family:var(--font-ui);font-size:.72rem;letter-spacing:2px;text-transform:uppercase;color:var(--cream-3);margin:10px 0 2px}
 .pf-label:first-child{margin-top:0}
@@ -192,6 +238,27 @@ html.cb .ctag{display:inline-flex;align-items:center;justify-content:center;min-
 .ach b{display:block;font-family:var(--font-ui);font-weight:600;letter-spacing:.5px;font-size:.9rem}
 .ach small{display:block;font-size:.75rem;color:var(--cream-3);line-height:1.35}
 .ach em{display:block;font-style:normal;font-size:.68rem;color:var(--gold-2);margin-top:2px}
+/* ---- Logros: tablero de corcho con recortes, chinchetas e hilo rojo ---- */
+.cork{position:relative;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:18px 12px;padding:22px 14px 16px;border:10px solid #4a2f1a;border-radius:4px;
+  background:radial-gradient(circle at 20% 30%,rgba(0,0,0,.13) 0 2px,transparent 3px) 0 0/14px 14px,radial-gradient(circle at 70% 60%,rgba(255,255,255,.07) 0 1px,transparent 2px) 0 0/9px 9px,#a8794a;
+  box-shadow:inset 0 0 30px rgba(0,0,0,.45),0 10px 24px rgba(0,0,0,.5)}
+.cork-string{position:absolute;left:0;top:0;width:100%;pointer-events:none;z-index:0}   /* el hilo va por detrás de los recortes */
+.clip{position:relative;z-index:1;padding:14px 10px 10px;background:#efe6cf;color:#20180f;box-shadow:0 6px 12px rgba(0,0,0,.4);transform:rotate(var(--tilt,0deg));
+  font-family:var(--font-type);transition:transform .2s}
+.clip:hover{transform:rotate(0) scale(1.03);z-index:3}
+.clip::before{content:"";position:absolute;top:-6px;left:50%;width:12px;height:12px;margin-left:-6px;border-radius:50%;z-index:3;box-shadow:0 2px 3px rgba(0,0,0,.5);
+  background:radial-gradient(circle at 35% 35%,#fff7,transparent 45%),var(--pin,#b3261e)}   /* chincheta */
+.clip.pin-facil{--pin:#4f8a3a}.clip.pin-media{--pin:#c99a2e}.clip.pin-dificil{--pin:#b3261e}.clip.pin-leyenda{--pin:#7a3fa8}.clip.pin-secreto{--pin:#222}
+.clip .ach-ic{font-size:1.3rem;float:right;margin:-4px -2px 0 6px}
+.clip b{display:block;font-family:var(--font-ui);font-weight:600;letter-spacing:.4px;font-size:.88rem;line-height:1.15;margin-bottom:3px}
+.clip small{display:block;font-size:.72rem;line-height:1.35;color:#3a2e20}
+.clip em{display:block;font-style:normal;font-size:.65rem;color:#6b1414;margin-top:4px}
+.clip .ach-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px}
+.clip .ach-gold{font-size:.7rem;color:#7a5a12}
+.clip .tier{border-color:currentColor}.clip .tier-facil{color:#3e6e2e}.clip .tier-media{color:#8a6416}.clip .tier-dificil{color:#9a2a1e}.clip .tier-leyenda{color:#6a3494}.clip .tier-secreto{color:#444}
+.clip.off{background:#d3c8ad;color:#5a4e3a;filter:saturate(.4)}.clip.off .ach-ic{filter:grayscale(1);opacity:.7}
+.clip.veil b{background:#1b140c;color:#efe6cf;display:inline-block;padding:0 6px;letter-spacing:3px}   /* secreto: nombre tapado con tinta */
+@media (max-width:420px){.cork{grid-template-columns:1fr 1fr;gap:16px 8px;padding:20px 8px 12px;border-width:7px}.clip{padding:12px 7px 8px}.clip b{font-size:.8rem}}
 .ach-meta{display:flex;gap:6px;align-items:center;margin-top:4px;flex-wrap:wrap}
 .tier{font-family:var(--font-ui);font-size:.6rem;letter-spacing:1.5px;text-transform:uppercase;padding:1px 6px;border-radius:999px;border:1px solid currentColor}
 .tier-facil{color:#8fbf7a}.tier-media{color:#d9b45a}.tier-dificil{color:#e07a6a}.tier-leyenda{color:#c79ae6}.tier-secreto{color:var(--cream-3)}
@@ -411,6 +478,70 @@ input:disabled{opacity:.65}
 .manual-box{width:95vw;max-width:60rem}
 .guide-text-box li{margin-bottom:4px}
 .guide-text-box .mk-works{display:block;font-size:.9em;opacity:.8}
+/* ===== Manual del Capo: libreta de cuero con hojas de papel y pestañas de carpeta ===== */
+.manual-book{padding:22px 18px 18px;border:0;border-radius:10px 14px 14px 10px;
+  background:radial-gradient(ellipse 90% 60% at 30% 0%,rgba(255,220,170,.10),transparent 70%),
+    repeating-linear-gradient(115deg,rgba(0,0,0,.08) 0 2px,transparent 2px 7px),linear-gradient(160deg,#4a2c18,#2a170c 60%,#1c0f07);
+  box-shadow:0 24px 50px rgba(0,0,0,.7),inset 0 0 0 1px rgba(0,0,0,.6),inset 0 0 40px rgba(0,0,0,.45),inset 10px 0 0 #170c05}   /* lomo a la izquierda */
+.manual-book::before{content:"";position:absolute;inset:8px 8px 8px 16px;border:2px dashed rgba(201,162,74,.38);border-radius:7px 10px 10px 7px;pointer-events:none}   /* costura */
+.manual-book .book-title{position:relative;margin:0 0 14px;font-family:var(--font-display);font-weight:400;color:var(--gold-2);letter-spacing:2px;text-align:center;
+  text-shadow:0 1px 0 #000,0 -1px 0 rgba(255,230,170,.25)}
+.manual-book .book-title::after{content:"CONFIDENCIAL";display:inline-block;margin-left:10px;vertical-align:4px;transform:rotate(-8deg);border:2px solid #b3352a;color:#d9584a;
+  font-family:var(--font-ui);font-size:.62rem;letter-spacing:2.5px;padding:1px 6px;opacity:.9}
+.manual-book .book-tabs{border:0;padding:0;margin:0;gap:4px;position:relative;z-index:1}
+.manual-book .book-tabs .tab-btn{flex:1 1 0;border:0;border-radius:8px 8px 0 0;margin-bottom:-1px;color:#3a2a18;font-family:var(--font-ui);font-weight:600;letter-spacing:1px;font-size:.8rem;
+  background:linear-gradient(180deg,#b9a173,#9c8558);box-shadow:inset 0 -6px 8px rgba(0,0,0,.18);transition:transform .15s,background .2s}
+.manual-book .book-tabs .tab-btn:hover{transform:translateY(-2px)}
+.manual-book .book-tabs .tab-btn.active{background:#efe6cf;color:#6b1414;box-shadow:none}
+.manual-book .guide-text-box{position:relative;max-height:60vh;padding:16px 16px 18px 46px;border-radius:0 4px 6px 6px;color:#2a2016;font-size:.9rem;line-height:28px;
+  background:linear-gradient(90deg,transparent 33px,rgba(179,53,42,.45) 33px 35px,transparent 35px),
+    repeating-linear-gradient(180deg,transparent 0 27px,rgba(70,100,150,.18) 27px 28px),linear-gradient(180deg,#efe6cf,#e4d6b4);
+  background-attachment:local;box-shadow:inset 0 0 30px rgba(120,90,40,.25),0 2px 0 #c9b88f,0 4px 0 #b9a77c}   /* margen rojo, renglones y hojas apiladas */
+.manual-book .guide-text-box h3{color:#6b1414;font-family:var(--font-ui);letter-spacing:1.5px;margin:12px 0 2px;line-height:28px}
+.manual-book .guide-text-box b{color:#1b130c}
+.manual-book .guide-text-box p{margin:0 0 6px}
+.manual-book .guide-text-box ul{margin:0 0 6px;padding-left:18px}
+.manual-book .guide-text-box li{margin:0}
+.manual-book .guide-text-box small,.manual-book .guide-text-box .mk-works{color:#5a4a34;opacity:1}
+.manual-book .highlight-gold{color:#8a5a10}.manual-book .highlight-green{color:#2f6b34}.manual-book .highlight-orange{color:#9a4e10}
+.manual-book .guide-text-box::-webkit-scrollbar{width:8px}.manual-book .guide-text-box::-webkit-scrollbar-thumb{background:#b9a173;border-radius:4px}
+.guide-text-box.flip{animation:cd-page .38s cubic-bezier(.2,.8,.3,1) both;transform-origin:left center}
+@keyframes cd-page{from{transform:perspective(900px) rotateY(-14deg);opacity:.2}to{transform:none;opacity:1}}
+@media (max-width:520px){.manual-book{padding:18px 12px 12px}.manual-book .book-tabs .tab-btn{font-size:.68rem;letter-spacing:.3px;padding:6px 2px}
+  .manual-book .guide-text-box{padding:12px 10px 14px 34px;background:linear-gradient(90deg,transparent 23px,rgba(179,53,42,.45) 23px 25px,transparent 25px),
+    repeating-linear-gradient(180deg,transparent 0 27px,rgba(70,100,150,.18) 27px 28px),linear-gradient(180deg,#efe6cf,#e4d6b4)}}
+
+/* ===== Créditos: final de película en una cinta de cine ===== */
+.credits-box{width:min(34rem,95vw);padding:0 30px;border:0;border-radius:4px;overflow:hidden;
+  background:radial-gradient(ellipse at center,rgba(255,230,180,.06),transparent 70%),#050403;
+  box-shadow:0 30px 60px rgba(0,0,0,.8),inset 0 0 80px rgba(0,0,0,.9)}
+.credits-box::before,.credits-box::after{content:"";position:absolute;top:0;bottom:0;width:22px;z-index:2;pointer-events:none;     /* perforaciones de la película */
+  background:repeating-linear-gradient(180deg,#000 0 6px,#d8cfb8 6px 14px,#000 14px 22px) center/10px 22px repeat-y,#000}
+.credits-box::before{left:0}.credits-box::after{right:0}
+.credits-box .modal-x{position:absolute;top:10px;right:30px;margin:0;float:none}
+.credits-reel{max-height:80vh;overflow-y:auto;scrollbar-width:none;text-align:center;
+  -webkit-mask-image:linear-gradient(transparent,#000 14%,#000 86%,transparent);mask-image:linear-gradient(transparent,#000 14%,#000 86%,transparent)}
+.credits-reel::-webkit-scrollbar{display:none}
+.cr-roll{padding:42vh 6px 40vh;font-family:var(--font-type);color:var(--cream-2)}
+.cr-kicker{margin:0;font-family:var(--font-ui);font-size:.7rem;letter-spacing:4px;text-transform:uppercase;color:var(--cream-3)}
+.cr-name{margin:4px 0 0;font-family:var(--font-ui);font-size:1.15rem;letter-spacing:2px;color:var(--cream)}
+.cr-name small,.cr-list small{display:block;font-family:var(--font-type);font-size:.7rem;letter-spacing:.5px;color:var(--cream-3);margin-top:2px}
+.cr-big{font-family:var(--font-display);font-size:2rem;color:var(--gold-2);margin:6px 0 14px}
+.cr-small{font-size:.95rem}
+.cr-logo{margin:10px 0 4px;font-family:var(--font-display);font-weight:400;font-size:clamp(2rem,9vw,3rem);line-height:1;color:var(--gold-2);
+  text-shadow:0 0 18px rgba(201,162,74,.35),0 2px 0 #000}
+.cr-tag{margin:0 0 60px;font-size:.85rem;color:var(--cream-3)}
+.cr-roll h3{margin:46px 0 10px;font-family:var(--font-ui);font-weight:500;font-size:.75rem;letter-spacing:4px;text-transform:uppercase;color:var(--gold)}
+.cr-list{margin:0;display:grid;gap:12px}
+.cr-list dt{font-family:var(--font-ui);font-size:.68rem;letter-spacing:3px;text-transform:uppercase;color:var(--cream-3)}
+.cr-list dd{margin:0;font-family:var(--font-ui);font-size:1rem;letter-spacing:1px;color:var(--cream)}
+.credits-box a{color:var(--gold-2)}
+.cr-thanks{margin:80px 0 0;padding:26px 14px;border-top:1px solid rgba(201,162,74,.35);border-bottom:1px solid rgba(201,162,74,.35)}
+.cr-thanks-big{margin:8px 0 12px;font-family:var(--font-display);font-size:1.6rem;line-height:1.2;color:var(--gold-3);text-shadow:0 0 16px rgba(201,162,74,.4)}
+.cr-thanks p{line-height:1.6}
+.cr-sign{margin-top:14px;font-family:var(--font-display);font-size:1.2rem;color:var(--gold-2)}
+.cr-fin{margin:70px 0 0;font-family:var(--font-display);font-size:2.4rem;letter-spacing:8px;color:var(--cream)}
+@media (prefers-reduced-motion:reduce){.guide-text-box.flip{animation:none}}
 .highlight-gold{color:var(--gold-2);font-weight:bold}.highlight-green{color:var(--accent-green);font-weight:bold}.highlight-orange{color:var(--accent-orange);font-weight:bold}
 .btn-cancel{min-height:48px;background:transparent;border:1px solid rgba(233,223,199,.3);color:var(--cream);border-radius:var(--radius-sm);padding:10px;width:100%;margin-top:14px;cursor:pointer;
   font-family:var(--font-ui);font-weight:500;letter-spacing:2px;transition:.2s}

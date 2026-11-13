@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ideas de detalles · Criminal Dice</title>
+<link href="https://fonts.googleapis.com/css2?family=Limelight&family=Oswald:wght@400;500;600;700&family=Special+Elite&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../menu.css">
+<style>
+  /* Página solo de muestra: propuestas para que Darb elija. Usa la paleta del juego (menu.css). */
+  body{margin:0;padding:18px 16px 60px;background:radial-gradient(ellipse at top,#2a2117,#0b0a08 70%);color:var(--cream);font-family:var(--font-type)}
+  .wrap{max-width:62rem;margin:0 auto}
+  h1{font-family:var(--font-display);font-weight:400;color:var(--gold-2);margin:0 0 4px}
+  .lead{color:var(--cream-2);max-width:48rem}
+  section.idea{margin:34px 0;padding:18px;border:1px solid var(--line);border-radius:8px;background:rgba(11,10,8,.55)}
+  section.idea h2{font-family:var(--font-ui);font-weight:600;letter-spacing:2px;color:var(--gold-2);margin:0 0 4px;font-size:1.05rem;text-transform:uppercase}
+  section.idea p.what{margin:0 0 16px;color:var(--cream-2);font-size:.9rem}
+  .stage{display:flex;flex-wrap:wrap;gap:22px;justify-content:center;align-items:flex-start}
+
+  /* ---- 1. Perfil como ficha policial ---- */
+  .mug{position:relative;width:min(300px,100%);padding:16px;background:linear-gradient(180deg,#e9dfc7,#d6c8a2);color:#1b140c;border-radius:3px;box-shadow:0 14px 30px rgba(0,0,0,.6);transform:rotate(-1.2deg)}
+  .mug::before{content:"";position:absolute;top:-10px;left:42%;width:46px;height:18px;background:rgba(220,210,180,.55);transform:rotate(3deg)}      /* cinta adhesiva */
+  .mug-head{display:flex;justify-content:space-between;font-family:var(--font-ui);font-size:.7rem;letter-spacing:2px;border-bottom:2px solid #1b140c;padding-bottom:4px}
+  .mug-photo{position:relative;height:190px;margin:10px 0;background:repeating-linear-gradient(180deg,transparent 0 17px,rgba(0,0,0,.35) 17px 18px),linear-gradient(#5d5a52,#3a3832);
+    display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
+  .mug-photo::before{content:"6'—\A\A 5'6\A\A 5'—\A\A 4'6";white-space:pre;position:absolute;left:6px;top:4px;font-family:var(--font-ui);font-size:.55rem;line-height:9px;color:#e9dfc7;opacity:.8}
+  .mug-photo img{width:150px;height:150px;image-rendering:pixelated;filter:grayscale(.15) contrast(1.05) drop-shadow(0 0 2px rgba(255,240,200,.6))}
+  .mug-board{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);background:#111;color:#f2ece0;font-family:var(--font-ui);font-size:.72rem;letter-spacing:2px;padding:4px 10px;text-align:center;border:2px solid #555}
+  .mug-rows{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:.78rem}
+  .mug-rows b{font-family:var(--font-ui);letter-spacing:1px;font-size:.7rem}
+  .mug-stamp{position:absolute;right:12px;top:62px;transform:rotate(14deg);border:3px solid #a3241c;color:#a3241c;font-family:var(--font-ui);font-weight:700;letter-spacing:3px;padding:2px 8px;font-size:.9rem;opacity:.85}
+  .mug-prints{display:flex;gap:6px;margin-top:8px}
+  .mug-prints i{width:30px;height:38px;border-radius:50% 50% 45% 45%;background:repeating-radial-gradient(ellipse at 50% 60%,#2b2219 0 1px,transparent 1px 3px);opacity:.55}
+
+  /* ---- 2. Logros en un tablero de corcho con hilo rojo ---- */
+  .cork{position:relative;width:min(560px,100%);min-height:300px;padding:20px;border:12px solid #4a2f1a;border-radius:4px;
+    background:radial-gradient(circle at 20% 30%,rgba(0,0,0,.12) 0 2px,transparent 3px) 0 0/14px 14px,radial-gradient(circle at 70% 60%,rgba(255,255,255,.06) 0 1px,transparent 2px) 0 0/9px 9px,#a8794a;
+    box-shadow:inset 0 0 30px rgba(0,0,0,.45),0 16px 30px rgba(0,0,0,.6)}
+  .clip{position:absolute;width:150px;padding:12px 10px 10px;background:#efe6cf;color:#20180f;box-shadow:0 6px 12px rgba(0,0,0,.4);font-size:.72rem;line-height:1.35}
+  .clip b{display:block;font-family:var(--font-ui);font-size:.85rem;letter-spacing:.5px;margin-bottom:3px}
+  .clip::before{content:"";position:absolute;top:-6px;left:50%;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ff8a80,#b3261e);box-shadow:0 2px 3px rgba(0,0,0,.5)}   /* chincheta */
+  .clip.locked{background:#cfc4aa;color:#5a4e3a;filter:grayscale(.5)}
+  .clip.locked b::after{content:" 🔒"}
+  .clip .gold{display:inline-block;margin-top:4px;font-family:var(--font-ui);color:#7a5a12}
+  .cork svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+
+  /* ---- 3. Titular de periódico girando (Eventos de Ciudad) ---- */
+  .press{position:relative;width:min(340px,100%);height:250px;display:flex;align-items:center;justify-content:center;perspective:700px;background:radial-gradient(circle,#2a2218,#0b0a08 70%);border-radius:6px;overflow:hidden}
+  .paper{width:250px;padding:12px 14px;background:linear-gradient(180deg,#efe6cf,#d9cba5);color:#17110a;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.7);animation:spin-in 2.2s cubic-bezier(.2,.7,.25,1) infinite}
+  .paper .np{font-family:var(--font-display);font-size:1.2rem;border-bottom:3px double #17110a;padding-bottom:3px}
+  .paper .date{display:flex;justify-content:space-between;font-family:var(--font-ui);font-size:.55rem;letter-spacing:1px;border-bottom:1px solid #17110a;margin-bottom:6px}
+  .paper .head{font-family:var(--font-ui);font-weight:700;font-size:1.25rem;line-height:1.05;letter-spacing:.5px;text-transform:uppercase}
+  .paper .np-sub{font-size:.68rem;margin-top:6px;color:#17110a}
+  @keyframes spin-in{0%{transform:rotate(-900deg) scale(.05);opacity:0}55%{transform:rotate(8deg) scale(1.08);opacity:1}70%{transform:rotate(-3deg) scale(1)}100%{transform:rotate(-3deg) scale(1)}}
+
+  /* ---- 4. Ajustes como radio antigua ---- */
+  .radio{width:min(320px,100%);padding:16px;border-radius:40px 40px 10px 10px;background:linear-gradient(180deg,#6b3f1e,#3e2210);box-shadow:inset 0 2px 0 rgba(255,220,170,.2),0 14px 30px rgba(0,0,0,.6)}
+  .grill{height:90px;border-radius:30px 30px 6px 6px;background:repeating-linear-gradient(90deg,#2a160a 0 4px,#c9a24a 4px 6px);box-shadow:inset 0 0 18px rgba(0,0,0,.7)}
+  .dial{margin:12px 0;height:30px;border-radius:4px;background:linear-gradient(180deg,#f3dfa6,#c9a24a);position:relative;font-family:var(--font-ui);font-size:.6rem;color:#3a2410;display:flex;justify-content:space-around;align-items:center}
+  .dial::after{content:"";position:absolute;top:2px;bottom:2px;left:38%;width:2px;background:#a3241c}
+  .knobs{display:flex;justify-content:space-between;align-items:center}
+  .knob{width:52px;height:52px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#f3dfa6,#8a6a26 70%);box-shadow:0 4px 8px rgba(0,0,0,.6);position:relative}
+  .knob::after{content:"";position:absolute;top:5px;left:50%;width:3px;height:14px;margin-left:-1.5px;background:#3a2410;border-radius:2px;transform-origin:50% 21px;transform:rotate(-40deg)}
+  .knobs span{font-family:var(--font-ui);font-size:.65rem;letter-spacing:2px;color:var(--gold-3);text-align:center}
+  .note{font-size:.78rem;color:var(--cream-3);text-align:center;margin-top:8px}
+</style>
+</head>
+<body><div class="wrap">
+  <h1>Ideas de detalles</h1>
+  <p class="lead">Propuestas con el mismo estilo que el selector de contratos (carpetas de expediente), el Manual (libreta) y los Créditos (cinta de cine). Son solo una muestra: dime cuáles te gustan y las integro en el juego.</p>
+
+  <section class="idea"><h2>1 · Tu Capo como ficha policial</h2>
+    <p class="what">La pestaña "Tu Capo" del Perfil sería una ficha de arresto: foto con la regla de estatura detrás, el cartel con el nombre y el número de expediente, datos escritos a máquina, sello de "BUSCADO" y huellas dactilares.</p>
+    <div class="stage">
+      <div class="mug">
+        <div class="mug-head"><span>DEPTO. DE POLICÍA</span><span>EXP. Nº 0451</span></div>
+        <div class="mug-photo"><img src="../assets/characters/Gustavo/Color_B/idle.png" alt=""><div class="mug-board">CAPO DARB<br>1946 · 07</div></div>
+        <span class="mug-stamp">BUSCADO</span>
+        <div class="mug-rows"><b>ALIAS</b><span>El Capo de los Dados</span><b>PARTIDAS</b><span>42 · 19 victorias</span><b>RACHA</b><span>🔥 4 seguidas</span><b>FAVORITO</b><span>El Gran Atraco</span></div>
+        <div class="mug-prints"><i></i><i></i><i></i><i></i></div>
+      </div>
+    </div></section>
+
+  <section class="idea"><h2>2 · Logros en un tablero de corcho</h2>
+    <p class="what">Los logros como recortes de periódico clavados con chinchetas y unidos con hilo rojo, como en una investigación. Los que faltan salen apagados; el secreto sale tapado.</p>
+    <div class="stage"><div class="cork" style="height:300px">
+      <svg viewBox="0 0 560 300" preserveAspectRatio="none" aria-hidden="true"><polyline points="95,40 300,70 455,45 380,200 150,190 95,40" fill="none" stroke="#b3261e" stroke-width="2"/></svg>
+      <div class="clip" style="left:20px;top:30px;transform:rotate(-4deg)"><b>Primer Golpe</b>Gana tu primera partida.<span class="gold">◉ 150</span></div>
+      <div class="clip" style="left:225px;top:60px;transform:rotate(3deg)"><b>Golpe Maestro</b>Gana El Gran Atraco.<span class="gold">◉ 350</span></div>
+      <div class="clip locked" style="left:380px;top:34px;transform:rotate(-2deg)"><b>Trébol</b>Saca tres 20 naturales en una partida.</div>
+      <div class="clip" style="left:300px;top:186px;transform:rotate(-5deg)"><b>Toda la Ciudad</b>Gana los cuatro contratos.<span class="gold">◉ 700</span></div>
+      <div class="clip locked" style="left:70px;top:178px;transform:rotate(4deg)"><b>???</b>Logro secreto. Sigue jugando…</div>
+    </div></div></section>
+
+  <section class="idea"><h2>3 · Eventos de Ciudad con periódico girando</h2>
+    <p class="what">Como en las películas de los 40: el periódico llega girando hacia la pantalla y se detiene con el titular del evento (Ley Seca, Purga, Carnicero…), con su ruido de imprenta.</p>
+    <div class="stage"><div class="press"><div class="paper"><div class="np">The City Daily</div><div class="date"><span>EDICIÓN EXTRA</span><span>1946</span><span>5¢</span></div>
+      <div class="head">¡Ley Seca en la ciudad!</div><div class="np-sub">40% de los turnos: −1 a los d6 y curaciones a la mitad</div></div></div></div></section>
+
+  <section class="idea"><h2>4 · Ajustes como radio antigua</h2>
+    <p class="what">El panel de Ajustes como una radio de válvulas: el volumen de la música sería una perilla dorada que se gira, el dial muestra la pista que suena y los interruptores son botones de baquelita.</p>
+    <div class="stage"><div class="radio"><div class="grill"></div><div class="dial"><span>MENÚ</span><span>GUERRA</span><span>ATRACO</span><span>IMPERIO</span></div>
+      <div class="knobs"><div><div class="knob"></div><span>MÚSICA</span></div><div><div class="knob" style="--r:0"></div><span>EFECTOS</span></div></div>
+      <p class="note">Perilla = volumen · el dial marca la canción actual</p></div></div></section>
+
+  <section class="idea"><h2>Otras ideas (sin muestra todavía)</h2>
+    <ul class="lead">
+      <li><b>Mercado Negro en un maletín abierto</b>: los objetos como fajos, frascos y documentos dentro de un maletín de cuero, y el dinero en un clip.</li>
+      <li><b>Podio con flashes de prensa</b>: al ganar, destellos de cámaras antiguas y un titular "EL CAPO DOMINA LA CIUDAD".</li>
+      <li><b>Pantalla de carga con proyector</b>: entre contratos, la cuenta atrás de película antigua (3, 2, 1) con rayas y grano.</li>
+      <li><b>Retos del día en una libreta de apuestas</b>: anotados a lápiz, tachados al cumplirlos.</li>
+      <li><b>Tienda como sastrería</b>: los capos en maniquíes con etiquetas de cartón y cordel para el precio.</li>
+    </ul></section>
+</div></body>
+</html>

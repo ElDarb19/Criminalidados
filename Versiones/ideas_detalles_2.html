@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ideas de detalles 2 · Criminal Dice</title>
+<link href="https://fonts.googleapis.com/css2?family=Limelight&family=Oswald:wght@400;500;600;700&family=Special+Elite&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../menu.css">
+<style>
+  /* Página solo de muestra (segunda tanda). Usa la paleta del juego (menu.css). */
+  body{margin:0;padding:18px 16px 60px;background:radial-gradient(ellipse at top,#2a2117,#0b0a08 70%);color:var(--cream);font-family:var(--font-type)}
+  .wrap{max-width:62rem;margin:0 auto}
+  h1{font-family:var(--font-display);font-weight:400;color:var(--gold-2);margin:0 0 4px}
+  .lead{color:var(--cream-2);max-width:48rem}
+  section.idea{margin:30px 0;padding:18px;border:1px solid var(--line);border-radius:8px;background:rgba(11,10,8,.55)}
+  section.idea h2{font-family:var(--font-ui);font-weight:600;letter-spacing:2px;color:var(--gold-2);margin:0 0 4px;font-size:1.05rem;text-transform:uppercase}
+  section.idea p.what{margin:0 0 16px;color:var(--cream-2);font-size:.9rem}
+  .stage{display:flex;flex-wrap:wrap;gap:22px;justify-content:center;align-items:flex-start}
+  .px{image-rendering:pixelated}
+
+  /* 1 · Mercado Negro en un maletín */
+  .case{width:min(520px,100%);border-radius:10px;background:linear-gradient(180deg,#3a2414,#22140a);padding:14px;box-shadow:0 18px 34px rgba(0,0,0,.7);position:relative}
+  .case-lid{height:40px;margin:-14px -14px 12px;border-radius:10px 10px 0 0;background:linear-gradient(180deg,#5a3a20,#3a2414);border-bottom:3px solid #1a0f06;display:flex;align-items:center;justify-content:center;gap:120px}
+  .case-lid i{width:30px;height:12px;border-radius:3px;background:linear-gradient(180deg,#f3dfa6,#8a6a26);box-shadow:0 2px 3px rgba(0,0,0,.6)}
+  .case-in{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:12px;border-radius:6px;background:repeating-linear-gradient(45deg,#5a1414 0 6px,#4a1010 6px 12px);box-shadow:inset 0 0 20px rgba(0,0,0,.7)}   /* forro de terciopelo */
+  .loot{background:#efe6cf;color:#20180f;border-radius:4px;padding:8px 6px;text-align:center;font-size:.66rem;box-shadow:0 4px 8px rgba(0,0,0,.5);position:relative}
+  .loot b{display:block;font-family:var(--font-ui);font-size:.72rem;margin:4px 0 2px}
+  .loot .ic{font-size:1.4rem}
+  .loot .tag{position:absolute;top:-8px;right:-6px;background:#c9a24a;color:#20180f;font-family:var(--font-ui);font-size:.6rem;padding:1px 6px;border-radius:2px;transform:rotate(8deg)}
+  .case-cash{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-family:var(--font-ui);letter-spacing:1px;color:var(--gold-3)}
+  .clipcash{display:inline-flex;align-items:center;gap:6px;background:#6fb06a;color:#13240f;padding:4px 10px;border-radius:2px;border-left:6px solid #c9a24a}
+
+  /* 2 · Podio con flashes de prensa */
+  .podio{position:relative;width:min(460px,100%);height:250px;overflow:hidden;border-radius:6px;background:radial-gradient(ellipse at 50% 100%,#3a2a18,#0b0a08 70%)}
+  .podio .headline{position:absolute;top:10px;left:0;right:0;text-align:center;font-family:var(--font-display);color:var(--gold-2);font-size:1.15rem;text-shadow:0 2px 0 #000}
+  .steps{position:absolute;bottom:0;left:50%;transform:translateX(-50%);display:flex;align-items:flex-end;gap:6px}
+  .step{width:96px;text-align:center;color:#20180f;font-family:var(--font-ui)}
+  .step img{width:84px;height:84px;display:block;margin:0 auto -4px;filter:drop-shadow(0 0 2px rgba(255,240,200,.7))}
+  .step div{background:linear-gradient(180deg,#e3d2a6,#bfa977);border-radius:3px 3px 0 0;font-weight:700}
+  .s1 div{height:70px;font-size:1.6rem}.s2 div{height:48px;font-size:1.2rem}.s3 div{height:32px;font-size:1rem}
+  .flash{position:absolute;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,#fff 0 10%,rgba(255,255,255,.6) 25%,transparent 65%);opacity:0;animation:flash 2.4s infinite}
+  .f1{left:-20px;top:40px}.f2{right:-10px;top:20px;animation-delay:.7s}.f3{left:40%;top:-30px;animation-delay:1.5s}
+  @keyframes flash{0%,8%{opacity:0}10%{opacity:1}22%,100%{opacity:0}}
+
+  /* 3 · Pantalla de carga: cuenta atrás de proyector */
+  .leader{position:relative;width:240px;height:240px;border-radius:50%;background:#d9cfb8;overflow:hidden;box-shadow:0 0 0 8px #111,0 0 40px rgba(0,0,0,.8)}
+  .leader::before{content:"";position:absolute;inset:0;background:conic-gradient(rgba(0,0,0,.35) 0deg,transparent 0deg);animation:sweep 1s linear infinite}
+  .leader::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 49.5%,#111 49.5% 50.5%,transparent 50.5%),linear-gradient(0deg,transparent 49.5%,#111 49.5% 50.5%,transparent 50.5%),
+    radial-gradient(circle,transparent 58%,#111 58% 60%,transparent 60% 70%,#111 70% 71%,transparent 71%),repeating-linear-gradient(90deg,transparent 0 37px,rgba(0,0,0,.06) 37px 38px)}
+  .leader span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:6rem;color:#111;z-index:1}
+  .leader span::after{content:"3";animation:count 3s steps(1) infinite}
+  @keyframes sweep{from{background:conic-gradient(rgba(0,0,0,.35) 0deg,transparent 0deg)}to{background:conic-gradient(rgba(0,0,0,.35) 360deg,transparent 360deg)}}
+  @keyframes count{0%{content:"3"}33%{content:"2"}66%{content:"1"}}
+  .leader-cap{font-family:var(--font-ui);letter-spacing:3px;color:var(--cream-3);font-size:.75rem;text-align:center;margin-top:10px}
+
+  /* 4 · Retos en una libreta de apuestas */
+  .betbook{width:min(340px,100%);background:#efe6cf;color:#20180f;padding:14px 16px 16px 40px;border-radius:2px 6px 6px 2px;position:relative;box-shadow:0 12px 26px rgba(0,0,0,.6);
+    background-image:linear-gradient(90deg,transparent 28px,rgba(179,53,42,.5) 28px 30px,transparent 30px),repeating-linear-gradient(180deg,transparent 0 25px,rgba(70,100,150,.2) 25px 26px);line-height:26px}
+  .betbook::before{content:"";position:absolute;left:-8px;top:10px;bottom:10px;width:12px;background:repeating-linear-gradient(180deg,#888 0 6px,transparent 6px 18px)}   /* espiral */
+  .betbook h3{margin:0;font-family:var(--font-ui);letter-spacing:2px;color:#6b1414;font-size:.85rem}
+  .bet{font-size:.85rem;position:relative}
+  .bet.done{color:#5a4e3a}.bet.done::after{content:"";position:absolute;left:-4px;right:10px;top:13px;height:2px;background:#20180f;transform:rotate(-1deg)}   /* tachado a lápiz */
+  .bet .n{float:right;font-family:var(--font-ui)}
+  .bet .ok{color:#2f6b34;font-family:var(--font-ui)}
+
+  /* 5 · Tienda como sastrería */
+  .tailor{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;padding:16px;border-radius:6px;background:linear-gradient(180deg,#3a2a1a,#1c140c);box-shadow:inset 0 0 30px rgba(0,0,0,.6)}
+  .dummy{position:relative;width:120px;text-align:center}
+  .dummy img{width:110px;height:110px;filter:drop-shadow(0 0 2px rgba(255,240,200,.6))}
+  .dummy .stand{width:6px;height:22px;margin:-6px auto 0;background:#8a6a26}.dummy .base{width:50px;height:6px;margin:0 auto;border-radius:3px;background:#8a6a26}
+  .ptag{position:absolute;top:30px;right:-4px;transform:rotate(12deg);background:#e3d2a6;color:#20180f;font-family:var(--font-ui);font-size:.7rem;padding:3px 7px 3px 12px;border-radius:2px;
+    clip-path:polygon(10px 0,100% 0,100% 100%,10px 100%,0 50%)}
+  .ptag::before{content:"";position:absolute;left:5px;top:50%;width:4px;height:4px;margin-top:-2px;border-radius:50%;background:#3a2410}
+  .ptag::after{content:"";position:absolute;left:-22px;top:50%;width:22px;height:1px;background:#c9b88f;transform:rotate(-30deg);transform-origin:right}   /* cordel */
+  .dummy b{display:block;font-family:var(--font-ui);color:var(--cream);font-size:.82rem;margin-top:4px}
+
+  /* 6 · Historial como libro de cuentas */
+  .ledger{width:min(440px,100%);background:#efe6cf;color:#20180f;border-radius:3px;padding:14px;box-shadow:0 12px 26px rgba(0,0,0,.6);background-image:repeating-linear-gradient(180deg,transparent 0 23px,rgba(70,120,90,.25) 23px 24px)}
+  .ledger h3{margin:0 0 6px;text-align:center;font-family:var(--font-display);font-weight:400;color:#2b4a2a;letter-spacing:1px}
+  .ledger table{width:100%;border-collapse:collapse;font-size:.8rem;line-height:24px}
+  .ledger th{font-family:var(--font-ui);font-size:.66rem;letter-spacing:1.5px;color:#2b4a2a;border-bottom:2px solid #2b4a2a;text-align:right}
+  .ledger th:first-child,.ledger td:first-child{text-align:left}
+  .ledger td{text-align:right;border-right:1px solid rgba(179,53,42,.35);padding:0 6px}
+  .ledger td:last-child{border-right:0}
+  .ledger tr.total td{border-top:2px double #20180f;font-family:var(--font-ui);font-weight:700}
+  .ledger .red{color:#9a2a1e}
+
+  /* 7 · TOP: muro de "Los más buscados" */
+  .wanted-wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;width:min(600px,100%);padding:14px;border-radius:6px;background:repeating-linear-gradient(0deg,#4a3a2a 0 22px,#3e3022 22px 24px)}   /* pared de ladrillo */
+  .poster{position:relative;background:#e9dfc7;color:#20180f;text-align:center;padding:8px 6px;box-shadow:0 6px 12px rgba(0,0,0,.6);transform:rotate(var(--r,0deg))}
+  .poster .w{font-family:var(--font-display);font-size:1rem;letter-spacing:1px;border-bottom:2px solid #20180f}
+  .poster img{width:76px;height:76px;margin:4px auto 0;display:block;background:#bfb294}
+  .poster b{display:block;font-family:var(--font-ui);font-size:.8rem;margin-top:4px}
+  .poster small{display:block;font-size:.66rem}
+  .poster .rew{font-family:var(--font-ui);font-weight:700;color:#7a1f1f;font-size:.75rem}
+  .poster.first{box-shadow:0 0 0 3px #c9a24a,0 6px 12px rgba(0,0,0,.6)}
+  .poster .rank{position:absolute;top:-8px;left:-8px;width:26px;height:26px;border-radius:50%;background:#c9a24a;color:#20180f;font-family:var(--font-ui);font-weight:700;font-size:.8rem;line-height:26px}
+  .rest{width:min(600px,100%);margin-top:10px;font-size:.78rem;color:var(--cream-2);text-align:center}
+</style>
+</head>
+<body><div class="wrap">
+  <h1>Ideas de detalles · 2</h1>
+  <p class="lead">Segunda tanda de propuestas con el mismo estilo de la ficha policial, el corcho, el periódico y la radio (que ya están en el juego). Dime cuáles te gustan y las integro.</p>
+
+  <section class="idea"><h2>1 · Mercado Negro en un maletín</h2>
+    <p class="what">El Mercado abre como un maletín de cuero con forro de terciopelo rojo: cada objeto es una tarjeta con su precio en una etiqueta dorada, y tu dinero va en un fajo con clip abajo.</p>
+    <div class="stage"><div class="case"><div class="case-lid"><i></i><i></i></div>
+      <div class="case-in">
+        <div class="loot"><span class="tag">160💲</span><div class="ic">🎲</div><b>Tallador</b>Un 1 se vuelve 4</div>
+        <div class="loot"><span class="tag">90💲</span><div class="ic">🥃</div><b>Whisky</b>x2 a tu próxima acción</div>
+        <div class="loot"><span class="tag">220💲</span><div class="ic">🚗</div><b>Chófer</b>−2 de daño al 25%</div>
+        <div class="loot"><span class="tag">110💲</span><div class="ic">📞</div><b>Falsa Alarma</b>Cancela lo que te hicieron</div>
+      </div>
+      <div class="case-cash"><span class="clipcash">💵 350💲</span><span>RENOVAR · 50💲</span></div></div></div></section>
+
+  <section class="idea"><h2>2 · Podio con flashes de prensa</h2>
+    <p class="what">Al terminar, el ganador sube al escalón más alto mientras saltan los flashes de las cámaras antiguas y aparece el titular. (Los flashes se ven animados en esta página.)</p>
+    <div class="stage"><div class="podio"><div class="headline">¡EL CAPO DOMINA LA CIUDAD!</div>
+      <span class="flash f1"></span><span class="flash f2"></span><span class="flash f3"></span>
+      <div class="steps"><div class="step s2"><img class="px" src="../assets/characters/Mafiosa/Color_P/idle.png" alt=""><div>2</div></div>
+        <div class="step s1"><img class="px" src="../assets/characters/Gustavo/Color_B/win.png" alt=""><div>1</div></div>
+        <div class="step s3"><img class="px" src="../assets/characters/Bot/Color_G/idle.png" alt=""><div>3</div></div></div></div></div></section>
+
+  <section class="idea"><h2>3 · Pantalla de carga con cuenta atrás de proyector</h2>
+    <p class="what">Entre contratos, la cuenta atrás de las películas antiguas (3, 2, 1) con la aguja que gira, grano y el nombre del siguiente contrato. Dura lo mismo que la carga actual.</p>
+    <div class="stage"><div><div class="leader"><span></span></div><p class="leader-cap">SIGUIENTE CONTRATO · EL GRAN ATRACO</p></div></div></section>
+
+  <section class="idea"><h2>4 · Retos en una libreta de apuestas</h2>
+    <p class="what">Los retos del día y las misiones escritos a mano en la libreta de un corredor de apuestas; al cumplirlos se tachan con lápiz.</p>
+    <div class="stage"><div class="betbook"><h3>RETOS DEL DÍA</h3>
+      <div class="bet done">Saca un 1 natural <span class="n ok">✔ +10</span></div>
+      <div class="bet">Asegura 15 de botín <span class="n">6/15</span></div>
+      <h3>ESTA SEMANA</h3>
+      <div class="bet">Gana 3 Guerras de Bandas <span class="n">1/3</span></div>
+      <div class="bet">Juega 5 partidas online <span class="n">0/5</span></div>
+      <div class="bet done">Termina 6 veces en el podio <span class="n ok">✔ +40</span></div></div></div></section>
+
+  <section class="idea"><h2>5 · Tienda como sastrería</h2>
+    <p class="what">Los capos en maniquíes de sastre con su etiqueta de cartón colgando del cordel (precio o "Tuyo"). Los dados y auras irían en una vitrina de cristal aparte.</p>
+    <div class="stage"><div class="tailor">
+      <div class="dummy"><img class="px" src="../assets/characters/Patron/Color_R/idle.png" alt=""><div class="stand"></div><div class="base"></div><span class="ptag">◉ 400</span><b>El Patrón</b></div>
+      <div class="dummy"><img class="px" src="../assets/characters/Brummie/Color_R/idle.png" alt=""><div class="stand"></div><div class="base"></div><span class="ptag">◉ 500</span><b>El Brummie</b></div>
+      <div class="dummy"><img class="px" src="../assets/characters/Vito/Color_R/idle.png" alt=""><div class="stand"></div><div class="base"></div><span class="ptag">✔ Tuyo</span><b>Don Vito</b></div>
+    </div></div></section>
+
+  <section class="idea"><h2>6 · Historial como libro de cuentas</h2>
+    <p class="what">El Historial como el libro de contabilidad de la banda: columnas con renglones verdes, totales con doble raya y las derrotas en tinta roja.</p>
+    <div class="stage"><div class="ledger"><h3>Libro de Cuentas</h3><table>
+      <tr><th>CONTRATO</th><th>JUGADAS</th><th>GANADAS</th><th>PERDIDAS</th></tr>
+      <tr><td>Guerra de Bandas</td><td>12</td><td>5</td><td class="red">7</td></tr>
+      <tr><td>El Gran Atraco</td><td>10</td><td>6</td><td class="red">4</td></tr>
+      <tr><td>Imperio Criminal</td><td>8</td><td>3</td><td class="red">5</td></tr>
+      <tr><td>Apuestas</td><td>7</td><td>3</td><td class="red">4</td></tr>
+      <tr><td>Modo Party</td><td>5</td><td>2</td><td class="red">3</td></tr>
+      <tr class="total"><td>TOTAL</td><td>42</td><td>19</td><td class="red">23</td></tr></table></div></div></section>
+
+  <section class="idea"><h2>7 · TOP: "Los más buscados"</h2>
+    <p class="what">El TOP como carteles de "SE BUSCA" pegados en una pared de ladrillo: la recompensa es el número de victorias. Hoy el TOP muestra a los 50 mejores; arriba irían los 3 primeros en carteles grandes y el resto en una lista de "otros sospechosos".</p>
+    <div class="stage"><div><div class="wanted-wall">
+      <div class="poster first" style="--r:-2deg"><span class="rank">1</span><div class="w">SE BUSCA</div><img class="px" src="../assets/characters/Vito/Color_Y/idle.png" alt=""><b>DARB</b><small>42 partidas</small><span class="rew">19 VICTORIAS</span></div>
+      <div class="poster" style="--r:2deg"><span class="rank">2</span><div class="w">SE BUSCA</div><img class="px" src="../assets/characters/Mafiosa/Color_P/idle.png" alt=""><b>LA JEFA</b><small>30 partidas</small><span class="rew">15 VICTORIAS</span></div>
+      <div class="poster" style="--r:-1deg"><span class="rank">3</span><div class="w">SE BUSCA</div><img class="px" src="../assets/characters/Tony/Color_G/idle.png" alt=""><b>EL GORDO</b><small>40 partidas</small><span class="rew">12 VICTORIAS</span></div>
+    </div><p class="rest">Otros sospechosos: 4. Capo Rojo · 11 · 5. Ana · 9 · 6. Bigotes · 8 …</p></div></div></section>
+</div></body>
+</html>

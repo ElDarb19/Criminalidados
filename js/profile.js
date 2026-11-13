@@ -247,7 +247,6 @@ const PROFILE = {
     this.cur = t;
     document.querySelectorAll('#modal-profile .tab-btn').forEach(b => { const on = b.dataset.tab === t; b.classList.toggle('active', on); b.setAttribute('aria-selected', on); });
     $$('profile-body').innerHTML = t === 'capo' ? this.capoHtml() : t === 'hist' ? this.histHtml() : t === 'shop' ? this.shopHtml() : t === 'top' ? ACCOUNT.topHtml() : t === 'retos' ? RETOS.tabHtml(this.d) : this.achHtml();
-    $$('pf-gold').textContent = this.d.gold;
     if (t === 'capo') $$('pf-name').addEventListener('input', e => this.set('name', cleanInput(e.target)));
     this.dicePreviews();
   },
@@ -259,12 +258,20 @@ const PROFILE = {
     const p = this.prefs(), img = $$('pf-img'); if (!img) return;
     img.src = 'assets/characters/' + (p.char || 'Mafioso') + '/' + (p.color || 'Color_R') + '/idle.png';
     $$('pf-avatar').style.setProperty('--pc', COLORS[p.color || 'Color_R']);
-    $$('pf-plate').textContent = p.name || 'Sin nombre';
+    $$('pf-plate').innerHTML = esc((p.name || 'Sin nombre').toUpperCase()) + '<br>1946 · ' + String(this.load().games % 100).padStart(2, '0');
   },
   capoHtml() {
     const p = this.prefs();
     setTimeout(() => this.avatar());
-    return `<div class="pf-capo"><div class="pf-card"><div id="pf-avatar" class="avatar"><img id="pf-img" alt=""></div><span id="pf-plate" class="pf-plate"></span></div>
+    const d = this.load(), favs = GAMES.map(g => ({ n:GAME_NAMES[g], p:d.by[g].p })).concat({ n:'Modo Party', p:d.party.p }).filter(x => x.p).sort((a, b) => b.p - a.p);
+    const exp = ('000' + ((d.games * 37 + d.wins * 11 + (d.name || '').length * 101) % 9000 + 1000)).slice(-4);   // número de expediente (de adorno)
+    // Ficha policial: foto con la regla de estatura, cartel con el nombre, sello y los datos del capo escritos a máquina.
+    return `<div class="pf-capo"><div class="pf-card ficha"><div class="ficha-head"><span>DEPTO. DE POLICÍA</span><span>EXP. Nº ${exp}</span></div>
+        <div id="pf-avatar" class="ficha-photo"><img id="pf-img" alt=""><span id="pf-plate" class="ficha-board"></span></div>
+        <span class="ficha-stamp" aria-hidden="true">${d.wins >= 10 ? 'BUSCADO' : 'FICHADO'}</span>
+        <div class="ficha-rows"><b>PARTIDAS</b><span>${d.games} · ${d.wins} ${d.wins === 1 ? 'victoria' : 'victorias'}</span><b>RACHA</b><span>🔥 ${d.streak || 0} · mejor ${d.best || 0}</span>
+          <b>FAVORITO</b><span>${favs[0] ? favs[0].n : '—'}</span></div>
+        <div class="ficha-prints" aria-hidden="true"><i></i><i></i><i></i><i></i></div></div>
       <div class="pf-fields"><label class="pf-label" for="pf-name">Nombre</label><input id="pf-name" type="text" maxlength="16" placeholder="Capo 1" value="${esc(p.name)}">
       <span class="pf-label">Personaje</span><div class="chars">${CHARACTERS.filter(c => this.owns(c.key)).map(c => `<button type="button" class="char-btn ${(p.char || 'Mafioso') === c.key ? 'sel' : ''}" aria-pressed="${(p.char || 'Mafioso') === c.key}" onclick="PROFILE.set('char','${c.key}')">${c.label}</button>`).join('')}</div>
       <span class="pf-label">Color favorito</span><div class="swatches">${COLOR_KEYS.map(c => `<button type="button" class="sw ${p.color === c ? 'sel' : ''}" style="--c:${COLORS[c]}" data-tag="${colorTag(c)}" aria-label="${COLOR_LABELS[c]}" onclick="PROFILE.set('color','${c}')"></button>`).join('')}</div></div></div>
@@ -303,10 +310,21 @@ const PROFILE = {
   },
   achHtml() {
     const d = this.load(), n = ACHIEVEMENTS.filter(a => d.ach[a.id]).length;
-    return `<p class="pf-count">${n} de ${ACHIEVEMENTS.length} logros</p><div class="pf-ach">${ACHIEVEMENTS.map(a => { const on = d.ach[a.id], veil = a.hidden && !on, g = TIERS[a.tier].gold;
+    // Tablero de corcho: cada logro es un recorte clavado con una chincheta (del color de su dificultad); los conseguidos
+    // quedan unidos con hilo rojo, como en una investigación. Los que faltan salen apagados y los secretos, tachados.
+    setTimeout(() => this.corkString());
+    return `<p class="pf-count">${n} de ${ACHIEVEMENTS.length} logros</p><div class="cork" id="pf-cork"><svg class="cork-string" aria-hidden="true"></svg>${ACHIEVEMENTS.map((a, i) => {
+      const on = d.ach[a.id], veil = a.hidden && !on, g = TIERS[a.tier].gold, tilt = [-3, 2, -1.5, 3, -2.5, 1.5][i % 6];
       const prize = g ? '<i class="coin" aria-hidden="true"></i> ' + g : a.unlocks ? ([].concat(a.unlocks).length > 1 ? '🎭 Capos secretos' : '🎭 Capo secreto') : '';
-      return `<div class="ach ${on ? 'on' : ''}"><span class="ach-ic">${on ? a.icon : veil ? '❔' : '🔒'}</span><div><b>${veil ? '???' : esc(a.name)}</b><small>${veil ? 'Logro secreto. Sigue jugando…' : esc(a.desc)}</small>
-        <span class="ach-meta"><span class="tier tier-${a.tier}">${TIERS[a.tier].label}</span>${veil ? '' : `<span class="ach-gold">${prize}</span>`}</span>${on ? `<em>${new Date(on).toLocaleDateString('es')}</em>` : ''}</div></div>`; }).join('')}</div>`;
+      return `<div class="clip ${on ? 'on' : 'off'} ${veil ? 'veil' : ''} pin-${a.tier}" style="--tilt:${tilt}deg"><span class="ach-ic">${on ? a.icon : veil ? '❔' : '🔒'}</span>
+        <b>${veil ? '???' : esc(a.name)}</b><small>${veil ? 'Logro secreto. Sigue jugando…' : esc(a.desc)}</small>
+        <span class="ach-meta"><span class="tier tier-${a.tier}">${TIERS[a.tier].label}</span>${veil ? '' : `<span class="ach-gold">${prize}</span>`}</span>${on ? `<em>${new Date(on).toLocaleDateString('es')}</em>` : ''}</div>`; }).join('')}</div>`;
+  },
+  corkString() {                                   // hilo rojo entre las chinchetas de los logros conseguidos
+    const b = $$('pf-cork'); if (!b) return; const svg = b.querySelector('svg'), r0 = b.getBoundingClientRect();
+    const pts = [...b.querySelectorAll('.clip.on')].map(c => { const r = c.getBoundingClientRect(); return [r.left - r0.left + r.width / 2, r.top - r0.top + 4]; });
+    svg.setAttribute('viewBox', `0 0 ${r0.width} ${b.scrollHeight}`); svg.style.height = b.scrollHeight + 'px';
+    svg.innerHTML = pts.length > 1 ? `<polyline points="${pts.map(p => p.map(Math.round).join(',')).join(' ')}" fill="none" stroke="#b3261e" stroke-width="2" stroke-linejoin="round"/>` : '';
   },
   shopHtml() {
     const d = this.load(), col = this.prefs().color || 'Color_R';

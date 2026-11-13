@@ -109,10 +109,15 @@ window.addEventListener('error', function (e) {
 
 <div id="settings" class="settings">
   <button id="btn-settings" class="btn-settings" type="button" aria-expanded="false" aria-controls="settings-panel" onclick="settingsToggle()">⚙️ Ajustes</button>
-  <div id="settings-panel" class="settings-panel hidden" role="group" aria-label="Ajustes">
-    <button id="set-music" class="set-row" type="button" role="switch" aria-checked="true" onclick="musicToggle()"><span>🎵 Música</span><i class="set-state">SÍ</i></button>
-    <label class="set-vol" for="set-music-vol"><span>Volumen de la música</span><output id="set-music-out" for="set-music-vol">25%</output>
-      <input id="set-music-vol" type="range" min="0" max="100" step="5" value="25" oninput="musicVolume(this.value)"></label>
+  <div id="settings-panel" class="settings-panel radio hidden" role="group" aria-label="Ajustes">
+    <!-- radio de válvulas: rejilla, dial con la canción que suena y perilla del volumen -->
+    <div class="radio-top" aria-hidden="true"><div class="radio-grill"><span class="radio-brand">CAPO · RADIO</span></div>
+      <div class="radio-dial"><span data-k="menu">MENÚ</span><span data-k="rpg">GUERRA</span><span data-k="exp">ATRACO</span><span data-k="maf">IMPERIO</span><span data-k="pok">APUESTAS</span><span data-k="victoria">VICTORIA</span><i id="radio-needle"></i></div></div>
+    <div class="radio-knobs">
+      <div class="knob-wrap"><div id="set-music-knob" class="knob" role="slider" tabindex="0" aria-label="Volumen de la música" aria-valuemin="0" aria-valuemax="100" aria-valuenow="25" aria-valuetext="25%"><i></i></div>
+        <span>VOLUMEN <output id="set-music-out">25%</output></span></div>
+      <button id="set-music" class="set-row" type="button" role="switch" aria-checked="true" onclick="musicToggle()"><span>🎵 Música</span><i class="set-state">SÍ</i></button>
+    </div>
     <button id="set-sfx" class="set-row" type="button" role="switch" aria-checked="true" onclick="settingsFlip('sfx')"><span>🔊 Efectos de sonido</span><i class="set-state">SÍ</i></button>
     <button id="set-fast" class="set-row" type="button" role="switch" aria-checked="false" onclick="settingsFlip('fast')"><span>⏩ Bots rápidos</span><i class="set-state">NO</i></button>
     <button id="set-calm" class="set-row" type="button" role="switch" aria-checked="false" onclick="settingsFlip('calm')"><span>🎞️ Reducir animaciones</span><i class="set-state">NO</i></button>
@@ -122,6 +127,7 @@ window.addEventListener('error', function (e) {
     <button id="set-install" class="set-row set-act" type="button" onclick="installApp()"><span>📲 Instalar como app</span></button>
     <p id="set-install-msg" class="set-msg hidden" role="status"></p>
     <button id="set-manual" class="set-row set-act" type="button" onclick="settingsToggle(false); openManualGuide()"><span>📖 Manual del Capo</span></button>
+    <button id="set-credits" class="set-row set-act" type="button" onclick="settingsToggle(false); openCredits()"><span>🎬 Créditos</span></button>
     <button id="set-tutorial" class="set-row set-act" type="button" onclick="settingsToggle(false); TUT.start()"><span>🎓 Repetir tutorial</span></button>
     <button id="set-exit" class="set-row set-act set-danger hidden" type="button" onclick="settingsToggle(false); CD.askExit()"><span>🚪 Salir al menú</span></button>
   </div>
@@ -156,8 +162,10 @@ window.addEventListener('error', function (e) {
 
 <div id="modal-market" class="modal-overlay hidden" style="z-index:3640"><div class="modal-content mk-body-wrap"><div class="mk-body"></div></div></div>
 
-<div id="modal-event" class="modal-overlay hidden" style="z-index:3900"><div class="modal-content" style="border-color:var(--accent-red)">
-  <p style="letter-spacing:3px;color:var(--text-light)">EVENTO DE CIUDAD</p><h2 id="ev-title" style="font-family:var(--font-display);color:var(--accent-red)"></h2><p id="ev-desc" style="color:var(--text-light)"></p>
+<div id="modal-event" class="modal-overlay hidden" style="z-index:3900"><div class="modal-content newspaper">
+  <p class="np-name">The City Daily</p>
+  <p class="np-date"><span>EDICIÓN EXTRA</span><span>EVENTO DE CIUDAD</span><span>5¢</span></p>
+  <h2 id="ev-title"></h2><p id="ev-desc"></p>
 </div></div>
 
 <div id="modal-between" class="modal-overlay hidden" style="z-index:3650"><div class="modal-content">
@@ -193,7 +201,6 @@ window.addEventListener('error', function (e) {
 <div id="modal-profile" class="modal-overlay hidden" style="z-index:4050" role="dialog" aria-modal="true" aria-labelledby="profile-title" onclick="if (event.target === this) PROFILE.close()"><div class="modal-content profile-box">
   <button class="modal-x" type="button" aria-label="Cerrar el perfil" onclick="PROFILE.close()">✕</button>
   <h2 id="profile-title">👤 Perfil del Capo</h2>
-  <p class="pf-purse" aria-live="polite"><i class="coin" aria-hidden="true"></i> <b id="pf-gold">0</b> de oro</p>
   <div class="tab-header" role="tablist">
     <button class="tab-btn active" type="button" data-tab="capo" onclick="PROFILE.tab('capo')">🎩 TU CAPO</button>
     <button class="tab-btn" type="button" data-tab="hist" onclick="PROFILE.tab('hist')">📜 HISTORIAL</button>
@@ -212,11 +219,12 @@ window.addEventListener('error', function (e) {
 <div id="ach-toast" class="ach-toast hidden" role="status"></div>
 
 <!-- MODAL MANUAL DEL CAPO -->
-  <div id="modal-manual-guide" class="modal-overlay hidden">
-    <div class="modal-content manual-box">
-      <h2 style="color: var(--gold-2);">Manual del Capo</h2>
-      
-      <div class="tab-header">
+  <div id="modal-manual-guide" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="manual-title" onclick="if (event.target === this) closeManualGuide()">
+    <div class="modal-content manual-box manual-book">
+      <button class="modal-x" type="button" aria-label="Cerrar el manual" onclick="closeManualGuide()">✕</button>
+      <h2 id="manual-title" class="book-title">Manual del Capo</h2>
+
+      <div class="tab-header book-tabs">
         <button class="tab-btn active" id="tab-btn-1" onclick="switchManualTab(1)">⚡ PARTY</button>
         <button class="tab-btn" id="tab-btn-2" onclick="switchManualTab(2)">📜 CONTRATOS</button>
         <button class="tab-btn" id="tab-btn-3" onclick="switchManualTab(3)">🛒 MERCADO</button>
@@ -375,12 +383,49 @@ window.addEventListener('error', function (e) {
         </ul>
       </div>
 
-      <p class="manual-credits">🎵 <b>Música:</b> «Streetlight Serenade» de Shane Ivers (<a href="https://www.silvermansound.com" target="_blank" rel="noopener">silvermansound.com</a>, licencia <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>) ·
-        «Sleek Panther» y «Closed Curtains» de David Renda (<a href="https://www.fesliyanstudios.com" target="_blank" rel="noopener">Fesliyan Studios</a>) ·
-        «Upbeat Swing» de Atlas Audio, «Noir Alley» de WelbornWorks y «Midnight Detective» de DesiFreeMusic (<a href="https://pixabay.com/music/" target="_blank" rel="noopener">Pixabay</a>).</p>
-      <button class="btn-cancel" onclick="closeManualGuide()">CERRAR MANUAL</button>
     </div>
   </div>
+
+<!-- CRÉDITOS: final de película (se abre desde Ajustes) -->
+<div id="modal-credits" class="modal-overlay hidden" style="z-index:4200" role="dialog" aria-modal="true" aria-labelledby="cr-logo" onclick="if (event.target === this) closeCredits()">
+  <div class="modal-content credits-box">
+    <button class="modal-x" type="button" aria-label="Cerrar los créditos" onclick="closeCredits()">✕</button>
+    <div id="credits-reel" class="credits-reel" tabindex="0">
+      <div class="cr-roll">
+        <p class="cr-kicker">Una producción de</p>
+        <p class="cr-name cr-big">Darb</p>
+        <p class="cr-kicker">presenta</p>
+        <h2 id="cr-logo" class="cr-logo">Criminal Dice</h2>
+        <p class="cr-tag">Dados, mafia y traiciones en los años 40</p>
+
+        <h3>Idea, diseño y pixel art</h3><p class="cr-name">Darb</p>
+
+        <h3>Música</h3>
+        <dl class="cr-list">
+          <dt>Menú</dt><dd>«Streetlight Serenade» · Shane Ivers<small><a href="https://www.silvermansound.com" target="_blank" rel="noopener">silvermansound.com</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></small></dd>
+          <dt>Guerra de Bandas</dt><dd>«Upbeat Swing» · Atlas Audio<small><a href="https://pixabay.com/music/" target="_blank" rel="noopener">Pixabay</a></small></dd>
+          <dt>El Gran Atraco</dt><dd>«Sleek Panther» · David Renda<small><a href="https://www.fesliyanstudios.com" target="_blank" rel="noopener">Fesliyan Studios</a></small></dd>
+          <dt>Imperio Criminal</dt><dd>«Closed Curtains» · David Renda<small><a href="https://www.fesliyanstudios.com" target="_blank" rel="noopener">Fesliyan Studios</a></small></dd>
+          <dt>Apuestas Clandestinas</dt><dd>«Noir Alley» · WelbornWorks<small><a href="https://pixabay.com/music/" target="_blank" rel="noopener">Pixabay</a></small></dd>
+          <dt>Victoria</dt><dd>«Midnight Detective» · DesiFreeMusic<small><a href="https://pixabay.com/music/" target="_blank" rel="noopener">Pixabay</a></small></dd>
+        </dl>
+
+        <h3>Tipografías</h3>
+        <p class="cr-name cr-small">Limelight · Oswald · Special Elite<small><a href="https://fonts.google.com" target="_blank" rel="noopener">Google Fonts</a> · SIL Open Font License</small></p>
+
+        <h3>Partidas online</h3><p class="cr-name cr-small">Firebase</p>
+
+        <div class="cr-thanks">
+          <p class="cr-kicker">Y sobre todo…</p>
+          <p class="cr-thanks-big">¡Gracias por jugar mi juego! :3</p>
+          <p>Cada tirada, cada traición y cada atraco son tuyos. Ojalá la ciudad te trate bien… o que tú la domines.</p>
+          <p class="cr-sign">— Darb</p>
+        </div>
+        <p class="cr-fin">FIN</p>
+      </div>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>

@@ -40,6 +40,8 @@ CD.applyContractUI = function () {                         // tema de color y t�
 };
 CD.start = function (cfg) {
   if (CD.running) return; CD.running = true;      // evita relanzar la partida si el lobby cambia después de empezar
+  CD.bodyClass = document.body.className;        // para dejarlo igual al volver al menú sin recargar
+  musicPreload('victoria');                      // la de victoria entra al instante al terminar
   CD.cfg = cfg; CD.auth = !cfg.online || S.host;
   CD.me = !cfg.online ? -1 : cfg.seat != null ? cfg.seat : (cfg.players.find(p => p.uid === uid) || { slot:-1 }).slot;
   CD.base = cfg.online ? 'rooms/' + cfg.room + '/play' : null;
@@ -518,7 +520,19 @@ async function showBanner(title, desc) {
   $$('ev-title').textContent = title; $$('ev-desc').textContent = desc; $$('modal-event').classList.remove('hidden'); playSound('crit'); await sleep(2800); $$('modal-event').classList.add('hidden');
 }
 CD.banner = async function (title, desc) { CD.emit('banner', { title, desc }); await showBanner(title, desc); };
-CD.exit = () => { CD.leaving = true; if (CD.cfg.online && CD.auth) db.ref('rooms/' + CD.cfg.room).remove(); location.href = location.pathname; };
+CD.exit = () => {
+  // Partida local ya terminada: se vuelve al menú SIN recargar (así la música del menú puede sonar sola; tras recargar,
+  // el navegador la bloquea hasta el siguiente toque). Online o a mitad de partida se recarga, que es lo más seguro.
+  if (!CD.cfg.online && CD.G && CD.G.over) {
+    CD.running = false; CD.G = null; CD.pending = null; CD.recorded = false; CD.lastSnap = null;
+    ['modal-over', 'modal-between', 'modal-market', 'modal-event', 'modal-file', 'fx', 'modal-roll', 'modal-choice'].forEach(id => { const m = $$(id); if (m) m.classList.add('hidden'); });
+    $$('game-screen').classList.add('hidden'); $$('menu-screen').classList.remove('hidden');
+    if (CD.bodyClass != null) document.body.className = CD.bodyClass;
+    window.scrollTo(0, 0); musicSet('menu'); if (typeof renderAll === 'function') renderAll();
+    return;
+  }
+  CD.leaving = true; if (CD.cfg.online && CD.auth) db.ref('rooms/' + CD.cfg.room).remove(); location.href = location.pathname;
+};
 CD.playing = () => CD.running && CD.G && !CD.G.over && !(CD.G.result && CD.G.result.lost);
 CD.askExit = async function () {                // salir a mitad de partida (desde Ajustes) pide confirmación
   if (!CD.playing()) return CD.exit();

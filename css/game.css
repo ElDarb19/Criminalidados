@@ -178,10 +178,17 @@ body.tutorial #menu-screen{padding-bottom:220px}
 #choice-opts .opt{padding:12px 6px;min-height:56px}
 
 /* evento de ciudad: titular de periódico */
-#modal-event .modal-content{background:linear-gradient(180deg,#e9dfc7,#cbbd99);color:#17120c;border:0;outline:3px double #17120c;outline-offset:-10px;padding:28px 22px}
-#modal-event .modal-content p:first-child{font-family:var(--font-ui);letter-spacing:6px!important;color:#5a1414!important;border-bottom:2px solid #17120c;padding-bottom:6px;margin-top:0}
-#modal-event #ev-title{color:#17120c!important;font-size:2rem;line-height:1.05;text-transform:uppercase}
-#modal-event #ev-desc{color:#2b2015!important;font-family:var(--font-type)}
+/* el periódico llega girando hacia la pantalla, como en las películas de los 40, y se queda con el titular */
+#modal-event .newspaper{max-width:24rem;background:linear-gradient(180deg,#efe6cf,#d9cba5);color:#17120c;border:0;border-radius:2px;padding:18px 20px 22px;text-align:center;
+  box-shadow:0 20px 50px rgba(0,0,0,.8),inset 0 0 40px rgba(120,90,40,.25)}
+#modal-event:not(.hidden) .newspaper{animation:cd-spin-in .9s cubic-bezier(.2,.7,.25,1) both}
+@keyframes cd-spin-in{0%{transform:rotate(-900deg) scale(.05);opacity:0}60%{transform:rotate(6deg) scale(1.06);opacity:1}80%{transform:rotate(-3deg) scale(1)}100%{transform:rotate(-2deg) scale(1)}}
+#modal-event .np-name{margin:0;font-family:var(--font-display);font-size:1.7rem;letter-spacing:1px;border-bottom:4px double #17120c;padding-bottom:4px}
+#modal-event .np-date{display:flex;justify-content:space-between;gap:6px;margin:0 0 12px;padding:3px 0;border-bottom:1px solid #17120c;font-family:var(--font-ui);font-size:.62rem;letter-spacing:1.5px}
+#modal-event #ev-title{margin:0;color:#17120c;font-family:var(--font-ui);font-weight:700;font-size:1.9rem;line-height:1.02;letter-spacing:.5px;text-transform:uppercase}
+#modal-event #ev-desc{margin:10px 0 0;color:#2b2015;font-family:var(--font-type);font-size:.88rem;line-height:1.45;column-rule:1px solid #17120c}
+@media (prefers-reduced-motion:reduce){#modal-event:not(.hidden) .newspaper{animation:none;transform:rotate(-2deg)}}
+html.calm #modal-event:not(.hidden) .newspaper{animation:none;transform:rotate(-2deg)}
 
 /* ---------- podio ---------- */
 #over-podium,#between-podium{display:flex;flex-direction:column;gap:8px;margin:14px 0;text-align:left}

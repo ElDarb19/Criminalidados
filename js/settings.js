@@ -30,11 +30,11 @@ function settingsToggle(open) {
   const show = open === undefined ? p.classList.contains('hidden') : open;
   p.classList.toggle('hidden', !show); b.setAttribute('aria-expanded', show);
   if (!show) return;
-  const playing = typeof CD !== 'undefined' && CD.running;     // en partida: "Salir al menú"; en el menú: "Repetir tutorial"
+  const playing = !!(typeof CD !== 'undefined' && CD.running);   // en partida: "Salir al menú"; en el menú: "Repetir tutorial" (!!: con undefined, toggle alternaba)
   $$('set-exit').classList.toggle('hidden', !playing);
   $$('set-tutorial').classList.toggle('hidden', playing);
   $$('set-install-msg').classList.add('hidden');
-  installButton();
+  installButton(); if (typeof radioDial === 'function') requestAnimationFrame(radioDial);   // la aguja del dial necesita el panel visible
 }
 const reducedMotion = () => SET.calm || matchMedia('(prefers-reduced-motion: reduce)').matches;
 
