@@ -35,6 +35,7 @@ const EXP = {
       CD.log('💲 Botín del atraco ' + G.dive + ' convertido en dinero: ' + rew.map(x => G.players[x.slot].name + ' +' + x.amount).join(' · '));
       await CD.openMarket('MERCADO NEGRO — tras el atraco ' + G.dive, ['Tu botín asegurado se convirtió en dinero (' + ECON.EXP_LOOT_RATE + '💲 por bolsa):'].concat(rew.map(x => G.players[x.slot].name + ': +' + x.amount + '💲')));
     }
+    await CD.countdown(G, 'Atraco ' + (G.dive + 1) + ' de ' + G.maxDives, 'EL GRAN ATRACO');   // tras el Mercado, la cuenta atrás y luego el atraco
     G.dive++; this.startDive(G);
   },
   ranking(G) { return CD.rank(G.players, p => [p.secured || 0], p => (p.secured || 0) + ' de botín asegurado'); },

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opciones por contrato · Criminal Dice</title>
+<link href="https://fonts.googleapis.com/css2?family=Limelight&family=Oswald:wght@400;500;600;700&family=Special+Elite&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../menu.css">
+<style>
+  /* Página solo de muestra: opciones de diseño para que Darb elija. El fondo de cada contrato se queda como está. */
+  body{margin:0;padding:18px 14px 60px;background:radial-gradient(ellipse at top,#2a2117,#0b0a08 70%);color:var(--cream);font-family:var(--font-type)}
+  .wrap{max-width:64rem;margin:0 auto}
+  h1{font-family:var(--font-display);font-weight:400;color:var(--gold-2);margin:0 0 4px}
+  .lead{color:var(--cream-2);max-width:50rem}
+  section.ct{margin:28px 0;padding:16px;border-radius:8px;border:1px solid var(--line)}
+  section.ct>h2{margin:0 0 4px;font-family:var(--font-display);font-weight:400;font-size:1.5rem}
+  .opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px;margin-top:10px}
+  .opt-box{padding:12px;border-radius:6px;background:rgba(0,0,0,.35)}
+  .opt-box h3{margin:0 0 4px;font-family:var(--font-ui);letter-spacing:2px;font-size:.85rem;color:var(--gold-2)}
+  .opt-box p{margin:0 0 10px;font-size:.78rem;color:var(--cream-2)}
+  .px{image-rendering:pixelated}
+  .btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+
+  /* ===== Guerra de Bandas (rojo) ===== */
+  .rpg{background:#100908}.rpg>h2{color:#f08a74}
+  /* A · caja de munición */
+  .crate{display:flex;gap:10px;align-items:center;padding:10px;background:repeating-linear-gradient(90deg,#5a4024 0 18px,#4e3820 18px 20px);border:3px solid #2a1c0e;color:#f3e6c4;box-shadow:inset 0 0 14px rgba(0,0,0,.6)}
+  .crate img{width:64px;height:64px;background:rgba(0,0,0,.35)}
+  .crate b{font-family:var(--font-ui);letter-spacing:2px;text-transform:uppercase;font-size:.9rem}
+  .crate .stencil{display:block;font-family:var(--font-ui);font-size:.6rem;letter-spacing:3px;color:#d4513f}
+  .bullets{display:flex;gap:2px;margin-top:4px;flex-wrap:wrap}
+  .bullets i{width:6px;height:15px;border-radius:3px 3px 1px 1px;background:linear-gradient(180deg,#e8c860 0 38%,#b07a2a 38%)}
+  .bullets i.off{background:linear-gradient(180deg,#5a4a30 0 38%,#3a3020 38%)}
+  .b-crate{min-height:56px;font-family:var(--font-ui);font-weight:700;letter-spacing:2px;font-size:.8rem;color:#f3e6c4;background:repeating-linear-gradient(90deg,#4a6a2a 0 14px,#44622a 14px 16px);border:2px solid #22300f;text-transform:uppercase}
+  .b-crate small{display:block;font-weight:400;letter-spacing:1px;font-size:.62rem;color:#dfe8c8}
+  /* B · diana de tiro */
+  .target{position:relative;display:flex;gap:10px;align-items:center;padding:10px;background:#efe6cf;color:#20180f;overflow:hidden}
+  .target::before{content:"";position:absolute;right:-30px;top:50%;width:130px;height:130px;margin-top:-65px;border-radius:50%;background:repeating-radial-gradient(circle,#20180f 0 3px,transparent 3px 14px);opacity:.25}
+  .target img{width:64px;height:64px;position:relative}
+  .target b{font-family:var(--font-ui);font-size:1rem;position:relative}
+  .hole{position:absolute;width:9px;height:9px;border-radius:50%;background:#111;box-shadow:0 0 0 2px rgba(0,0,0,.25)}
+  .hp-line{position:relative;margin-top:6px;height:6px;background:#d6c8a2}.hp-line i{display:block;height:100%;width:70%;background:#a3241c}
+  .b-shell{min-height:56px;font-family:var(--font-ui);font-weight:700;letter-spacing:1px;font-size:.8rem;color:#20180f;border:0;border-radius:24px 6px 6px 24px;background:linear-gradient(180deg,#f3dfa6,#c9a24a 55%,#8a6a26)}
+  .b-shell small{display:block;font-weight:400;font-size:.62rem}
+
+  /* ===== El Gran Atraco (azul) ===== */
+  .exp{background:#090d10}.exp>h2{color:#7fb2cc}
+  /* A · plano de la bóveda */
+  .blueprint{display:flex;gap:10px;align-items:center;padding:10px;color:#e8f4ff;border:2px solid #cfe6f5;
+    background:repeating-linear-gradient(0deg,rgba(255,255,255,.12) 0 1px,transparent 1px 14px),repeating-linear-gradient(90deg,rgba(255,255,255,.12) 0 1px,transparent 1px 14px),#1d4f7a}
+  .blueprint img{width:64px;height:64px;border:1px dashed #cfe6f5}
+  .blueprint b{font-family:var(--font-ui);letter-spacing:2px;font-size:.95rem}
+  .blueprint small{display:block;font-size:.66rem;opacity:.85}
+  .cob{display:flex;gap:2px;margin-top:4px}.cob i{flex:1;height:8px;border:1px solid #cfe6f5}.cob i.on{background:#cfe6f5}
+  .b-print{min-height:56px;font-family:var(--font-ui);letter-spacing:2px;font-size:.78rem;color:#e8f4ff;background:#1d4f7a;border:2px dashed #cfe6f5;text-transform:uppercase}
+  .b-print small{display:block;font-size:.6rem;letter-spacing:1px;opacity:.8}
+  /* B · puerta de caja fuerte */
+  .safe{display:flex;gap:10px;align-items:center;padding:10px;border-radius:8px;color:#e9eef2;background:radial-gradient(circle at 30% 20%,#6a7480,#3a424c 60%,#242a31);border:4px solid #1a1e23;box-shadow:inset 0 0 0 2px #7a848f}
+  .dial{flex:0 0 auto;width:54px;height:54px;border-radius:50%;background:repeating-conic-gradient(#c9ced6 0 4deg,#8a9098 4deg 10deg);border:4px solid #1a1e23;position:relative}
+  .dial::after{content:"";position:absolute;inset:12px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#e9eef2,#6a7480)}
+  .safe img{width:56px;height:56px}
+  .safe b{font-family:var(--font-ui);font-size:.95rem;letter-spacing:1px}
+  .b-plate{min-height:56px;font-family:var(--font-ui);font-weight:600;letter-spacing:1px;font-size:.8rem;color:#e9eef2;border:2px solid #1a1e23;border-radius:4px;
+    background:radial-gradient(circle at 8px 8px,#c9ced6 0 2px,transparent 3px),radial-gradient(circle at calc(100% - 8px) 8px,#c9ced6 0 2px,transparent 3px),linear-gradient(180deg,#6a7480,#3a424c)}
+  .b-plate small{display:block;font-weight:400;font-size:.62rem;opacity:.85}
+
+  /* ===== Imperio Criminal (ámbar) ===== */
+  .maf{background:#100c08}.maf>h2{color:#e0913f}
+  /* A · escritura de propiedad */
+  .deed{position:relative;display:flex;gap:10px;align-items:center;padding:12px;background:linear-gradient(180deg,#f3ecd6,#e2d6b2);color:#20180f;border:3px double #8a5a24}
+  .deed img{width:60px;height:60px}
+  .deed b{font-family:var(--font-display);font-size:1.05rem;color:#6a3a10}
+  .deed small{display:block;font-size:.66rem}
+  .seal{position:absolute;right:10px;bottom:8px;width:34px;height:34px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#d4513f,#8a1c14);box-shadow:0 2px 3px rgba(0,0,0,.4);color:#f3dfa6;font-size:.55rem;display:flex;align-items:center;justify-content:center;font-family:var(--font-ui)}
+  .districts{display:flex;gap:3px;margin-top:4px}.districts i{width:16px;height:16px;border:1px solid #8a5a24;font-style:normal;font-size:.55rem;display:flex;align-items:center;justify-content:center}.districts i.on{background:#e0913f;color:#20180f}
+  .b-stamp{min-height:56px;font-family:var(--font-ui);font-weight:700;letter-spacing:1px;font-size:.8rem;color:#f3ecd6;border:0;border-radius:6px 6px 14px 14px;background:linear-gradient(180deg,#7a4a1c,#4a2a0c);box-shadow:0 4px 0 #2a1806;text-transform:uppercase}
+  .b-stamp small{display:block;font-weight:400;font-size:.62rem;text-transform:none}
+  /* B · caja registradora */
+  .register{display:flex;gap:10px;align-items:center;padding:10px;border-radius:10px 10px 4px 4px;background:linear-gradient(180deg,#b88a3a,#7a5418);border:3px solid #3a2408;color:#20180f}
+  .register img{width:60px;height:60px;background:#e9dcb8;border-radius:4px}
+  .register .cash{font-family:var(--font-ui);font-weight:700;font-size:1.2rem;background:#121a12;color:#7cc47f;padding:2px 8px;border-radius:2px;letter-spacing:2px}
+  .register b{display:block;font-family:var(--font-ui);font-size:.9rem;margin-bottom:4px}
+  .b-key{min-height:56px;font-family:var(--font-ui);font-weight:700;font-size:.78rem;color:#20180f;border:0;border-radius:50%/18px;background:radial-gradient(circle at 40% 30%,#fff3d6,#d8c9a3 60%,#a8946a);box-shadow:0 5px 0 #5a4418}
+  .b-key small{display:block;font-weight:400;font-size:.6rem}
+
+  /* ===== Apuestas Clandestinas (verde) ===== */
+  .pok{background:#08100c}.pok>h2{color:#7cc47f}
+  /* A · mesa de póker */
+  .felt{display:flex;gap:10px;align-items:center;padding:12px;border-radius:40px;background:radial-gradient(ellipse at 50% 40%,#2f8a58,#14502e);border:6px solid #5a3214;color:#f3ecd6;box-shadow:inset 0 0 18px rgba(0,0,0,.5)}
+  .felt img{width:60px;height:60px}
+  .felt b{font-family:var(--font-ui);letter-spacing:1px;font-size:.95rem}
+  .stack{display:flex;align-items:flex-end;gap:3px;margin-top:4px}
+  .stack i{width:18px;border-radius:50%/4px;background:repeating-linear-gradient(180deg,#d4513f 0 3px,#f3ecd6 3px 4px)}
+  .b-chip{min-height:64px;aspect-ratio:1;border-radius:50%;font-family:var(--font-ui);font-weight:700;font-size:.66rem;letter-spacing:.5px;color:#f3ecd6;border:5px dashed #f3ecd6;
+    background:radial-gradient(circle,#2a6a3a 0 52%,#1f5530 53%);box-shadow:0 0 0 3px #1f5530,0 4px 6px rgba(0,0,0,.5);justify-self:center}
+  .b-chip.r{background:radial-gradient(circle,#a3241c 0 52%,#7a1810 53%);box-shadow:0 0 0 3px #7a1810,0 4px 6px rgba(0,0,0,.5)}
+  /* B · naipe */
+  .card{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:10px;background:#fbf6e8;color:#20180f;border:2px solid #20180f;position:relative}
+  .card::before,.card::after{position:absolute;font-family:var(--font-display);font-size:.9rem;color:#a3241c}
+  .card::before{content:"K\A♥";white-space:pre;top:4px;left:6px;line-height:.9}.card::after{content:"K\A♥";white-space:pre;bottom:4px;right:6px;transform:rotate(180deg);line-height:.9}
+  .card img{width:60px;height:60px;margin-left:16px}
+  .card b{font-family:var(--font-ui);font-size:.95rem}
+  .b-card{min-height:72px;font-family:var(--font-ui);font-weight:700;font-size:.75rem;color:#20180f;background:#fbf6e8;border:2px solid #20180f;border-radius:8px;transform:rotate(-2deg)}
+  .b-card:nth-child(2){transform:rotate(2deg)}
+  .b-card small{display:block;font-weight:400;font-size:.6rem;color:#a3241c}
+
+  /* ===== Menú principal ===== */
+  .menu-opts{background:#0b0a08}.menu-opts>h2{color:var(--gold-2)}
+  .m-marquee{position:relative;padding:22px 14px 16px;text-align:center;border-radius:8px;background:linear-gradient(180deg,#3a1414,#1a0808);border:4px solid #c9a24a}
+  .m-marquee::before{content:"";position:absolute;inset:5px;border-radius:4px;pointer-events:none;
+    background:radial-gradient(circle,#fff6c8 0 2px,#ffd23a 3px,transparent 4px) 0 0/16px 16px;-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;padding:6px}
+  .m-marquee h4{margin:0;font-family:var(--font-display);font-weight:400;font-size:2rem;color:#f3dfa6;text-shadow:0 0 12px rgba(255,210,60,.6)}
+  .m-marquee small{display:block;font-family:var(--font-ui);letter-spacing:4px;font-size:.62rem;color:#e9dcb8}
+  .ticket{display:inline-block;margin-top:12px;padding:10px 26px;background:#e9c25a;color:#3a1414;font-family:var(--font-ui);font-weight:700;letter-spacing:3px;
+    clip-path:polygon(8px 0,calc(100% - 8px) 0,100% 8px,100% calc(50% - 6px),calc(100% - 6px) 50%,100% calc(50% + 6px),100% calc(100% - 8px),calc(100% - 8px) 100%,8px 100%,0 calc(100% - 8px),0 calc(50% + 6px),6px 50%,0 calc(50% - 6px),0 8px)}
+  .m-desk{padding:14px;border-radius:6px;background:repeating-linear-gradient(90deg,#5a3a1e 0 3px,#4e321a 3px 26px);box-shadow:inset 0 0 30px rgba(0,0,0,.6);display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .m-desk .folder{position:relative;padding:22px 10px 10px;background:linear-gradient(160deg,#c8b384,#a8925e);color:#20180f;font-family:var(--font-ui);font-weight:700;font-size:.8rem;letter-spacing:1px;box-shadow:0 6px 10px rgba(0,0,0,.5)}
+  .m-desk .folder::after{content:"";position:absolute;top:-8px;left:0;width:50%;height:10px;border-radius:4px 10px 0 0;background:#b9a273}
+  .m-desk .folder small{display:block;font-family:var(--font-type);font-weight:400;font-size:.66rem}
+  .m-desk .lamp{grid-column:1/-1;height:40px;border-radius:50%;background:radial-gradient(ellipse at 50% 0%,rgba(255,220,150,.45),transparent 70%)}
+  .m-desk .go{grid-column:1/-1;padding:12px;text-align:center;background:#a3241c;color:#fff3e6;font-family:var(--font-ui);font-weight:700;letter-spacing:4px;transform:rotate(-1deg);box-shadow:0 4px 0 #5a1410}
+  .m-neon{padding:20px 14px;text-align:center;border-radius:8px;background:repeating-linear-gradient(0deg,#2a1d24 0 22px,#241820 22px 24px)}
+  .m-neon h4{margin:0;font-family:var(--font-display);font-weight:400;font-size:2rem;color:#ffd0f4;text-shadow:0 0 6px #ff4fd8,0 0 16px #ff4fd8,0 0 30px #ff4fd8;animation:flick 3s infinite}
+  .m-neon .sub{font-family:var(--font-ui);letter-spacing:5px;font-size:.7rem;color:#c8f6ff;text-shadow:0 0 6px #4ff2ff,0 0 14px #4ff2ff}
+  .m-neon .door{display:inline-block;margin-top:14px;padding:10px 24px;border:2px solid #4ff2ff;color:#c8f6ff;font-family:var(--font-ui);letter-spacing:3px;box-shadow:0 0 10px #4ff2ff,inset 0 0 10px rgba(79,242,255,.4)}
+  @keyframes flick{0%,92%,96%,100%{opacity:1}94%{opacity:.4}}
+</style>
+</head>
+<body><div class="wrap">
+  <h1>Opciones de diseño por contrato</h1>
+  <p class="lead">Dos opciones para cada contrato: la <b>ficha del jugador</b> y los <b>botones de acción</b>. El fondo de cada contrato se queda igual (efecto y color). Al final, tres opciones para el <b>menú principal</b>. Elige una por contrato (o mezcla) y la integro.</p>
+
+  <section class="ct rpg"><h2>Guerra de Bandas</h2>
+    <div class="opts">
+      <div class="opt-box"><h3>A · Caja de munición</h3><p>Ficha como caja militar con letras de plantilla; la salud son balas (doradas = llenas). Botones como cajas de madera verde.</p>
+        <div class="crate"><img class="px" src="../assets/characters/Mafioso/Color_R/idle.png" alt=""><div><span class="stencil">BANDA 01 · FRÁGIL</span><b>Capo Darb</b><div class="bullets"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="off"></i><i class="off"></i><i class="off"></i></div></div></div>
+        <div class="btns"><button class="b-crate">⚡ Ráfaga Tommy<small>d6 de daño</small></button><button class="b-crate">🎯 Francotirador<small>d20 ≥ 11, luego d12</small></button></div></div>
+      <div class="opt-box"><h3>B · Diana de tiro</h3><p>Ficha sobre papel de diana con los agujeros de los disparos recibidos; botones como casquillos de bala.</p>
+        <div class="target"><span class="hole" style="right:40px;top:14px"></span><span class="hole" style="right:70px;top:40px"></span><img class="px" src="../assets/characters/Mafioso/Color_R/idle.png" alt=""><div style="flex:1;position:relative"><b>Capo Darb</b><div class="hp-line"><i></i></div><small>19/28 salud</small></div></div>
+        <div class="btns"><button class="b-shell">⚡ Ráfaga Tommy<small>d6 de daño</small></button><button class="b-shell">🎯 Francotirador<small>d20 ≥ 11</small></button></div></div>
+    </div></section>
+
+  <section class="ct exp"><h2>El Gran Atraco</h2>
+    <div class="opts">
+      <div class="opt-box"><h3>A · Plano de la bóveda</h3><p>Ficha sobre un plano azul con cuadrícula; la Cobertura son casillas del plano. Botones con borde punteado, como marcas del plan.</p>
+        <div class="blueprint"><img class="px" src="../assets/characters/Gustavo/Color_B/idle.png" alt=""><div style="flex:1"><b>CAPO DARB</b><small>Botín en mano: 6 · Asegurado: 12</small><div class="cob"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div></div></div>
+        <div class="btns"><button class="b-print">📦 Saquear Cajas<small>d6: 3-5 +1 · 6 +3</small></button><button class="b-print">🚗 Coche de Escape<small>asegura el botín</small></button></div></div>
+      <div class="opt-box"><h3>B · Puerta de caja fuerte</h3><p>Ficha de acero con la rueda de combinación; botones como placas metálicas con remaches.</p>
+        <div class="safe"><div class="dial"></div><img class="px" src="../assets/characters/Gustavo/Color_B/idle.png" alt=""><div><b>Capo Darb</b><br><small>Cobertura 14/20 · Botín 6</small></div></div>
+        <div class="btns"><button class="b-plate">📦 Saquear Cajas<small>d6</small></button><button class="b-plate">🔓 Forzar Bóveda<small>d20 ≥ 11</small></button></div></div>
+    </div></section>
+
+  <section class="ct maf"><h2>Imperio Criminal</h2>
+    <div class="opts">
+      <div class="opt-box"><h3>A · Escritura de propiedad</h3><p>Ficha como una escritura con doble marco y sello de lacre; los distritos son casillas marcadas. Botones como sellos de goma.</p>
+        <div class="deed"><img class="px" src="../assets/characters/Vito/Color_Y/idle.png" alt=""><div><b>Don Darb</b><small>Influencia 7 · Efectivo 4💵</small><div class="districts"><i class="on">2</i><i class="on">5</i><i>7</i><i>9</i></div></div><span class="seal">CAPO</span></div>
+        <div class="btns"><button class="b-stamp">💰 Recaudar<small>d6 en tus distritos</small></button><button class="b-stamp">🏢 Comprar distrito<small>3💵</small></button></div></div>
+      <div class="opt-box"><h3>B · Caja registradora</h3><p>Ficha de latón con la pantalla verde del efectivo; botones como teclas redondas de máquina registradora.</p>
+        <div class="register"><img class="px" src="../assets/characters/Vito/Color_Y/idle.png" alt=""><div><b>Don Darb</b><span class="cash">$ 004</span> <small>· Influencia 7</small></div></div>
+        <div class="btns"><button class="b-key">💰 RECAUDAR<small>d6</small></button><button class="b-key">🏢 COMPRAR<small>3💵</small></button></div></div>
+    </div></section>
+
+  <section class="ct pok"><h2>Apuestas Clandestinas</h2>
+    <div class="opts">
+      <div class="opt-box"><h3>A · Mesa de póker</h3><p>Ficha sobre paño verde con borde de madera; tus fichas se ven apiladas. Botones como fichas de casino.</p>
+        <div class="felt"><img class="px" src="../assets/characters/Mafiosa/Color_G/idle.png" alt=""><div><b>La Jefa</b><div class="stack"><i style="height:22px"></i><i style="height:16px"></i><i style="height:28px"></i></div><small>9 fichas</small></div></div>
+        <div class="btns"><button class="b-chip">APUESTA<br>BÁSICA</button><button class="b-chip r">GOLPE<br>A LA MESA</button></div></div>
+      <div class="opt-box"><h3>B · Naipe</h3><p>Ficha como una carta de la baraja (el capo es la figura); botones como cartas en la mano, un poco giradas.</p>
+        <div class="card"><img class="px" src="../assets/characters/Mafiosa/Color_G/idle.png" alt=""><div><b>La Jefa</b><br><small>9 fichas</small></div></div>
+        <div class="btns"><button class="b-card">🎲 Apuesta Básica<small>gana 1 con 4+</small></button><button class="b-card">💥 Golpe a la Mesa<small>arriesgas 3</small></button></div></div>
+    </div></section>
+
+  <section class="ct menu-opts"><h2>Menú principal</h2>
+    <div class="opts">
+      <div class="opt-box"><h3>A · Marquesina de cine</h3><p>El título en una marquesina con bombillas, como un estreno de los 40; ¡COMENZAR! es una entrada de cine.</p>
+        <div class="m-marquee"><small>ESTRENO · 1946</small><h4>Criminal Dice</h4><small>RANDOM DICE GAME</small><span class="ticket">¡COMENZAR!</span></div></div>
+      <div class="opt-box"><h3>B · Escritorio del detective</h3><p>Las secciones del menú (modo, jefes, contrato, dados) como carpetas sobre un escritorio de madera bajo la lámpara; ¡COMENZAR! como un sello rojo.</p>
+        <div class="m-desk"><div class="lamp"></div><div class="folder">MODO DE JUEGO<small>Local · Online</small></div><div class="folder">JEFES<small>Capos y bots</small></div><div class="folder">CONTRATO<small>Guerra de Bandas</small></div><div class="folder">DADOS<small>Virtuales</small></div><div class="go">¡COMENZAR!</div></div></div>
+      <div class="opt-box"><h3>C · Club nocturno</h3><p>El título en un letrero de neón rosa que parpadea sobre una pared de ladrillo; ¡COMENZAR! es la puerta del club.</p>
+        <div class="m-neon"><h4>Criminal Dice</h4><div class="sub">CLUB · DADOS · MAFIA</div><span class="door">¡COMENZAR!</span></div></div>
+    </div></section>
+</div></body>
+</html>

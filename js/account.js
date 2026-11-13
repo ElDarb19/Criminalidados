@@ -147,9 +147,16 @@ const ACCOUNT = {
   html() {
     if (!this.auth) return `<p class="pf-note">La cuenta en la nube no está disponible sin conexión.</p>`;
     if (!this.ready) return `<p class="pf-note">Conectando…</p>`;
-    if (this.user) return `<div class="ac-box ac-on"><p>☁️ Sincronizado como <b>${esc(this.label())}</b></p>
+    // Con sesión: carnet de socio del Sindicato. Sin sesión: solicitud de ingreso, con lo que se gana al entrar.
+    if (this.user) return `<div class="ac-box ac-on carnet"><div class="carnet-head"><span>SINDICATO DEL CRIMEN</span><span>SOCIO Nº ${esc(this.user.uid.slice(0, 6).toUpperCase())}</span></div>
+      <p class="carnet-name">${esc(PROFILE.prefs().name || 'Capo sin nombre')}</p><p class="carnet-mail">${esc(this.label())}</p>
+      <span class="carnet-stamp" aria-hidden="true">AL DÍA</span>
+      <p class="carnet-perks">☁️ Progreso guardado en la nube · 📱 En todos tus dispositivos · 🏆 En Los Más Buscados</p>
       <button type="button" class="btn-cancel" onclick="ACCOUNT.logout()">CERRAR SESIÓN</button></div>`;
-    return `<div class="ac-box"><p class="pf-note">Inicia sesión para guardar tu progreso en la nube, tenerlo en cualquier dispositivo y aparecer en el TOP.</p>
+    return `<div class="ac-box carnet carnet-new"><div class="carnet-head"><span>SINDICATO DEL CRIMEN</span><span>SOLICITUD DE INGRESO</span></div>
+      <span class="carnet-stamp carnet-stamp-red" aria-hidden="true">SIN REGISTRAR</span>
+      <p class="carnet-pitch">Únete al Sindicato y que la ciudad no te olvide:</p>
+      <ul class="carnet-perks-list"><li>☁️ Tu oro, logros y compras a salvo en la nube.</li><li>📱 Sigue tu partida en el celular o en el computador.</li><li>🏆 Aparece en <b>Los Más Buscados</b>.</li></ul>
       <button type="button" class="ac-google" onclick="ACCOUNT.google()"><span class="g-logo" aria-hidden="true">G</span> Continuar con Google</button>
       <div class="ac-or"><span>o con tu correo</span></div>
       <label class="pf-label" for="ac-mail">Correo</label><input id="ac-mail" type="email" autocomplete="email" inputmode="email">

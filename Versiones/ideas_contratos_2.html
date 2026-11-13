@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opciones a fondo · Criminal Dice</title>
+<link href="https://fonts.googleapis.com/css2?family=Limelight&family=Oswald:wght@400;500;600;700&family=Special+Elite&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../menu.css">
+<style>
+/* Página solo de muestra (no la usa el juego). Pantallas completas con los botones y estados reales de cada contrato. */
+body{margin:0;padding:16px 12px 70px;background:radial-gradient(ellipse at top,#2a2117,#0b0a08 70%);color:var(--cream);font-family:var(--font-type)}
+.wrap{max-width:84rem;margin:0 auto}
+h1{font-family:var(--font-display);font-weight:400;color:var(--gold-2);margin:0 0 4px}
+.lead{color:var(--cream-2);max-width:56rem;font-size:.9rem}
+.jump{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0}
+.jump a{min-height:44px;display:inline-flex;align-items:center;padding:0 12px;border:1px solid var(--line);border-radius:6px;color:var(--gold-2);font-family:var(--font-ui);letter-spacing:1px;text-decoration:none;font-size:.8rem}
+section.ct{margin:30px 0;padding:14px;border-radius:8px;border:1px solid var(--line)}
+section.ct>h2{margin:0 0 4px;font-family:var(--font-display);font-weight:400;font-size:1.6rem}
+section.ct>p{margin:0;color:var(--cream-2);font-size:.82rem}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:18px;margin-top:12px;align-items:start}
+.ob{padding:10px;border-radius:6px;background:rgba(0,0,0,.35)}
+.ob>h3{margin:0 0 4px;font-family:var(--font-ui);letter-spacing:2px;font-size:.9rem;color:var(--gold-2)}
+.ob>p{margin:0 0 10px;font-size:.76rem;color:var(--cream-2);line-height:1.45}
+.ob .tag-new{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:3px;background:var(--blood);color:#fff;font-size:.6rem;letter-spacing:1px;vertical-align:middle}
+.px{image-rendering:pixelated}
+.cap{margin:12px 0 4px;font-family:var(--font-ui);font-size:.66rem;letter-spacing:2px;color:var(--cream-3)}
+
+/* ===== pantalla de partida (genérica) ===== */
+.scr{position:relative;max-width:440px;margin:0 auto;padding:10px;border-radius:10px;overflow:hidden}
+.scr .hd{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding-bottom:6px;margin-bottom:6px;border-bottom:1px solid rgba(255,255,255,.15)}
+.scr .hd b{font-family:var(--font-display);font-weight:400;font-size:1.15rem}
+.scr .hd span{font-size:.7rem;opacity:.8}
+.scr .turn{text-align:center;font-family:var(--font-ui);letter-spacing:1px;font-size:.78rem;margin:4px 0 8px}
+.pls{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.acts .wide{grid-column:1/-1}
+.acts button{cursor:pointer}
+.acts button:disabled{cursor:not-allowed}
+.odds{display:block;width:fit-content;margin:4px auto 0;padding:1px 7px;border-radius:9px;font-size:.58rem;font-weight:400;letter-spacing:0}
+.pose{display:block;width:40px;height:40px;margin:0 auto 2px}
+.bg-rpg{background:radial-gradient(ellipse at 50% 0,rgba(255,170,140,.16),transparent 60%),#140a08}
+.bg-exp{background:radial-gradient(ellipse at 50% 0,rgba(190,220,255,.13),transparent 60%),#091015}
+.bg-maf{background:radial-gradient(ellipse at 50% 0,rgba(255,200,130,.17),transparent 60%),#140e08}
+.bg-pok{background:radial-gradient(ellipse at 50% 0,rgba(170,240,190,.13),transparent 60%),#08120c}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 2px var(--a),0 0 8px var(--a)}50%{box-shadow:0 0 0 3px var(--a),0 0 22px var(--a)}}
+.tgt{animation:pulse 1s ease-in-out infinite}
+
+/* ===================== GUERRA DE BANDAS ===================== */
+.rpgS>h2{color:#f08a74}
+/* C · Estuche de violín */
+.vc{--a:#d4513f;position:relative;padding:8px;border-radius:26px 10px 10px 26px;background:linear-gradient(160deg,#1e1a18,#0c0a09);border:2px solid #000;box-shadow:inset 0 0 0 4px #1e1a18,inset 0 0 0 5px rgba(201,162,74,.35)}
+.vc .velvet{display:flex;gap:6px;align-items:center;padding:6px 6px 6px 4px;border-radius:22px 8px 8px 22px;background:radial-gradient(ellipse at 35% 50%,#9a1a22,#4a0810 75%);box-shadow:inset 0 3px 10px rgba(0,0,0,.7)}
+.vc .velvet img{width:52px;height:52px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.6))}
+.drum{position:relative;flex:0 0 auto;width:46px;height:46px;border-radius:50%;margin-left:auto;
+  background:radial-gradient(circle,#1a0c0a 0 13px,transparent 14px),repeating-conic-gradient(transparent 0 9deg,#3a0a10 9deg 12deg),conic-gradient(#e8c860 0 calc(var(--p)*1%),#2a1f14 0);box-shadow:0 0 0 2px #1a0c0a}
+.drum-wrap{position:relative;width:46px;height:46px;margin-left:auto;flex:0 0 auto}
+.drum-wrap .drum{position:absolute;inset:0;margin:0}
+.drum-wrap b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-ui);font-size:.8rem;color:#f3dfa6}
+.drum-wrap.over .drum{background:radial-gradient(circle,#1a0c0a 0 13px,transparent 14px),repeating-conic-gradient(transparent 0 9deg,#3a0a10 9deg 12deg),#f3dfa6;box-shadow:0 0 0 2px #1a0c0a,0 0 10px #e4c77e}
+.vc .plate{display:block;margin:6px auto 0;width:fit-content;max-width:100%;padding:2px 10px;background:linear-gradient(180deg,#f3dfa6,#b08a3a);color:#2a1806;font-family:var(--font-ui);font-weight:600;font-size:.78rem;letter-spacing:1px;border-radius:2px;box-shadow:0 1px 0 #5a4418}
+.vc small{display:block;text-align:center;font-size:.6rem;color:#e9cfc0;margin-top:3px}
+.vc.turn{box-shadow:inset 0 0 0 4px #1e1a18,inset 0 0 0 5px #e4c77e,0 0 16px rgba(228,199,126,.5)}
+.vc.dead .velvet{background:#1a1412}
+.vc.dead .velvet::after{content:"✝ DESCANSE EN PAZ";position:absolute;inset:0;text-align:center;padding:0 10px;display:flex;align-items:center;justify-content:center;border-radius:22px 8px 8px 22px;background:repeating-linear-gradient(90deg,#2a2220 0 3px,#221b19 3px 6px);color:#b9ad93;font-family:var(--font-ui);letter-spacing:2px;font-size:.7rem}
+.b-vc{min-height:72px;padding:6px;border-radius:8px;border:2px solid #000;color:#f3e6c4;font-family:var(--font-ui);font-weight:600;font-size:.76rem;letter-spacing:.5px;
+  background:radial-gradient(circle at 7px 7px,#e4c77e 0 3px,transparent 4px),radial-gradient(circle at calc(100% - 7px) 7px,#e4c77e 0 3px,transparent 4px),radial-gradient(circle at 7px calc(100% - 7px),#e4c77e 0 3px,transparent 4px),radial-gradient(circle at calc(100% - 7px) calc(100% - 7px),#e4c77e 0 3px,transparent 4px),linear-gradient(160deg,#2a2220,#120e0c)}
+.b-vc small{display:block;font-weight:400;font-size:.6rem;color:#d8b0a0}
+.b-vc .odds{border:1px solid #d4513f;color:#f08a74}
+.b-vc:hover{box-shadow:0 0 0 2px #9a1a22,0 0 14px rgba(212,81,63,.45)}
+/* D · Callejón */
+.al{--a:#f3e6c4;position:relative;padding:22px 8px 8px;color:#f3efe6;overflow:hidden;
+  background:linear-gradient(180deg,rgba(0,0,0,.55),rgba(0,0,0,.25)),repeating-linear-gradient(0deg,transparent 0 13px,#2a1612 13px 15px),repeating-linear-gradient(90deg,#6a2e22 0 28px,#2a1612 28px 30px)}
+.al:nth-child(even){background:linear-gradient(180deg,rgba(0,0,0,.6),rgba(0,0,0,.3)),repeating-linear-gradient(0deg,transparent 0 13px,#2a1612 13px 15px),repeating-linear-gradient(90deg,#5e2a20 0 28px,#2a1612 28px 30px)}
+.al .lamp{position:absolute;top:0;left:50%;width:40px;height:8px;margin-left:-20px;border-radius:0 0 20px 20px;background:#3a3a3a}
+.al.turn .lamp{background:#ffe7a6;box-shadow:0 0 12px #ffd770}
+.al.turn::before{content:"";position:absolute;left:50%;top:6px;width:150%;height:140%;transform:translateX(-50%);background:radial-gradient(ellipse 35% 60% at 50% 0,rgba(255,225,150,.35),transparent 70%);pointer-events:none}
+.al .row1{position:relative;display:flex;gap:6px;align-items:center}
+.al img{width:50px;height:50px}
+.al .nm{font-family:var(--font-type);font-size:.95rem;text-shadow:0 0 1px #fff,1px 1px 0 rgba(255,255,255,.25)}
+.tally{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px}
+.tally svg{width:22px;height:14px}
+.al small{display:block;font-size:.6rem;opacity:.85;margin-top:2px}
+.al.dead img{filter:brightness(0) invert(1);opacity:.3}
+.al.dead::after{content:"POLICÍA · NO PASAR · POLICÍA · NO PASAR";position:absolute;left:-10%;right:-10%;top:46%;padding:3px 0;transform:rotate(-8deg);background:#e8c25a;color:#141008;font-family:var(--font-ui);font-weight:700;font-size:.6rem;letter-spacing:2px;text-align:center;white-space:nowrap}
+.b-sign{min-height:72px;padding:6px 8px;border-radius:6px;border:0;color:#f3efe6;font-family:var(--font-ui);font-weight:600;font-size:.76rem;
+  background:radial-gradient(circle at 8px 50%,#c9ced6 0 2px,transparent 3px),radial-gradient(circle at calc(100% - 8px) 50%,#c9ced6 0 2px,transparent 3px),#1e3a2e;box-shadow:inset 0 0 0 3px #1e3a2e,inset 0 0 0 5px #f3efe6,0 3px 0 #0a1410;transform:rotate(-1deg)}
+.b-sign:nth-child(even){transform:rotate(1deg)}
+.b-sign small{display:block;font-weight:400;font-size:.6rem;opacity:.9}
+.b-sign .odds{border:1px solid #f3efe6}
+/* E · Coche de los años 30 */
+.car{--a:#d4513f;position:relative;padding:6px;border-radius:12px 12px 6px 6px;background:linear-gradient(170deg,#30323a,#0d0e12 60%);border:1px solid #000;color:#e9eef2;overflow:hidden}
+.car .win{position:relative;display:flex;gap:6px;align-items:center;padding:4px;border-radius:10px 10px 2px 2px;border:3px solid #c9ced6;background:linear-gradient(160deg,rgba(150,180,200,.35),rgba(20,30,40,.6))}
+.car .win img{width:46px;height:46px}
+.car .nm{font-family:var(--font-ui);font-weight:600;font-size:.82rem;letter-spacing:1px}
+.car .chrome{height:5px;margin:6px -6px;background:linear-gradient(180deg,#fff,#8a9098 50%,#3a3f45)}
+.gauge{position:relative;width:64px;height:34px;margin:0 auto;overflow:hidden}
+.gauge::before{content:"";position:absolute;left:0;top:0;width:64px;height:64px;border-radius:50%;background:conic-gradient(from -90deg,#7cc47f 0 60deg,#e8c25a 0 120deg,#d4513f 0 180deg,transparent 0);transform:scaleX(-1);-webkit-mask:radial-gradient(circle,transparent 0 22px,#000 23px);mask:radial-gradient(circle,transparent 0 22px,#000 23px)}
+.gauge i{position:absolute;left:31px;bottom:0;width:2px;height:28px;background:#fff;transform-origin:50% 100%;transform:rotate(calc(-90deg + var(--p) * 1.8deg));box-shadow:0 0 3px #000}
+.car .hp{text-align:center;font-family:var(--font-ui);font-size:.7rem;letter-spacing:1px}
+.car .hp small{display:block;font-size:.58rem;opacity:.8}
+.car .hole{position:absolute;width:7px;height:7px;border-radius:50%;background:#000;box-shadow:0 0 0 2px #8a9098,0 0 0 3px rgba(0,0,0,.6)}
+.car.turn{box-shadow:0 0 0 2px #e4c77e,0 0 16px rgba(228,199,126,.5)}
+.car.turn::after{content:"";position:absolute;right:6px;top:6px;width:10px;height:10px;border-radius:50%;background:#fff7d0;box-shadow:0 0 10px 4px #ffe48a}
+.car.dead .win img{filter:grayscale(1) brightness(.5)}
+.car.dead .win::after{content:"";position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 60'%3E%3Cg stroke='%23fff' stroke-width='.8' fill='none' opacity='.8'%3E%3Cpath d='M60 28 L95 5 M60 28 L98 40 M60 28 L70 60 M60 28 L30 58 M60 28 L5 30 M60 28 L35 2 M60 28 L80 0'/%3E%3Ccircle cx='60' cy='28' r='6'/%3E%3Ccircle cx='60' cy='28' r='14'/%3E%3C/g%3E%3C/svg%3E") center/cover}
+.car.dead .hp{color:#d4513f}
+.b-plate{min-height:70px;padding:8px 6px;border-radius:6px;border:0;color:#141008;font-family:var(--font-ui);font-weight:700;font-size:.74rem;letter-spacing:1px;text-transform:uppercase;
+  background:radial-gradient(circle at 10px 8px,#5a4418 0 2px,transparent 3px),radial-gradient(circle at calc(100% - 10px) 8px,#5a4418 0 2px,transparent 3px),linear-gradient(180deg,#f3d27a,#d8a93e);box-shadow:inset 0 0 0 2px #d8a93e,inset 0 0 0 4px #141008,0 3px 0 #5a4418;text-shadow:0 1px 0 rgba(255,255,255,.5)}
+.b-plate small{display:block;font-weight:500;font-size:.6rem;letter-spacing:0;text-transform:none}
+.b-plate .odds{border:1px solid #141008}
+
+/* ===================== EL GRAN ATRACO ===================== */
+.expS>h2{color:#7fb2cc}
+/* A · Plano a fondo */
+.bp{background:repeating-linear-gradient(0deg,rgba(255,255,255,.1) 0 1px,transparent 1px 12px),repeating-linear-gradient(90deg,rgba(255,255,255,.1) 0 1px,transparent 1px 12px),#173f63;color:#e8f4ff}
+.bp .hd{border-bottom:1px solid #cfe6f5}
+.sheets{display:flex;gap:4px;margin-bottom:8px}
+.sheets span{flex:1;padding:4px 0;text-align:center;font-family:var(--font-ui);font-size:.6rem;letter-spacing:1px;border:1px dashed #cfe6f5;opacity:.6}
+.sheets .done{opacity:.85;text-decoration:line-through}.sheets .now{opacity:1;border-style:solid;background:rgba(207,230,245,.15)}
+.room{--a:#ff8a7a;position:relative;padding:14px 6px 6px;border:2px solid #cfe6f5;background:rgba(23,63,99,.65)}
+.room .dim{position:absolute;top:2px;left:4px;right:4px;display:flex;align-items:center;gap:3px;font-size:.52rem;opacity:.8}
+.room .dim::before,.room .dim::after{content:"";flex:1;height:1px;background:#cfe6f5}
+.room .row1{display:flex;gap:6px;align-items:center}
+.room img{width:44px;height:44px;border:1px dashed rgba(207,230,245,.6)}
+.room .nm{font-family:var(--font-ui);letter-spacing:2px;font-size:.78rem}
+.walls{display:flex;flex-wrap:wrap;gap:2px;margin-top:5px}
+.walls i{width:9px;height:9px;border:1px solid #cfe6f5}.walls i.on{background:#cfe6f5}.walls i.sh{background:#e4c77e;border-color:#e4c77e}
+.loot{display:flex;gap:6px;margin-top:4px;font-size:.62rem}
+.loot span{padding:1px 4px;border:1px solid rgba(207,230,245,.5)}
+.room.turn{box-shadow:0 0 0 2px #fff,0 0 16px rgba(207,230,245,.6)}
+.room.turn::after{content:"► USTED ESTÁ AQUÍ";position:absolute;bottom:-1px;right:-1px;padding:1px 4px;background:#fff;color:#173f63;font-family:var(--font-ui);font-size:.5rem;letter-spacing:1px}
+.room.tgt::before{content:"";position:absolute;right:6px;top:16px;width:26px;height:26px;border:2px solid #ff8a7a;border-radius:50%;background:radial-gradient(circle,#ff8a7a 0 2px,transparent 3px),linear-gradient(#ff8a7a,#ff8a7a) center/2px 100% no-repeat,linear-gradient(90deg,#ff8a7a,#ff8a7a) center/100% 2px no-repeat}
+.room.arr img{filter:grayscale(1) brightness(.7)}
+.room.arr::after{content:"ARRESTADO";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-12deg);padding:2px 8px;border:2px solid #ff6a5a;color:#ff6a5a;font-family:var(--font-ui);font-weight:700;letter-spacing:3px;font-size:.78rem;background:rgba(23,63,99,.8)}
+.room.esc{border-style:dashed}
+.room.esc::after{content:"ESCAPÓ ⇢ 🚗";position:absolute;right:4px;top:14px;font-family:var(--font-ui);font-size:.62rem;letter-spacing:1px;color:#b7f0c0}
+.b-bp{min-height:70px;padding:6px;border:2px dashed #cfe6f5;background:rgba(23,63,99,.7);color:#e8f4ff;font-family:var(--font-ui);letter-spacing:1px;font-size:.74rem;text-transform:uppercase}
+.b-bp .pose{filter:brightness(0) invert(1);opacity:.85}
+.b-bp small{display:block;font-size:.58rem;letter-spacing:0;text-transform:none;opacity:.9}
+.b-bp .odds{border:1px solid #cfe6f5}
+.b-bp:disabled{opacity:.55;background:repeating-linear-gradient(135deg,transparent 0 8px,rgba(207,230,245,.15) 8px 9px),rgba(23,63,99,.7)}
+.b-bp.wide{display:flex;align-items:center;justify-content:center;gap:10px;border-style:solid}
+.b-bp.wide .route{flex:1;max-width:120px;height:2px;background:repeating-linear-gradient(90deg,#cfe6f5 0 6px,transparent 6px 10px);position:relative}
+.b-bp.wide .route::after{content:"";position:absolute;right:-2px;top:-4px;border:5px solid transparent;border-left-color:#cfe6f5}
+.titleblock{display:grid;grid-template-columns:1fr auto;margin-top:10px;border:1px solid #cfe6f5;font-family:var(--font-ui);font-size:.56rem;letter-spacing:1px}
+.titleblock span{padding:3px 6px;border-right:1px solid #cfe6f5;border-bottom:1px solid #cfe6f5}
+.titleblock span:nth-child(2n){border-right:0}.titleblock span:nth-last-child(-n+2){border-bottom:0}
+/* C · Cajas de seguridad */
+.dep{--a:#ff6a5a;position:relative;padding:20px 8px 8px;border-radius:4px;color:#2a1806;background:linear-gradient(160deg,#e9c779,#a8822e 60%,#7a5a18);box-shadow:inset 0 0 0 2px #5a4418,inset 0 0 0 4px rgba(255,240,200,.35)}
+.dep .no{position:absolute;top:4px;right:6px;padding:0 5px;background:#2a1806;color:#f3dfa6;font-family:var(--font-ui);font-size:.6rem;letter-spacing:1px}
+.dep .row1{display:flex;gap:6px;align-items:center;min-width:0}.dep .row1>div:last-child{min-width:0}.dep{min-width:0}
+.dep .door{position:relative;width:44px;height:44px;flex:0 0 auto;border-radius:3px;background:#1a1a1a;box-shadow:inset 0 0 8px #000}
+.dep .door img{width:44px;height:44px}
+.dep .nm{font-family:var(--font-ui);font-weight:700;font-size:.8rem;letter-spacing:1px}
+.pins{display:flex;flex-wrap:wrap;gap:2px;margin-top:3px}.pins i{width:4px;height:10px;border-radius:2px;background:#5a4418}.pins i.on{background:linear-gradient(180deg,#fff,#c9ced6)}.pins i.sh{background:#7fb2cc}
+.bills{display:flex;gap:6px;margin-top:4px;font-size:.62rem;font-weight:700}
+.bills span{padding:1px 5px;background:#7cc47f;color:#123;border-radius:2px}
+.bills span.lock{background:#2a1806;color:#f3dfa6}
+.dep.turn{box-shadow:inset 0 0 0 2px #5a4418,0 0 0 2px #fff,0 0 16px rgba(127,178,204,.6)}
+.dep.arr .door::after{content:"🔒";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1.4rem;background:rgba(120,20,20,.55)}
+.dep.arr::after{content:"INCAUTADO";position:absolute;right:6px;bottom:6px;padding:1px 6px;background:#a3241c;color:#fff;font-family:var(--font-ui);font-size:.6rem;letter-spacing:2px;transform:rotate(-4deg)}
+.dep.esc .door img{opacity:0}.dep.esc .door::after{content:"VACÍA";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#7a7a7a;font-family:var(--font-ui);font-size:.6rem;letter-spacing:2px}
+.b-key{min-height:70px;padding:6px;border-radius:4px;border:0;color:#e9eef2;font-family:var(--font-ui);font-weight:600;font-size:.74rem;
+  background:radial-gradient(circle at 50% 14px,#0a0c0f 0 4px,transparent 5px),linear-gradient(180deg,#5a6470,#2a3038);box-shadow:inset 0 0 0 1px #8a9098,0 3px 0 #111}
+.b-key::before{content:"";display:block;width:6px;height:9px;margin:0 auto 4px;background:#0a0c0f;clip-path:polygon(20% 0,80% 0,100% 100%,0 100%)}
+.b-key small{display:block;font-weight:400;font-size:.58rem;opacity:.85}
+.b-key .odds{border:1px solid #7fb2cc}
+.b-key:disabled{opacity:.45}
+/* D · Pizarra del golpe */
+.chalk{background:radial-gradient(ellipse at 50% 40%,#2f3d34,#1b241e 80%);box-shadow:inset 0 0 0 8px #5a3a1e,inset 0 0 0 10px #3a2410;padding:16px;color:#eef2ea}
+.ck{--a:#ffe680;position:relative;padding:6px;border:2px solid rgba(238,242,234,.75);border-radius:6px 12px 4px 10px/10px 4px 12px 6px}
+.ck .mag{position:absolute;top:-6px;left:8px;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ff8a7a,#a3241c)}
+.ck .row1{display:flex;gap:6px;align-items:center}
+.ck img{width:44px;height:44px;background:#e9dfc7;padding:2px;transform:rotate(-3deg);box-shadow:0 2px 3px rgba(0,0,0,.5)}
+.ck .nm{font-family:var(--font-type);font-size:.95rem;text-decoration:underline}
+.ck .boxes{font-size:.8rem;letter-spacing:1px;margin-top:3px;word-break:break-all}
+.ck small{display:block;font-size:.62rem;opacity:.85}
+.ck.turn{border-color:#ffe680;box-shadow:0 0 0 3px rgba(255,230,128,.25)}
+.ck.turn::after{content:"¡TÚ!";position:absolute;right:6px;top:4px;color:#ffe680;font-family:var(--font-type);transform:rotate(8deg)}
+.ck.arr::after{content:"✗ ¡ATRAPADO!";display:block;text-align:right;color:#ff8a7a;font-family:var(--font-type);transform:rotate(-6deg)}
+.ck.arr img{filter:grayscale(1)}
+.ck.esc::after{content:"→ al coche ✓";display:block;text-align:right;color:#b7f0c0;font-family:var(--font-type)}
+.b-ck{min-height:66px;padding:6px;background:transparent;color:#eef2ea;border:2px solid rgba(238,242,234,.8);border-radius:10px 4px 12px 6px/6px 12px 4px 10px;font-family:var(--font-type);font-size:.8rem}
+.b-ck small{display:block;font-size:.6rem;opacity:.85}
+.b-ck .odds{border:1px dashed #eef2ea}
+.b-ck:disabled{opacity:.5;text-decoration:line-through}
+.b-ck.wide{border-color:#ffe680;color:#ffe680}
+
+/* ===================== IMPERIO CRIMINAL ===================== */
+.mafS>h2{color:#e0913f}
+.phase{display:flex;align-items:center;gap:8px;margin:12px 0 0;font-family:var(--font-ui);font-size:.66rem;letter-spacing:2px}
+.phase::after{content:"";flex:1;height:1px;background:currentColor;opacity:.35}
+/* A · Escritura a fondo */
+.deed{--a:#d4513f;position:relative;padding:8px;background:linear-gradient(180deg,#f3ecd6,#e2d6b2);color:#20180f;border:3px double #8a5a24}
+.deed .hdr{font-family:var(--font-ui);font-size:.52rem;letter-spacing:2px;text-align:center;color:#8a5a24;border-bottom:1px solid #c9b48a;margin-bottom:4px}
+.deed .row1{display:flex;gap:6px;align-items:center}
+.deed img{width:44px;height:44px}
+.deed .nm{font-family:var(--font-display);font-size:.95rem;color:#6a3a10}
+.deed .inf{font-size:.6rem}
+.notch{display:flex;gap:1px;margin-top:2px}.notch i{flex:1;height:5px;background:#d8c9a3}.notch i.on{background:#8a5a24}
+.lots{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:5px}
+.lots i{position:relative;height:20px;border:1px solid #8a5a24;font-style:normal;font-size:.6rem;display:flex;align-items:center;justify-content:center;color:#8a5a24}
+.lots i.own{background:repeating-linear-gradient(45deg,var(--pc) 0 3px,color-mix(in srgb,var(--pc) 70%,#fff) 3px 6px);color:#20180f;font-weight:700}
+.lots i.raid{background:#e2d6b2;color:#a3241c}
+.lots i.raid{outline:2px dashed #a3241c;outline-offset:-3px}
+.deed .cash{display:inline-block;margin-left:4px;padding:0 4px;background:#7cc47f;color:#123;font-family:var(--font-ui);font-size:.66rem;font-weight:700;border-radius:2px;transform:rotate(3deg)}
+.deed .wax{position:absolute;right:4px;top:3px;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 40% 35%,color-mix(in srgb,var(--pc) 80%,#fff),var(--pc));box-shadow:0 1px 2px rgba(0,0,0,.4)}
+.deed.turn{box-shadow:0 0 0 2px #e0913f,0 0 16px rgba(224,145,63,.6)}
+.b-stamp{min-height:72px;padding:14px 6px 6px;position:relative;border:0;border-radius:4px 4px 10px 10px;color:#f3ecd6;font-family:var(--font-ui);font-weight:700;font-size:.74rem;background:linear-gradient(180deg,#7a4a1c,#4a2a0c);box-shadow:0 4px 0 #2a1806}
+.b-stamp::before{content:"";position:absolute;top:-6px;left:50%;width:26px;height:12px;margin-left:-13px;border-radius:12px 12px 2px 2px;background:linear-gradient(180deg,#a87a40,#6a4418)}
+.b-stamp small{display:block;font-weight:400;font-size:.58rem}
+.b-stamp .odds{border:1px solid #f0bf7f}
+.b-stamp:disabled{filter:grayscale(.8) brightness(.7)}
+.b-stamp.on{background:linear-gradient(180deg,#a3241c,#6a1410)}
+.modal{margin-top:10px;padding:10px;border-radius:4px}
+.m-deed{background:#f3ecd6;color:#20180f;border:3px double #8a5a24}
+.m-deed h4{margin:0;text-align:center;font-family:var(--font-display);font-weight:400;color:#6a3a10}
+.m-deed p{margin:2px 0 8px;text-align:center;font-size:.66rem}
+.m-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.m-lot{min-height:58px;position:relative;border:1px solid #8a5a24;background:#fffaf0;color:#20180f;font-family:var(--font-ui);font-weight:600;font-size:.74rem}
+.m-lot small{display:block;font-weight:400;font-size:.56rem}
+.m-lot:disabled{background:#e2d6b2;color:#8a7a5a}
+.m-lot:disabled::after{content:attr(data-stamp);position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-14deg);padding:0 4px;border:2px solid #a3241c;color:#a3241c;font-size:.52rem;letter-spacing:1px;white-space:nowrap;background:rgba(255,250,240,.6)}
+.m-raid{background:#e9eef2;color:#141c24;border:3px solid #1e3a5a}
+.m-raid h4{margin:0;text-align:center;font-family:var(--font-ui);letter-spacing:3px;color:#a3241c}
+.m-raid p{margin:2px 0 8px;text-align:center;font-size:.66rem}
+.m-raid .m-lot{border-color:#1e3a5a;background:#fff}
+.m-raid .m-lot:disabled{background:#c9d2da;color:#5a6470}
+.m-raid .m-lot:disabled::after{border-color:#1e3a5a;color:#1e3a5a;background:rgba(255,255,255,.6)}
+.m-cancel{display:block;width:100%;min-height:44px;margin-top:8px;border:1px solid currentColor;background:transparent;color:inherit;font-family:var(--font-ui);letter-spacing:2px}
+/* B · Caja registradora a fondo */
+.reg{--a:#d4513f;position:relative;padding:22px 6px 6px;border-radius:10px 10px 4px 4px;background:linear-gradient(180deg,#c99a46,#7a5418);border:2px solid #3a2408;color:#20180f}
+.flags{position:absolute;top:-1px;left:8px;right:8px;display:flex;gap:2px;justify-content:center}
+.flags i{width:18px;height:6px;margin-top:14px;background:#3a2408;font-style:normal;font-size:.55rem;color:#20180f;text-align:center;border-radius:2px 2px 0 0;transition:.2s}
+.flags i.own{height:18px;margin-top:2px;background:#fff3d6;font-weight:700;line-height:18px}
+.flags i.raid{height:18px;margin-top:2px;background:#a3241c;color:#fff;line-height:18px}
+.reg .row1{display:flex;gap:6px;align-items:center}
+.reg img{width:44px;height:44px;background:#e9dcb8;border-radius:3px}
+.reg .nm{font-family:var(--font-ui);font-weight:700;font-size:.78rem}
+.reg .lcd{display:inline-block;margin-top:2px;padding:1px 6px;background:#101810;color:#7cf08a;font-family:var(--font-ui);letter-spacing:2px;font-size:.9rem;border-radius:2px;box-shadow:inset 0 0 4px #000}
+.flip{display:inline-flex;gap:1px;margin-left:4px;vertical-align:middle}
+.flip b{padding:0 2px;background:#20180f;color:#f3dfa6;font-family:var(--font-ui);font-size:.66rem;border-radius:1px}
+.reg small{display:block;font-size:.56rem;margin-top:2px}
+.reg.turn{box-shadow:0 0 0 2px #fff3d6,0 0 16px rgba(224,145,63,.6)}
+.b-reg{min-height:72px;padding:6px;border:0;border-radius:40%/30%;color:#20180f;font-family:var(--font-ui);font-weight:700;font-size:.72rem;background:radial-gradient(circle at 40% 30%,#fff3d6,#d8c9a3 60%,#a8946a);box-shadow:0 5px 0 #5a4418,0 6px 6px rgba(0,0,0,.4)}
+.b-reg small{display:block;font-weight:400;font-size:.56rem}
+.b-reg .odds{border:1px solid #5a4418}
+.b-reg:disabled{opacity:.5}
+.b-reg.on{transform:translateY(4px);box-shadow:0 1px 0 #5a4418;background:radial-gradient(circle at 40% 30%,#ffd0c0,#d4513f)}
+.b-reg.wide{border-radius:10px}
+.m-reg{background:linear-gradient(180deg,#c99a46,#7a5418);border:2px solid #3a2408;color:#20180f}
+.m-reg .lcd{display:block;text-align:center;margin-bottom:8px;padding:4px;background:#101810;color:#7cf08a;font-family:var(--font-ui);letter-spacing:3px;font-size:.85rem}
+.m-reg .m-lot{border-radius:50%/40%;border:0;background:radial-gradient(circle at 40% 30%,#fff3d6,#d8c9a3);box-shadow:0 4px 0 #5a4418}
+.m-reg .m-lot:disabled{transform:translateY(3px);box-shadow:0 1px 0 #5a4418;background:#a8946a}
+.m-reg .m-lot:disabled::after{display:none}
+/* C · Mapa del barrio */
+.mapc{--a:#d4513f;position:relative;padding:6px;background:#efe3c4;color:#20180f;border:1px solid #8a7a5a;box-shadow:2px 3px 0 rgba(0,0,0,.4)}
+.mapc .row1{display:flex;gap:6px;align-items:center}
+.mapc img{width:40px;height:40px}
+.mapc .nm{font-family:var(--font-ui);font-weight:700;font-size:.78rem}
+.mapc .inf{font-size:.58rem}
+.city{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:5px;padding:5px;background:#c9b88e;border-radius:2px}
+.city i{position:relative;height:22px;background:#e9dcb8;font-style:normal;font-size:.58rem;display:flex;align-items:center;justify-content:center;color:#8a7a5a;box-shadow:0 0 0 1px #b0a07a}
+.city i.own{background:var(--pc);color:#fff;font-weight:700;text-shadow:0 1px 1px #000}
+.city i.raid::after{content:"🚓";position:absolute;right:-4px;top:-6px;font-size:.7rem}
+.mapc.turn{box-shadow:0 0 0 2px #e0913f,0 0 16px rgba(224,145,63,.6)}
+.b-map{min-height:72px;padding:6px;border:1px solid #8a7a5a;border-radius:2px;color:#20180f;font-family:var(--font-ui);font-weight:600;font-size:.74rem;background:#efe3c4;box-shadow:2px 3px 0 rgba(0,0,0,.4)}
+.b-map small{display:block;font-weight:400;font-size:.58rem}
+.b-map .odds{border:1px solid #8a5a24}
+.b-map:disabled{opacity:.5}
+.b-map.on{background:#e0913f}
+.m-map{background:#efe3c4;color:#20180f;border:1px solid #8a7a5a}
+.m-map h4{margin:0;text-align:center;font-family:var(--font-display);font-weight:400;color:#6a3a10}
+.m-map p{margin:2px 0 6px;text-align:center;font-size:.66rem}
+.m-map .m-grid{gap:8px;padding:8px;background:#c9b88e}
+.m-map .m-lot{border:0;background:#e9dcb8;box-shadow:0 0 0 1px #b0a07a}
+.m-map .m-lot:disabled{background:#d8cba8;color:#8a7a5a}.m-map .m-lot.own{background:var(--pc);color:#fff;text-shadow:0 1px 1px #000}
+.m-map .m-lot:disabled::after{top:auto;bottom:-6px;transform:translateX(-50%) rotate(-6deg);border-color:#a3241c;color:#a3241c;background:#f3ecd6;box-shadow:0 1px 2px rgba(0,0,0,.4)}
+.m-lot b{display:block;font-size:.95rem}.m-map .m-lot small{font-size:.6rem;opacity:.9}
+.city i{height:34px;flex-direction:column;line-height:1}.city i b{font-size:.8rem}.city i small{font-size:.44rem;letter-spacing:.3px}
+.acts3{grid-template-columns:repeat(3,1fr)}
+.b-map .ico{display:block;width:36px;height:36px;margin:0 auto 2px}
+.map-sw{grid-column:1/-1;display:flex;align-items:center;gap:10px;min-height:60px;padding:6px 10px;border:1px solid #8a7a5a;background:#efe3c4;color:#20180f;font-family:var(--font-ui);font-weight:600;font-size:.8rem;text-align:left;box-shadow:2px 3px 0 rgba(0,0,0,.4);cursor:pointer}
+.map-sw small{display:block;font-weight:400;font-size:.6rem}
+.map-sw .road{position:relative;flex:0 0 auto;width:70px;height:28px;margin-left:auto;border-radius:14px;background:linear-gradient(90deg,transparent 0 0) ,#4a4a4a;box-shadow:inset 0 0 0 2px #2a2a2a}
+.map-sw .road::before{content:"";position:absolute;left:12px;right:12px;top:13px;height:2px;background:repeating-linear-gradient(90deg,#f3dfa6 0 6px,transparent 6px 10px)}
+.map-sw .road i{position:absolute;top:2px;left:2px;width:24px;height:24px;border-radius:50%;background:#c9b88e;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:.8rem;box-shadow:0 2px 2px rgba(0,0,0,.5);transition:left .2s}
+.map-sw.on .road{background:#3a7a4a}.map-sw.on .road i{left:44px;background:#7cc47f}
+.map-sw b{min-width:26px;font-size:.75rem;color:#8a7a5a}.map-sw.on b{color:#2a6a3a}
+/* pizarra: muros de tiza y hojas */
+.cwalls{display:flex;flex-wrap:wrap;gap:2px;margin-top:4px;align-items:center}
+.cwalls i{width:8px;height:8px;border:1.5px solid rgba(238,242,234,.8);border-radius:1px 2px 1px 2px}
+.cwalls i.on{background:repeating-linear-gradient(45deg,rgba(238,242,234,.9) 0 1.5px,transparent 1.5px 3px)}
+.cwalls i.sh{border-color:#ffe680;background:repeating-linear-gradient(45deg,#ffe680 0 1.5px,transparent 1.5px 3px)}
+.cwalls em{margin-left:4px;font-style:normal;font-size:.62rem;color:#eef2ea}
+.chalk-sheets{display:flex;gap:6px;justify-content:center;margin-bottom:6px;font-family:var(--font-type);font-size:.7rem}
+.chalk-sheets span{padding:2px 8px;border:1.5px solid rgba(238,242,234,.6);border-radius:8px 3px 9px 4px/4px 9px 3px 8px}
+.chalk-sheets .done{text-decoration:line-through;opacity:.7}.chalk-sheets .now{border-color:#ffe680;color:#ffe680}
+/* selector de capo con flechas */
+.picker{position:absolute;left:0;right:0;top:14px;display:flex;justify-content:space-between;pointer-events:none;z-index:2}.picker .arr{pointer-events:auto}
+.picker .arr{flex:0 0 auto;width:40px;height:44px;border:0;background:#141008;color:var(--gold-3);font-size:1rem;cursor:pointer;clip-path:polygon(0 50%,30% 0,100% 0,100% 100%,30% 100%)}
+.picker .arr.nx{clip-path:polygon(0 0,70% 0,100% 50%,70% 100%,0 100%)}
+.pname{position:relative;margin-top:5px;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#efe6cf;border:1px solid #8a7a5a;font-family:var(--font-ui);font-size:.72rem;font-weight:600;color:#20180f}
+.pname small{font-weight:400;font-size:.55rem;color:#5a4a32}
+.pname select{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
+
+/* ===================== APUESTAS CLANDESTINAS ===================== */
+.pokS>h2{color:#7cc47f}
+.ft{--a:#e4c77e;position:relative;padding:8px 10px;border-radius:30px;color:#f3ecd6;background:radial-gradient(ellipse at 50% 40%,#2f8a58,#14502e);border:6px solid #5a3214;box-shadow:inset 0 0 14px rgba(0,0,0,.6),0 0 0 1px #2a1806}
+.ft .row1{display:flex;gap:6px;align-items:center}
+.ft img{width:46px;height:46px}
+.ft .nm{font-family:var(--font-ui);font-weight:600;letter-spacing:1px;font-size:.82rem}
+.ft small{display:block;font-size:.58rem;opacity:.9}
+.stacks{display:flex;align-items:flex-end;gap:3px;min-height:34px;margin-top:3px}
+.stk{display:flex;flex-direction:column-reverse}
+.stk i{width:20px;height:7px;margin-top:-3px;border-radius:50%;box-shadow:0 1px 0 rgba(0,0,0,.5)}
+.stk i.r{background:repeating-linear-gradient(90deg,#a80f0f 0 4px,#ececec 4px 6px)}
+.stk i.b{background:repeating-linear-gradient(90deg,#0c0c0c 0 4px,#ececec 4px 6px)}
+.ft .cnt{margin-left:auto;font-family:var(--font-ui);font-size:1.1rem;color:#f3dfa6}
+.ft .cnt small{display:inline;font-size:.6rem}
+.sleeve{display:inline-block;margin-top:3px;padding:1px 5px;border-radius:2px;background:#fbf6e8;color:#20180f;font-size:.58rem}
+.sleeve.cd{background:rgba(0,0,0,.4);color:#f3ecd6}
+.dealer{position:absolute;right:10px;top:-10px;width:24px;height:24px;border-radius:50%;background:#fbf6e8;color:#20180f;font-family:var(--font-ui);font-weight:700;font-size:.7rem;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 3px rgba(0,0,0,.5);border:2px solid #20180f}
+.ft.turn{box-shadow:inset 0 0 14px rgba(0,0,0,.6),0 0 0 2px #e4c77e,0 0 16px rgba(228,199,126,.5)}
+.ft.danger{background:radial-gradient(ellipse at 50% 40%,#5a3a2a,#2a1810)}
+.ft.danger .warn{display:block;color:#ff9a8a;font-family:var(--font-ui);letter-spacing:1px;font-size:.58rem}
+.ft.dead{background:radial-gradient(ellipse at 50% 40%,#1e3a2a,#0e2014)}
+.ft.dead img{filter:grayscale(1) brightness(.6)}
+.ft.dead::after{content:"BANCARROTA";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-10deg);padding:2px 8px;border:2px solid #d4513f;color:#d4513f;background:rgba(14,32,20,.85);font-family:var(--font-ui);font-weight:700;letter-spacing:3px;font-size:.8rem}
+.facedown{display:flex;margin-top:4px}.facedown i{width:16px;height:22px;margin-right:-7px;border-radius:2px;border:1px solid #fbf6e8;background:repeating-linear-gradient(45deg,#7a1810 0 2px,#a3241c 2px 4px)}
+.pk-acts{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;margin-top:12px}
+.chipb{display:flex;flex-direction:column;align-items:center;gap:4px;width:130px;background:none;border:0;color:#f3ecd6;font-family:var(--font-ui);cursor:pointer;padding:0}
+.chipb .c{width:84px;height:84px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:700;font-size:.62rem;letter-spacing:.5px;line-height:1.1;color:#fff;
+  background:radial-gradient(circle,var(--c1) 0 50%,#ececec 51% 54%,var(--c1) 55%);box-shadow:0 0 0 4px var(--c2),0 5px 0 4px #0a1a0f;-webkit-mask:none;position:relative}
+.chipb .c::before{content:"";position:absolute;inset:-4px;border-radius:50%;background:repeating-conic-gradient(#ececec 0 12deg,transparent 12deg 45deg);-webkit-mask:radial-gradient(circle,transparent 0 37px,#000 38px);mask:radial-gradient(circle,transparent 0 37px,#000 38px)}
+.chipb .c b{font-size:1.2rem}
+.chipb small{font-size:.62rem;font-weight:400;text-align:center;color:#d8e8d8}
+.chipb .odds{border:1px solid #7cc47f;color:#b7f0c0}
+.chipb:hover .c{transform:translateY(-2px)}
+.chipb.r{--c1:#a80f0f;--c2:#6a0808}.chipb.k{--c1:#0c0c0c;--c2:#000}.chipb .c{border:2px solid #ececec}.chipb .c img{width:30px;height:30px;margin-bottom:2px}
+.b-tahur{width:100%;min-height:80px;margin-top:12px;display:flex;align-items:center;gap:12px;padding:8px 14px;border-radius:12px;border:2px solid #e4c77e;background:linear-gradient(180deg,#1e2a22,#101812);color:#f3ecd6;font-family:var(--font-ui);font-size:.95rem;letter-spacing:2px;text-align:left;cursor:pointer}
+.b-tahur small{display:block;font-size:.62rem;letter-spacing:0;color:#d8e8d8}
+.fan{position:relative;width:58px;height:44px;flex:0 0 auto}
+.fan i{position:absolute;bottom:0;left:18px;width:24px;height:34px;border-radius:3px;background:#fbf6e8;border:1px solid #20180f;transform-origin:50% 100%;font-style:normal;font-size:.7rem;color:#a3241c;padding:1px 2px;font-family:var(--font-display)}
+.fan i:nth-child(1){transform:rotate(-22deg)}.fan i:nth-child(2){transform:rotate(0)}.fan i:nth-child(3){transform:rotate(22deg);color:#20180f}
+/* A2 · una sola mesa */
+.oval{position:relative;margin:44px 4px 6px;padding:120px 10px;border-radius:50%/40%;background:radial-gradient(ellipse at 50% 45%,#2f8a58,#14502e 75%);border:12px solid #5a3214;box-shadow:inset 0 0 24px rgba(0,0,0,.6),0 0 0 2px #2a1806,0 10px 24px rgba(0,0,0,.6)}
+.oval .logo-felt{text-align:center;font-family:var(--font-display);color:rgba(243,236,214,.22);font-size:1.3rem;line-height:1}
+.oval .logo-felt img{width:48px;opacity:.35;display:block;margin:0 auto 2px}
+.seat{position:absolute;width:118px;padding:4px;border-radius:10px;background:rgba(10,26,16,.85);border:1px solid rgba(243,236,214,.25);text-align:center;color:#f3ecd6;font-size:.6rem}
+.seat img{width:38px;height:38px;display:block;margin:-22px auto 0}
+.seat b{display:block;font-family:var(--font-ui);font-size:.72rem;letter-spacing:1px}
+.seat .stacks{justify-content:center;min-height:22px}
+.seat.s2,.seat.s4{width:88px}
+.seat.s1{left:50%;bottom:-30px;transform:translateX(-50%);border-color:#e4c77e;box-shadow:0 0 12px rgba(228,199,126,.5)}
+.seat.s2{left:-8px;top:50%;transform:translateY(-50%)}
+.seat.s3{left:50%;top:-30px;transform:translateX(-50%);--a:#e4c77e;animation:pulse 1s infinite}
+.seat.s4{right:-8px;top:50%;transform:translateY(-50%);opacity:.55}
+
+/* ===================== MENÚ PRINCIPAL ===================== */
+.menuS>h2{color:var(--gold-2)}
+.heads{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:14px;margin-top:10px}
+.h-lamp{position:relative;padding:18px 10px 14px;text-align:center;border-radius:8px;background:radial-gradient(ellipse 60% 80% at 50% 0,rgba(255,220,150,.28),transparent 70%),#0e0c09;overflow:hidden}
+.h-lamp .shade{width:70px;height:14px;margin:-18px auto 6px;border-radius:0 0 40px 40px;background:linear-gradient(180deg,#2a251e,#0b0a08);box-shadow:0 6px 20px rgba(255,220,150,.45)}
+.h-lamp img{width:min(130px,40vw);filter:drop-shadow(0 6px 10px rgba(0,0,0,.8)) drop-shadow(0 0 18px rgba(255,200,120,.25));animation:sway 6s ease-in-out infinite;transform-origin:50% -40px}
+@keyframes sway{0%,100%{transform:rotate(-1.5deg)}50%{transform:rotate(1.5deg)}}
+.h-lamp h4,.h-deco h4{margin:2px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(1.6rem,7vw,2.3rem);color:var(--gold-3);letter-spacing:2px;text-shadow:0 2px 0 #5a4418,0 0 18px rgba(228,199,126,.35)}
+.h-lamp .st,.h-deco .st{font-family:var(--font-ui);letter-spacing:6px;font-size:.62rem;color:var(--cream-2)}
+.h-deco{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:4px;background:#0e0c09;border:2px solid var(--gold);box-shadow:inset 0 0 0 4px #0e0c09,inset 0 0 0 5px var(--gold-dark);text-align:left}
+.h-deco img{width:76px;flex:0 0 auto}
+.h-deco h4{font-size:clamp(1.4rem,6vw,1.9rem)}
+.h-deco .rays{flex:1;align-self:stretch;min-width:0}
+.h-neon{padding:14px 10px;text-align:center;border-radius:8px;background:repeating-linear-gradient(0deg,#2a1d24 0 18px,#221820 18px 20px)}
+.h-neon img{width:96px;filter:drop-shadow(0 0 4px #ff4f6a) drop-shadow(0 0 12px #ff4f6a)}
+.h-neon h4{margin:4px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(1.5rem,6.5vw,2rem);color:#ffd8de;text-shadow:0 0 6px #ff4f6a,0 0 16px #ff4f6a,0 0 30px #ff4f6a;animation:flick 3.4s infinite}
+.h-neon .st{font-family:var(--font-ui);letter-spacing:5px;font-size:.62rem;color:#ffe6a8;text-shadow:0 0 6px #ffb84f}
+@keyframes flick{0%,90%,94%,100%{opacity:1}92%{opacity:.45}}
+
+.mm{position:relative;max-width:520px;margin:16px auto 0;padding:56px 12px 28px;border-radius:10px;background:radial-gradient(ellipse 70% 30% at 50% 0,rgba(255,220,150,.2),transparent 70%),radial-gradient(ellipse at 50% 120%,#1a140e,#0b0a08 70%);border:1px solid var(--line)}
+.menus{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,370px),1fr));gap:16px;margin-top:12px;align-items:start}
+.menus .mm{margin-top:0}
+.v-deco{border:2px solid var(--gold);box-shadow:inset 0 0 0 5px #0b0a08,inset 0 0 0 6px var(--gold-dark);border-radius:2px;background:linear-gradient(180deg,#14100a,#0b0a08)}
+.v-deco .h-deco{margin-top:4px}
+.v-deco .sec>.lbl{color:var(--gold-3)}
+.v-deco .sec>.lbl::before,.v-deco .sec>.lbl::after{background:repeating-linear-gradient(90deg,var(--gold) 0 6px,transparent 6px 9px);height:2px}
+.v-neon{background:linear-gradient(180deg,rgba(11,10,8,.2),rgba(11,10,8,.85) 30%),repeating-linear-gradient(0deg,#2a1d24 0 18px,#221820 18px 20px)}
+.v-neon .h-neon{background:transparent}
+.v-neon .sec>.lbl{color:#ffd8de;text-shadow:0 0 6px #ff4f6a}
+.v-neon .sec>.lbl::before,.v-neon .sec>.lbl::after{background:#ff4f6a;box-shadow:0 0 6px #ff4f6a}
+.v-neon .go{background:linear-gradient(180deg,#ffd8de,#ff4f6a 60%,#a3243a);color:#2a0810}
+.mm .topb{position:absolute;top:10px;right:10px;display:flex;gap:6px}
+.mm .topb span{min-height:44px;display:inline-flex;align-items:center;gap:4px;padding:0 10px;border-radius:3px;background:linear-gradient(180deg,#3a2c1a,#21180e);border:1px solid var(--gold-dark);color:var(--gold-2);font-family:var(--font-ui);font-size:.72rem;letter-spacing:1px;box-shadow:0 3px 6px rgba(0,0,0,.5)}
+.mm .topb span::before{content:"";width:4px;height:4px;border-radius:50%;background:var(--gold)}
+.mm .h-lamp{background:transparent;margin-bottom:6px}
+.sec{margin-top:16px}
+.sec>.lbl{display:flex;align-items:center;gap:8px;margin:0 0 6px;font-family:var(--font-ui);font-size:.72rem;letter-spacing:3px;color:var(--gold-2)}
+.sec>.lbl::before,.sec>.lbl::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold-dark))}
+.sec>.lbl::after{background:linear-gradient(90deg,var(--gold-dark),transparent)}
+/* modo: placas de latón con bombilla */
+.plaques{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.plq{min-height:56px;position:relative;border-radius:4px;border:0;cursor:pointer;color:#2a1806;font-family:var(--font-ui);font-weight:700;letter-spacing:2px;font-size:.82rem;background:linear-gradient(180deg,#8a7a5a,#5a4a32);box-shadow:inset 0 0 0 2px #2a1806,inset 0 0 0 3px rgba(255,240,200,.3)}
+.plq small{display:block;font-weight:400;font-size:.58rem;letter-spacing:1px}
+.plq::before{content:"";position:absolute;top:8px;left:10px;width:10px;height:10px;border-radius:50%;background:#3a2c1a;box-shadow:inset 0 0 2px #000}
+.plq.on{background:linear-gradient(180deg,#f3dfa6,#c9a24a);}
+.plq.on::before{background:#fff7d0;box-shadow:0 0 8px 3px #ffd770}
+/* conexión: centralita */
+.switchb{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px;border-radius:4px;background:linear-gradient(180deg,#3a2414,#22140a);box-shadow:inset 0 0 0 2px #120a04}
+.jack{min-height:56px;display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid #5a3a1e;border-radius:3px;background:#2a1a0e;color:var(--cream);font-family:var(--font-ui);letter-spacing:1px;font-size:.76rem;cursor:pointer}
+.jack i{width:18px;height:18px;flex:0 0 auto;border-radius:50%;background:radial-gradient(circle,#000 0 4px,#c9a24a 5px 7px,#5a4418 8px)}
+.line{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;background:#e9dfc7;color:#20180f;font-family:var(--font-type);font-size:.8rem}
+.line b{font-family:var(--font-ui);letter-spacing:4px;font-size:1.05rem}
+.line span{min-height:36px;display:inline-flex;align-items:center;padding:0 8px;border:1px solid #20180f;font-size:.65rem;font-family:var(--font-ui);letter-spacing:1px}
+/* jefes: rueda de reconocimiento */
+.counts2{display:flex;gap:8px;justify-content:center;margin-bottom:6px}
+.counts2 label{display:flex;align-items:center;gap:6px;font-family:var(--font-ui);font-size:.7rem;letter-spacing:2px;color:var(--cream-2)}
+.counts2 select{min-height:44px;min-width:56px;background:#141008;color:var(--gold-3);border:1px solid var(--gold-dark);font-family:var(--font-ui);font-size:1rem;text-align:center}
+.lineup{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:8px;border-radius:4px;background:#c8bfa8}
+.suspect{position:relative;padding:6px;text-align:center;color:#141008}
+.suspect::before{content:"";position:absolute;left:0;right:0;top:6px;height:62px;background:repeating-linear-gradient(180deg,transparent 0 20px,rgba(20,16,8,.35) 20px 21px)}
+.suspect .ht{position:absolute;left:2px;top:4px;font-family:var(--font-ui);font-size:.5rem;color:rgba(20,16,8,.6);line-height:2.4}
+.suspect img{width:64px;height:64px;display:block;margin:0 auto -6px;position:relative;filter:drop-shadow(0 3px 2px rgba(0,0,0,.4))}
+.suspect .board{position:relative;display:block;width:100%;padding:3px 4px;background:#141008;color:#f3efe6;font-family:var(--font-ui);font-size:.55rem;letter-spacing:2px;border:2px solid #3a3530}
+.suspect .board input{width:100%;min-height:30px;margin-top:2px;background:transparent;border:0;border-top:1px dashed #555;color:#fff;font-family:var(--font-type);font-size:.85rem;text-align:center}
+.skins{display:flex;flex-wrap:wrap;gap:3px;justify-content:center;margin-top:5px}
+.skins span{min-height:28px;display:inline-flex;align-items:center;padding:0 6px;background:#efe6cf;border:1px solid #8a7a5a;font-family:var(--font-ui);font-size:.58rem;color:#20180f;cursor:pointer}
+.skins span.sel{background:#141008;color:var(--gold-3);border-color:#141008}
+.colors{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:5px}
+.colors i{width:22px;height:22px;border-radius:50%;background:var(--c);box-shadow:0 0 0 2px #efe6cf}
+.colors i.sel{box-shadow:0 0 0 2px #efe6cf,0 0 0 4px #141008}
+.colors i.used{opacity:.25}
+.suspect.bot .board{background:#2a2a2a}
+.suspect .lab{display:block;margin-top:4px;font-size:.58rem;font-family:var(--font-type);color:#5a4a32}
+/* contrato: interruptores + expedientes */
+.levers{display:flex;justify-content:space-around;gap:6px;padding:8px;border-radius:4px;background:#1a150f;border:1px solid var(--line)}
+.lever{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:72px;min-height:44px;font-family:var(--font-ui);font-size:.6rem;letter-spacing:1px;color:var(--cream-2);text-align:center;cursor:pointer}
+.lever .plate{position:relative;width:26px;height:40px;border-radius:4px;background:linear-gradient(180deg,#e9c779,#a8822e);box-shadow:0 2px 3px rgba(0,0,0,.5)}
+.lever .plate::after{content:"";position:absolute;left:9px;width:8px;height:16px;border-radius:3px;background:linear-gradient(90deg,#f3efe6,#9a948a);top:20px;transition:.2s}
+.lever.on .plate::after{top:4px;background:linear-gradient(90deg,#fff,#c9ced6)}
+.lever.on{color:var(--gold-3)}
+.lever b{font-size:.56rem;color:#7cc47f}.lever:not(.on) b{color:#8a7a5a}
+.files{display:grid;grid-template-columns:1fr 1fr;gap:12px 8px;margin-top:14px}
+.file{position:relative;min-height:84px;padding:16px 8px 8px;text-align:left;border:0;cursor:pointer;color:#20180f;font-family:var(--font-ui);font-weight:700;font-size:.82rem;letter-spacing:1px;background:linear-gradient(160deg,#d8c494,#b49e6a);box-shadow:0 4px 8px rgba(0,0,0,.5);transition:transform .2s}
+.file::before{content:"";position:absolute;top:-9px;left:0;width:55%;height:11px;border-radius:4px 10px 0 0;background:#c8b484}
+.file::after{content:"";position:absolute;top:-9px;left:8px;width:22px;height:5px;background:var(--fc)}
+.file small{display:block;font-family:var(--font-type);font-weight:400;font-size:.62rem;letter-spacing:0;color:#4a3a22;margin-top:2px}
+.file .fclip{position:absolute;top:-6px;right:12px;width:10px;height:26px;border:2px solid #9a948a;border-radius:6px}
+.file.sel{transform:translateY(-4px) rotate(-1deg);box-shadow:0 0 0 2px var(--fc),0 8px 14px rgba(0,0,0,.6)}
+.file .stmp{position:absolute;right:6px;bottom:6px;padding:0 5px;border:2px solid #a3241c;color:#a3241c;font-size:.56rem;letter-spacing:2px;transform:rotate(-10deg);opacity:0}
+.file.sel .stmp{opacity:1}
+.party{margin-top:12px;padding:10px;border-radius:4px;background:#efe6cf;color:#20180f}
+.party .wins{display:flex;align-items:center;justify-content:center;gap:10px;font-family:var(--font-ui);font-size:.7rem;letter-spacing:2px}
+.party .wins b{min-width:46px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;background:#141008;color:var(--gold-3);font-size:1.3rem}
+.party .wins span{min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #20180f;font-size:1rem;cursor:pointer}
+.party .note{margin:6px 0 0;font-size:.62rem;text-align:center}
+/* dados: bandeja de fieltro */
+.tray{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px;border-radius:10px;background:radial-gradient(ellipse,#2a6a46,#123a24);box-shadow:inset 0 0 0 4px #5a3214,inset 0 0 14px rgba(0,0,0,.6)}
+.tray button{min-height:60px;border-radius:6px;border:1px solid rgba(243,236,214,.3);background:rgba(0,0,0,.25);color:#f3ecd6;font-family:var(--font-ui);letter-spacing:2px;font-size:.78rem;cursor:pointer}
+.tray button small{display:block;font-size:.58rem;letter-spacing:0;opacity:.85}
+.tray button.on{background:rgba(243,236,214,.15);border-color:var(--gold-2);color:var(--gold-3);box-shadow:0 0 10px rgba(228,199,126,.4)}
+/* comenzar */
+.go{position:relative;display:block;width:100%;min-height:68px;margin-top:20px;border:0;cursor:pointer;font-family:var(--font-display);font-size:1.6rem;letter-spacing:3px;color:#2a1806;
+  background:linear-gradient(180deg,#f3dfa6,#c9a24a 55%,#8a6a26);clip-path:polygon(14px 0,calc(100% - 14px) 0,100% 50%,calc(100% - 14px) 100%,14px 100%,0 50%);text-shadow:0 1px 0 rgba(255,255,255,.4)}
+.go::before{content:"";position:absolute;inset:4px;clip-path:inherit;border:0;background:repeating-conic-gradient(from 0deg at 50% 120%,rgba(255,255,255,.12) 0 4deg,transparent 4deg 10deg);pointer-events:none}
+.tut{display:flex;align-items:center;gap:8px;width:fit-content;max-width:100%;min-height:44px;margin:12px auto 0;padding:4px 12px 4px 18px;background:#efe6cf;color:#20180f;font-family:var(--font-type);font-size:.74rem;clip-path:polygon(10px 0,100% 0,100% 100%,10px 100%,0 50%);cursor:pointer}
+.tut::before{content:"";width:6px;height:6px;border-radius:50%;background:#0b0a08}
+.ver{position:absolute;right:8px;bottom:6px;font-size:.6rem;color:var(--cream-3);opacity:.7}
+</style>
+</head>
+<body><div class="wrap">
+  <h1>Opciones a fondo</h1>
+  <p class="lead">Pantallas completas con <b>todos los botones reales</b>, las fichas en sus distintos estados (tu turno, rival elegible, eliminado…) y las ventanas de cada contrato. El fondo de cada contrato se queda igual. Los textos de las acciones son los del juego.</p>
+  <nav class="jump"><a href="#menu">Menú principal</a><a href="#rpg">Guerra de Bandas</a><a href="#exp">El Gran Atraco</a><a href="#maf">Imperio Criminal</a><a href="#pok">Apuestas Clandestinas</a></nav>
+
+  <!-- ===================== MENÚ ===================== -->
+  <section class="ct menuS" id="menu"><h2>Menú principal</h2>
+    <p>Los tres menús completos, uno por cada forma de poner el <b>logo</b>. Las secciones son las mismas en los tres: placas de latón, centralita, rueda de reconocimiento (ahora con flechas para elegir capo), interruptores, expedientes y bandeja de dados.</p>
+    <div class="menus">
+      <div class="ob"><h3>Menú 1 · Bajo la lámpara</h3><p>El logo cuelga bajo la lámpara y se balancea; luz cálida arriba, el resto en penumbra.</p>
+      <div class="mm v-lamp"><div class="topb"><span>🪙 TIENDA</span><span>👤 PERFIL</span></div>
+      <div class="h-lamp"><div class="shade"></div><img class="px" src="../assets/icons/icon-512.png" alt="Logo"><h4>CRIMINAL DICE</h4><div class="st">RANDOM DICE GAME</div></div>
+      <div class="sec"><div class="lbl">MODO DE JUEGO</div>
+        <p class="cap" style="margin-top:0">Placas de latón: se enciende la bombilla de la elegida.</p>
+        <div class="plaques"><button class="plq on">📱 LOCAL<small>Un mismo aparato</small></button><button class="plq">🌐 ONLINE<small>Cada uno en su celular</small></button></div></div>
+
+      <div class="sec"><div class="lbl">CONEXIÓN MULTIJUGADOR</div>
+        <p class="cap" style="margin-top:0">Solo en Online. Centralita telefónica: la sala es tu “línea”.</p>
+        <div class="switchb"><button class="jack"><i></i>👑 Crear sala</button><button class="jack"><i></i>🔑 Unirse a sala</button>
+          <div class="line">LÍNEA <b>4F7K</b><span>📋 COPIAR ENLACE</span></div></div></div>
+
+      <div class="sec"><div class="lbl">JEFES DE LA MAFIA</div>
+        <p class="cap" style="margin-top:0">Rueda de reconocimiento: cada jefe con su cartel. Aquí con el máximo: 12 capos comprados y 4 puestos.</p>
+        <div class="counts2"><label>JUGADORES <select><option>2</option></select></label><label>BOTS <select><option>2</option></select></label></div>
+        <div class="lineup"></div></div>
+
+      <div class="sec"><div class="lbl">ELEGIR CONTRATO</div>
+        <div class="levers"><div class="lever"><span class="plate"></span>MODO PARTY<b>APAGADO</b></div><div class="lever on"><span class="plate"></span>MERCADO NEGRO<b>ENCENDIDO</b></div><div class="lever on"><span class="plate"></span>EVENTOS<b>ENCENDIDO</b></div></div>
+        <div class="files">
+          <button class="file sel" style="--fc:#d4513f"><span class="fclip"></span>GUERRA DE BANDAS<small>Combate directo</small><span class="stmp">ELEGIDO</span></button>
+          <button class="file" style="--fc:#7fb2cc"><span class="fclip"></span>EL GRAN ATRACO<small>Tentar a la suerte</small><span class="stmp">ELEGIDO</span></button>
+          <button class="file" style="--fc:#d99347"><span class="fclip"></span>IMPERIO CRIMINAL<small>Gestión territorial</small><span class="stmp">ELEGIDO</span></button>
+          <button class="file" style="--fc:#7cc47f"><span class="fclip"></span>APUESTAS CLANDESTINAS<small>Póker y riesgo</small><span class="stmp">ELEGIDO</span></button>
+        </div>
+        <p class="cap">Con Modo Party encendido: se pueden sellar varios expedientes y aparece el contador de victorias.</p>
+        <div class="party"><div class="wins"><span>−</span>VICTORIAS PARA GANAR <b>3</b><span>+</span></div><p class="note">Los expedientes sellados entran en la partida (todos se juegan al menos una vez si hay más victorias que contratos).</p></div></div>
+
+      <div class="sec"><div class="lbl">TIPOS DE DADOS</div>
+        <div class="tray"><button class="on">🎲 VIRTUALES<small>Ruedan en pantalla</small></button><button>✋ FÍSICOS<small>Tiras los tuyos</small></button></div></div>
+
+      <button class="go">¡COMENZAR!</button>
+      <div class="tut">🎓 Tutorial · aprende a jugar en 2 minutos</div>
+      <span class="ver">v0.1</span>
+    </div></div>
+      <div class="ob"><h3>Menú 2 · Placa art déco</h3><p>Logo y título en una placa dorada; todo el menú enmarcado con filete dorado de los años 40. Es el que ocupa menos alto en el celular.</p>
+      <div class="mm v-deco"><div class="topb"><span>🪙 TIENDA</span><span>👤 PERFIL</span></div>
+      <div class="h-deco"><img class="px" src="../assets/icons/icon-512.png" alt="Logo"><div><h4>CRIMINAL DICE</h4><div class="st">RANDOM DICE GAME</div></div></div>
+      <div class="sec"><div class="lbl">MODO DE JUEGO</div>
+        <p class="cap" style="margin-top:0">Placas de latón: se enciende la bombilla de la elegida.</p>
+        <div class="plaques"><button class="plq on">📱 LOCAL<small>Un mismo aparato</small></button><button class="plq">🌐 ONLINE<small>Cada uno en su celular</small></button></div></div>
+
+      <div class="sec"><div class="lbl">CONEXIÓN MULTIJUGADOR</div>
+        <p class="cap" style="margin-top:0">Solo en Online. Centralita telefónica: la sala es tu “línea”.</p>
+        <div class="switchb"><button class="jack"><i></i>👑 Crear sala</button><button class="jack"><i></i>🔑 Unirse a sala</button>
+          <div class="line">LÍNEA <b>4F7K</b><span>📋 COPIAR ENLACE</span></div></div></div>
+
+      <div class="sec"><div class="lbl">JEFES DE LA MAFIA</div>
+        <p class="cap" style="margin-top:0">Rueda de reconocimiento: cada jefe con su cartel. Aquí con el máximo: 12 capos comprados y 4 puestos.</p>
+        <div class="counts2"><label>JUGADORES <select><option>2</option></select></label><label>BOTS <select><option>2</option></select></label></div>
+        <div class="lineup"></div></div>
+
+      <div class="sec"><div class="lbl">ELEGIR CONTRATO</div>
+        <div class="levers"><div class="lever"><span class="plate"></span>MODO PARTY<b>APAGADO</b></div><div class="lever on"><span class="plate"></span>MERCADO NEGRO<b>ENCENDIDO</b></div><div class="lever on"><span class="plate"></span>EVENTOS<b>ENCENDIDO</b></div></div>
+        <div class="files">
+          <button class="file sel" style="--fc:#d4513f"><span class="fclip"></span>GUERRA DE BANDAS<small>Combate directo</small><span class="stmp">ELEGIDO</span></button>
+          <button class="file" style="--fc:#7fb2cc"><span class="fclip"></span>EL GRAN ATRACO<small>Tentar a la suerte</small><span class="stmp">ELEGIDO</span></button>
+          <button class="file" style="--fc:#d99347"><span class="fclip"></span>IMPERIO CRIMINAL<small>Gestión territorial</small><span class="stmp">ELEGIDO</span></button>
+          <button class="file" style="--fc:#7cc47f"><span class="fclip"></span>APUESTAS CLANDESTINAS<small>Póker y riesgo</small><span class="stmp">ELEGIDO</span></button>
+        </div>
+        <p class="cap">Con Modo Party encendido: se pueden sellar varios expedientes y aparece el contador de victorias.</p>
+        <div class="party"><div class="wins"><span>−</span>VICTORIAS PARA GANAR <b>3</b><span>+</span></div><p class="note">Los expedientes sellados entran en la partida (todos se juegan al menos una vez si hay más victorias que contratos).</p></div></div>
+
+      <div class="sec"><div class="lbl">TIPOS DE DADOS</div>
+        <div class="tray"><button class="on">🎲 VIRTUALES<small>Ruedan en pantalla</small></button><button>✋ FÍSICOS<small>Tiras los tuyos</small></button></div></div>
+
+      <button class="go">¡COMENZAR!</button>
+      <div class="tut">🎓 Tutorial · aprende a jugar en 2 minutos</div>
+      <span class="ver">v0.1</span>
+    </div></div>
+      <div class="ob"><h3>Menú 3 · Letrero de neón</h3><p>Pared de ladrillo con el letrero de neón rojo que parpadea; los títulos de sección también brillan un poco.</p>
+      <div class="mm v-neon"><div class="topb"><span>🪙 TIENDA</span><span>👤 PERFIL</span></div>
+      <div class="h-neon"><img class="px" src="../assets/icons/icon-512.png" alt="Logo"><h4>CRIMINAL DICE</h4><div class="st">RANDOM DICE GAME</div></div>
+      <div class="sec"><div class="lbl">MODO DE JUEGO</div>
+        <p class="cap" style="margin-top:0">Placas de latón: se enciende la bombilla de la elegida.</p>
+        <div class="plaques"><button class="plq on">📱 LOCAL<small>Un mismo aparato</small></button><button class="plq">🌐 ONLINE<small>Cada uno en su celular</small></button></div></div>
+
+      <div class="sec"><div class="lbl">CONEXIÓN MULTIJUGADOR</div>
+        <p class="cap" style="margin-top:0">Solo en Online. Centralita telefónica: la sala es tu “línea”.</p>
+        <div class="switchb"><button class="jack"><i></i>👑 Crear sala</button><button class="jack"><i></i>🔑 Unirse a sala</button>
+          <div class="line">LÍNEA <b>4F7K</b><span>📋 COPIAR ENLACE</span></div></div></div>
+
+      <div class="sec"><div class="lbl">JEFES DE LA MAFIA</div>
+        <p class="cap" style="margin-top:0">Rueda de reconocimiento: cada jefe con su cartel. Aquí con el máximo: 12 capos comprados y 4 puestos.</p>
+        <div class="counts2"><label>JUGADORES <select><option>2</option></select></label><label>BOTS <select><option>2</option></select></label></div>
+        <div class="lineup"></div></div>
+
+      <div class="sec"><div class="lbl">ELEGIR CONTRATO</div>
+        <div class="levers"><div class="lever"><span class="plate"></span>MODO PARTY<b>APAGADO</b></div><div class="lever on"><span class="plate"></span>MERCADO NEGRO<b>ENCENDIDO</b></div><div class="lever on"><span class="plate"></span>EVENTOS<b>ENCENDIDO</b></div></div>
+        <div class="files">
+          <button class="file sel" style="--fc:#d4513f"><span class="fclip"></span>GUERRA DE BANDAS<small>Combate directo</small><span class="stmp">ELEGIDO</span></button>
+          <button class="file" style="--fc:#7fb2cc"><span class="fclip"></span>EL GRAN ATRACO<small>Tentar a la suerte</small><span class="stmp">ELEGIDO</span></button>
+          <button class="file" style="--fc:#d99347"><span class="fclip"></span>IMPERIO CRIMINAL<small>Gestión territorial</small><span class="stmp">ELEGIDO</span></button>
+          <button class="file" style="--fc:#7cc47f"><span class="fclip"></span>APUESTAS CLANDESTINAS<small>Póker y riesgo</small><span class="stmp">ELEGIDO</span></button>
+        </div>
+        <p class="cap">Con Modo Party encendido: se pueden sellar varios expedientes y aparece el contador de victorias.</p>
+        <div class="party"><div class="wins"><span>−</span>VICTORIAS PARA GANAR <b>3</b><span>+</span></div><p class="note">Los expedientes sellados entran en la partida (todos se juegan al menos una vez si hay más victorias que contratos).</p></div></div>
+
+      <div class="sec"><div class="lbl">TIPOS DE DADOS</div>
+        <div class="tray"><button class="on">🎲 VIRTUALES<small>Ruedan en pantalla</small></button><button>✋ FÍSICOS<small>Tiras los tuyos</small></button></div></div>
+
+      <button class="go">¡COMENZAR!</button>
+      <div class="tut">🎓 Tutorial · aprende a jugar en 2 minutos</div>
+      <span class="ver">v0.1</span>
+    </div></div>
+    </div>
+  </section>
+  <!-- ===================== GUERRA DE BANDAS ===================== -->
+  <section class="ct rpgS" id="rpg"><h2>Guerra de Bandas · 3 opciones nuevas</h2>
+    <p>Ninguna repite la caja de munición ni la diana. En las tres: tu turno, una rival con salud extra y soplón, un bot con poca salud que puedes atacar (parpadea) y uno eliminado.</p>
+    <div class="opts">
+      <div class="ob"><h3>C · Estuche de violín <span class="tag-new">NUEVA</span></h3><p>El capo descansa en el terciopelo rojo del estuche (donde se escondía la Tommy). La salud es el <b>cargador de tambor</b>: cada bala dorada es salud. Eliminado: estuche cerrado. Botones de cuero negro con esquinas de latón y la pose de tu capo.</p><div id="rpg-c"></div></div>
+      <div class="ob"><h3>D · Callejón <span class="tag-new" style="background:#2a6a3a">ELEGIDA</span></h3><p>Cada ficha es una pared de ladrillo; en tu turno se enciende la farola. El nombre y la salud van escritos con tiza (marcas de 5 en 5; las doradas son salud extra). Eliminado: silueta de tiza y cinta policial. Botones como letreros de calle esmaltados.</p><div id="rpg-d"></div></div>
+      <div class="ob"><h3>E · Coche de los años 30 <span class="tag-new">NUEVA</span></h3><p>Ficha como la puerta de un coche negro con el capo en la ventanilla. La salud es un <b>velocímetro</b> y aparecen agujeros de bala según el daño recibido. Eliminado: vidrio roto. Botones como placas de matrícula.</p><div id="rpg-e"></div></div>
+    </div></section>
+
+  <!-- ===================== GRAN ATRACO ===================== -->
+  <section class="ct expS" id="exp"><h2>El Gran Atraco</h2>
+    <p>Las 5 acciones reales (Reforzar Cobertura agotada) y los 4 estados: tu turno, rival con escudo que puedes atacar con granada, arrestado y escapado.</p>
+    <div class="opts">
+      <div class="ob"><h3>A · Plano de la bóveda, a fondo</h3><p>Arriba, las <b>hojas del plano</b> = los 3 atracos. Cada ficha es una sala con su cota; la Cobertura son muros (dorados = escudo). “Usted está aquí” marca tu turno y una mira roja al rival elegible. El Coche de Escape traza la ruta de huida. Abajo, el cajetín del plano con la ronda.</p><div id="exp-a"></div></div>
+      <div class="ob"><h3>C · Cajas de seguridad <span class="tag-new">NUEVA</span></h3><p>Cada jefe es una caja de seguridad de latón numerada. La Cobertura son los pines de la cerradura; el botín, fajos de billetes (verde = en mano, negro = asegurado). Arrestado: caja incautada con candado. Botones como placas de acero con cerradura.</p><div id="exp-c"></div></div>
+      <div class="ob"><h3>D · Pizarra del golpe <span class="tag-new" style="background:#2a6a3a">ELEGIDA</span></h3><p><b>Ajustada:</b> arriba los 3 atracos escritos con tiza; la Cobertura en casillas de tiza, una por punto (amarillas = escudo), con el número pequeño al lado. El plan dibujado con tiza: fotos sujetas con imanes, la Cobertura en casillas ☐/☒ y notas a mano (“¡ATRAPADO!”, “→ al coche”). Botones dibujados con tiza; lo agotado queda tachado.</p><div id="exp-d"></div></div>
+    </div></section>
+
+  <!-- ===================== IMPERIO ===================== -->
+  <section class="ct mafS" id="maf"><h2>Imperio Criminal</h2>
+    <p>Cada opción muestra: las fichas con los <b>6 distritos</b> (propios, en redada y uno con los 6), la <b>fase 1</b> (Recaudar), la <b>fase 2</b> (Controlar, Sobornar, Redada, Pasar turno) y las dos ventanas: <b>Controlar distrito</b> y <b>Redada policial</b>.</p>
+    <div class="opts">
+      <div class="ob"><h3>A · Escritura de propiedad, a fondo</h3><p>Los distritos son lotes de un plano catastral (rayados con tu color; “CLAUSURA” si hay redada). Influencia con 15 muescas y el billete del efectivo. La compra es el <b>Registro de la Propiedad</b> y la redada una <b>orden policial</b>.</p><div id="maf-a"></div></div>
+      <div class="ob"><h3>B · Caja registradora, a fondo</h3><p>Los distritos son las <b>banderitas numeradas</b> que asoman arriba de la caja (roja = en redada). Efectivo en la pantalla verde, Influencia en números que giran. Botones = teclas; “Lavar dinero: SÍ” queda hundida. Las ventanas son un teclado del 1 al 6.</p><div id="maf-b"></div></div>
+      <div class="ob"><h3>C · Mapa del barrio <span class="tag-new" style="background:#2a6a3a">ELEGIDA</span></h3><p><b>Ajustada:</b> cada manzana con el número grande arriba y el nombre abajo (también en las ventanas: “Distrito 1” grande y “Muelles” pequeño); sellos rojos sobre papel para que se lean; Lavar dinero es un interruptor-carretera (el billete se desliza; tócalo); la fase 2 va en 3 columnas sin huecos, con los iconos de los sprites. Cada jefe tiene su barrio de 6 manzanas: las tuyas se pintan de tu color, las clausuradas llevan patrulla 🚓. Comprar o mandar redada es tocar la manzana en el mapa grande.</p><div id="maf-c"></div></div>
+    </div></section>
+
+  <!-- ===================== APUESTAS ===================== -->
+  <section class="ct pokS" id="pok"><h2>Apuestas Clandestinas · Opción A a fondo</h2>
+    <p>Fichas apiladas de verdad: rojas valen 1 y, cuando pasas de 20, se cambian por negras de 5 (así no se desborda con el máximo). Estados: tu turno (botón de crupier “D”), Tahúr en espera, bot con pocas fichas que puedes atacar y bancarrota.</p>
+    <div class="opts">
+      <div class="ob"><h3>A · Mesa de póker (fichas separadas)</h3><p>Como la opción A, ahora completa: cada jefe en su paño. Las dos apuestas son <b>fichas de casino</b> grandes y la Trampa de Tahúr un abanico de cartas. Bajo el nombre, el estado de tu as bajo la manga.</p><div id="pok-a"></div></div>
+      <div class="ob"><h3>A2 · Todos en una sola mesa <span class="tag-new" style="background:#2a6a3a">ELEGIDA</span></h3><p><b>Ajustada:</b> las fichas usan los colores de los sprites: rojas (Apuesta Básica, valen 1) y negras (Golpe a la Mesa; en las pilas valen 5 cuando pasas de 20). Los botones son esas mismas fichas (roja y negra con marcas blancas). La misma estética, pero los 4 sentados alrededor de una mesa ovalada con el logo en el paño. Tú abajo, el rival elegible parpadea. Los botones son los mismos de la A.</p><div id="pok-a2"></div></div>
+    </div></section>
+</div>
+
+<script>
+// ---------- datos de ejemplo (textos reales del juego) ----------
+const IMG = (c, f) => '../assets/characters/' + c + '/' + (f || 'idle') + '.png';
+const pc = { R:'#c2382b', B:'#3a6ab0', G:'#3a9a5a', Pu:'#7a4ab0', Y:'#d8a93e', P:'#d86a9a', W:'#c9c9c9' };
+
+const RPG = [
+  { n:'Darb', c:'Mafioso/Color_R', hp:19, max:28, turn:1 },
+  { n:'Lucía', c:'Mafiosa/Color_B', hp:31, max:28, sop:2 },
+  { n:'Bot 1', c:'Bot/Color_G', hp:6, max:28, tgt:1 },
+  { n:'Bot 2', c:'Bot/Color_Pu', hp:0, max:28, dead:1 }];
+const RPG_A = [
+  { p:'rpg_tommy', l:'⚡ Ráfaga Tommy Gun', s:'d6 de daño' },
+  { p:'rpg_sniper', l:'🔫 Francotirador', s:'d20 ≥ 11, luego d12', o:'50% acierto' },
+  { p:'rpg_doctor', l:'🩺 Médico de calle', s:'d8 de salud · 1/3 seguidas' },
+  { p:'rpg_rat', l:'🕵️ Infiltrar Soplón', s:'1 de daño por turno' }];
+const rpgSub = p => p.dead ? '💀 ELIMINADO' : p.hp + '/' + p.max + ' SALUD' + (p.hp > p.max ? ' · +' + Math.round((p.hp - p.max) / p.max * 100) + '% extra' : '') + (p.sop ? ' · 🕵️ soplón ' + p.sop : '');
+
+const EXP = [
+  { n:'Darb', c:'Gustavo/Color_B', hp:14, max:20, temp:6, sec:12, turn:1 },
+  { n:'Ana', c:'Mafiosa/Color_R', hp:20, max:20, sh:3, temp:2, sec:8, tgt:1 },
+  { n:'Bot 1', c:'Bot/Color_G', hp:0, max:20, temp:0, sec:4, arr:1 },
+  { n:'Bot 2', c:'Bot/Color_Pu', hp:9, max:20, temp:0, sec:25, esc:1 }];
+const EXP_A = [
+  { p:'exp_boxes', l:'📦 Saquear Cajas', s:'d6: 1-2 trampa · 3-5 +1 · 6 +3', o:'67% botín' },
+  { p:'exp_vault', l:'🏦 Forzar Bóveda', s:'d20 ≥ 11 → d12 de botín', o:'50% éxito' },
+  { p:'exp_cover', l:'🔧 Reforzar Cobertura', s:'Agotado', dis:1 },
+  { p:'exp_grenade', l:'💣 Lanzar Granada', s:'1/2 · d4 a un rival' },
+  { p:'exp_getaway', l:'🚗 Coche de Escape', s:'Asegura 💰 6', wide:1 }];
+
+const MAF = [
+  { n:'Don Darb', c:'Vito/Color_Y', k:'Y', inf:7, coins:4, par:[2,3,5], raid:{3:2}, turn:1 },
+  { n:'Lucía', c:'Mafiosa/Color_B', k:'B', inf:11, coins:9, par:[1,4,6], raid:{4:1} },
+  { n:'Bot 1', c:'Bot/Color_G', k:'G', inf:3, coins:1, par:[2] },
+  { n:'Bot 2', c:'Bot/Color_Pu', k:'Pu', inf:5, coins:2, par:[1,2,3,4,5,6], raid:{6:1} }];
+const MAF_1 = [
+  { p:'maf_harvest', l:'🎲 Recaudación Segura', s:'d6 · cobras 1💵', o:'33% cobras' },
+  { p:'maf_harvest', l:'🎰 Recaudación Arriesgada', s:'d12 · cobras 3💵 (7-12: nadie cobra)', o:'17% cobras' },
+  { l:'🔥 Lavar dinero: SÍ', s:'Paga 1💵 para cobrar solo tú', wide:1, on:1 }];
+const MAF_2 = [
+  { l:'🏢 Controlar Distrito', s:'Costo: 4💵' },
+  { l:'🎩 Sobornar Político', s:'5💵 · d20 de Influencia', o:'+1: 45% · +2: 50% · +4: 5%', dis:1 },
+  { p:'maf_raid', l:'🚨 Redada Policial', s:'3💵 · clausura un distrito rival' },
+  { l:'⏳ Pasar turno', s:'Guardas tu efectivo', wide:1 }];
+const BARRIOS = ['Muelles', 'Estación', 'Teatros', 'Mercado', 'Fábricas', 'Casino'];
+
+const POK = [
+  { n:'Lucía', c:'Mafiosa/Color_G', tok:9, tah:'🂡 As listo · d4 de robo', turn:1 },
+  { n:'Darb', c:'Mafioso/Color_R', tok:32, tah:'⏳ Tahúr: espera 2 rondas', cd:1 },
+  { n:'Bot 1', c:'Bot/Color_P', tok:2, tah:'🂡 As listo', danger:1, tgt:1 },
+  { n:'Bot 2', c:'Bot/Color_Pu', tok:0, dead:1 }];
+
+// ---------- piezas ----------
+const odds = a => a.o ? '<span class="odds">' + a.o + '</span>' : '';
+const btn = (cls, a, me, pose = true) => `<button class="${cls}${a.wide ? ' wide' : ''}${a.on ? ' on' : ''}" ${a.dis ? 'disabled' : ''}>${pose && a.p ? `<img class="pose px" src="${IMG(me, a.p)}" alt="">` : ''}${a.l}<small>${a.s}</small>${odds(a)}</button>`;
+const screen = (bg, title, round, turn, cards, acts, extra = '') => `<div class="scr ${bg}"><div class="hd"><b>${title}</b><span>${round}</span></div><div class="turn">${turn}</div><div class="pls">${cards}</div>${acts}${extra}</div>`;
+const tally = (n, extra = 0) => { let out = ''; const one = (k, col) => { let s = ''; for (let i = 0; i < Math.min(k, 4); i++) s += `<line x1="${3 + i * 5}" y1="1" x2="${3 + i * 5}" y2="13" stroke="${col}" stroke-width="1.6" stroke-linecap="round"/>`;
+    if (k === 5) s += `<line x1="0" y1="11" x2="20" y2="3" stroke="${col}" stroke-width="1.6" stroke-linecap="round"/>`; return `<svg viewBox="0 0 22 14">${s}</svg>`; };
+  for (let k = n; k > 0; k -= 5) out += one(Math.min(5, k), '#f3efe6'); for (let k = extra; k > 0; k -= 5) out += one(Math.min(5, k), '#e8c25a'); return `<div class="tally">${out}</div>`; };
+const chips = n => { if (!n) return ''; const big = n > 20 ? Math.floor(n / 5) : 0, list = Array(big).fill('b').concat(Array(n - big * 5).fill('r'));
+  let s = ''; for (let i = 0; i < list.length; i += 5) s += '<span class="stk">' + list.slice(i, i + 5).map(c => `<i class="${c}"></i>`).join('') + '</span>'; return `<div class="stacks">${s}</div>`; };
+const holes = n => { const pos = [[70,20],[40,60],[85,55],[25,30],[60,75],[15,70],[80,85]]; return pos.slice(0, n).map(([x, y]) => `<span class="hole" style="left:${x}%;top:${y}%"></span>`).join(''); };
+
+// ---------- Guerra de Bandas ----------
+const rpgTurn = 'Turno de Darb · elige acción y rival';
+const rpgC = p => `<div class="vc ${p.turn ? 'turn' : ''} ${p.tgt ? 'tgt' : ''} ${p.dead ? 'dead' : ''}" style="position:relative"><div class="velvet" style="position:relative"><img class="px" src="${IMG(p.c)}" alt="">${p.dead ? '' : `<div class="drum-wrap ${p.hp > p.max ? 'over' : ''}"><div class="drum" style="--p:${Math.min(100, p.hp / p.max * 100)}"></div><b>${p.hp}</b></div>`}</div><span class="plate">${p.n}</span><small>${rpgSub(p)}</small></div>`;
+const rpgD = p => `<div class="al ${p.turn ? 'turn' : ''} ${p.tgt ? 'tgt' : ''} ${p.dead ? 'dead' : ''}"><span class="lamp"></span><div class="row1"><img class="px" src="${IMG(p.c, p.dead ? 'lose' : 'idle')}" alt=""><div><div class="nm">${p.n}</div>${p.dead ? '' : tally(Math.min(p.hp, p.max), Math.max(0, p.hp - p.max))}</div></div><small>${rpgSub(p)}</small></div>`;
+const rpgE = p => `<div class="car ${p.turn ? 'turn' : ''} ${p.tgt ? 'tgt' : ''} ${p.dead ? 'dead' : ''}">${holes(p.dead ? 5 : Math.round(Math.max(0, p.max - p.hp) / 5))}<div class="win"><img class="px" src="${IMG(p.c)}" alt=""><span class="nm">${p.n}</span></div><div class="chrome"></div><div class="gauge" style="--p:${p.dead ? 0 : Math.min(100, p.hp / p.max * 100)}"><i></i></div><div class="hp">${p.dead ? '💀 ELIMINADO' : p.hp + '/' + p.max}<small>${p.dead ? '' : rpgSub(p).split(' · ').slice(1).join(' · ') || 'salud'}</small></div></div>`;
+const rpgActs = cls => '<div class="acts">' + RPG_A.map(a => btn(cls, a, 'Mafioso/Color_R')).join('') + '</div>';
+document.getElementById('rpg-c').innerHTML = screen('bg-rpg', 'Guerra de Bandas', 'Ronda 6', rpgTurn, RPG.map(rpgC).join(''), rpgActs('b-vc'));
+document.getElementById('rpg-d').innerHTML = screen('bg-rpg', 'Guerra de Bandas', 'Ronda 6', rpgTurn, RPG.map(rpgD).join(''), rpgActs('b-sign'));
+document.getElementById('rpg-e').innerHTML = screen('bg-rpg', 'Guerra de Bandas', 'Ronda 6', rpgTurn, RPG.map(rpgE).join(''), rpgActs('b-plate'));
+
+// ---------- Gran Atraco ----------
+const walls = p => { let s = ''; for (let i = 0; i < p.max; i++) s += `<i class="${i < p.hp ? 'on' : ''}"></i>`; for (let i = 0; i < (p.sh || 0); i++) s += '<i class="sh"></i>'; return s; };
+const expA = p => `<div class="room ${p.turn ? 'turn' : ''} ${p.tgt ? 'tgt' : ''} ${p.arr ? 'arr' : ''} ${p.esc ? 'esc' : ''}"><span class="dim">${p.hp}/${p.max} COB${p.sh ? ' +' + p.sh : ''}</span><div class="row1"><img class="px" src="${IMG(p.c, p.arr ? 'lose' : p.esc ? 'win' : 'idle')}" alt=""><span class="nm">${p.n.toUpperCase()}</span></div><div class="walls">${walls(p)}</div><div class="loot"><span>💰 ${p.temp}</span><span>🔒 ${p.sec}</span></div></div>`;
+const expC = (p, i) => `<div class="dep ${p.turn ? 'turn' : ''} ${p.tgt ? 'tgt' : ''} ${p.arr ? 'arr' : ''} ${p.esc ? 'esc' : ''}"><span class="no">Nº 0${i + 3}</span><div class="row1"><div class="door"><img class="px" src="${IMG(p.c)}" alt=""></div><div><div class="nm">${p.n}</div><div class="pins">${walls(p)}</div></div></div><div class="bills"><span>💰 ${p.temp}</span><span class="lock">🔒 ${p.sec}</span></div></div>`;
+const expD = p => `<div class="ck ${p.turn ? 'turn' : ''} ${p.tgt ? 'tgt' : ''} ${p.arr ? 'arr' : ''} ${p.esc ? 'esc' : ''}"><span class="mag"></span><div class="row1"><img class="px" src="${IMG(p.c, p.arr ? 'lose' : p.esc ? 'win' : 'idle')}" alt=""><div><div class="nm">${p.n}</div><small>💰 ${p.temp} · 🔒 ${p.sec}</small></div></div><div class="cwalls">${walls(p)}<em>${p.hp}/${p.max} COB${p.sh ? ' +' + p.sh : ''}</em></div></div>`;
+const expTurn = 'Turno de Darb · Atraco 2 de 3';
+document.getElementById('exp-a').innerHTML = screen('bp', 'El Gran Atraco', 'Ronda 4', '<div class="sheets"><span class="done">HOJA 1 · ATRACO 1</span><span class="now">HOJA 2 · ATRACO 2</span><span>HOJA 3 · ATRACO 3</span></div>' + expTurn, EXP.map(expA).join(''),
+  '<div class="acts">' + EXP_A.map(a => a.wide ? `<button class="b-bp wide"><span>${a.l}<small>${a.s}</small></span><span class="route"></span>🚗</button>` : btn('b-bp', a, 'Gustavo/Color_B')).join('') + '</div>',
+  '<div class="titleblock"><span>PROYECTO: EL GRAN ATRACO</span><span>HOJA 2/3</span><span>OBJETIVO: BÓVEDA CENTRAL</span><span>RONDA 4</span></div>');
+document.getElementById('exp-c').innerHTML = screen('bg-exp', 'El Gran Atraco', 'Atraco 2 de 3 · Ronda 4', 'Turno de Darb', EXP.map(expC).join(''), '<div class="acts">' + EXP_A.map(a => btn('b-key', a, 'Gustavo/Color_B', false)).join('') + '</div>');
+document.getElementById('exp-d').innerHTML = screen('chalk', 'El Gran Atraco', 'Ronda 4', '<div class="chalk-sheets"><span class="done">Atraco 1 ✓</span><span class="now">Atraco 2</span><span>Atraco 3</span></div>Turno de Darb', EXP.map(expD).join(''), '<div class="acts">' + EXP_A.map(a => btn('b-ck', a, '', false)).join('') + '</div>');
+
+// ---------- Imperio Criminal ----------
+const notch = n => { let s = ''; for (let i = 0; i < 15; i++) s += `<i class="${i < n ? 'on' : ''}"></i>`; return `<div class="notch">${s}</div>`; };
+const six = (p, cls) => [1,2,3,4,5,6].map(i => { const own = p.par.includes(i), rd = p.raid && p.raid[i]; return `<i class="${own ? (rd ? 'own raid' : 'own') : ''}" ${cls === 'flag' ? '' : ''}>${i}${rd ? ' 🚨' + rd : ''}</i>`; }).join('');
+const mafA = p => `<div class="deed ${p.turn ? 'turn' : ''}" style="--pc:${pc[p.k]}"><div class="hdr">ESCRITURA DE PROPIEDAD</div><div class="row1"><img class="px" src="${IMG(p.c)}" alt=""><div><div class="nm">${p.n}</div><div class="inf">🏆 ${p.inf}/15 <span class="cash">💵 ${p.coins}</span></div></div></div>${notch(p.inf)}<div class="lots">${six(p)}</div><span class="wax"></span></div>`;
+const flags = p => [1,2,3,4,5,6].map(i => { const own = p.par.includes(i), rd = p.raid && p.raid[i]; return `<i class="${own ? (rd ? 'raid' : 'own') : ''}">${own ? i : ''}</i>`; }).join('');
+const pad = n => String(n).padStart(2, '0');
+const mafB = p => `<div class="reg ${p.turn ? 'turn' : ''}"><div class="flags">${flags(p)}</div><div class="row1"><img class="px" src="${IMG(p.c)}" alt=""><div><div class="nm">${p.n}</div><span class="lcd">$ ${String(p.coins).padStart(3, '0')}</span></div></div><small>INFLUENCIA <span class="flip">${[...pad(p.inf)].map(d => '<b>' + d + '</b>').join('')}</span> / 15</small></div>`;
+const mafC = p => `<div class="mapc ${p.turn ? 'turn' : ''}" style="--pc:${pc[p.k]}"><div class="row1"><img class="px" src="${IMG(p.c)}" alt=""><div><div class="nm">${p.n}</div><div class="inf">🏆 ${p.inf}/15 · 💵 ${p.coins}</div></div></div><div class="city">${[1,2,3,4,5,6].map(i => { const own = p.par.includes(i), rd = p.raid && p.raid[i]; return `<i class="${own ? 'own' : ''} ${rd ? 'raid' : ''}"><b>${i}</b><small>${BARRIOS[i - 1]}</small></i>`; }).join('')}</div></div>`;
+const mafActs = (cls, list, pose) => '<div class="acts">' + list.map(a => btn(cls, a, 'Vito/Color_Y', pose)).join('') + '</div>';
+const me = MAF[0], riv = MAF[1];
+const buyLots = names => [1,2,3,4,5,6].map(i => { const own = me.par.includes(i); return `<button class="m-lot ${own ? 'own' : ''}" ${own ? 'disabled data-stamp="CONTROLADO"' : ''} style="--pc:${pc.Y}">${names ? '<b>Distrito ' + i + '</b>' : 'Distrito ' + i}<small>${names ? names[i - 1] : 'Lote ' + i}</small></button>`; }).join('');
+const raidLots = names => [1,2,3,4,5,6].map(i => { const has = riv.par.includes(i), rd = riv.raid[i]; const st = !has ? 'NO LO POSEE' : rd ? 'YA EN REDADA' : '';
+  return `<button class="m-lot ${has ? 'own' : ''}" ${st ? `disabled data-stamp="${st}"` : ''} style="--pc:${pc.B}">${names ? '<b>Distrito ' + i + '</b>' : 'Distrito ' + i}<small>${names ? names[i - 1] : ''}</small></button>`; }).join('');
+// mapa: lavar dinero como interruptor de carretera, fase 2 en 3 columnas, iconos de los sprites
+const NONE = f => '../assets/characters/None/' + f + '.png';
+const mbtn = (ico, a) => `<button class="b-map" ${a.dis ? 'disabled' : ''}><img class="ico px" src="${ico}" alt="">${a.l}<small>${a.s}</small>${odds(a)}</button>`;
+const mapPhases = () => `<div class="phase">FASE 1 · RECAUDAR</div><div class="acts">${mbtn(NONE('maf_safe'), MAF_1[0])}${mbtn(NONE('maf_risk'), MAF_1[1])}
+  <button class="map-sw on" role="switch" aria-checked="true" onclick="this.classList.toggle('on');this.querySelector('b').textContent=this.classList.contains('on')?'SÍ':'NO'"><span>🔥 Lavar dinero<small>Paga 1💵 para cobrar solo tú</small></span><span class="road"><i>💵</i></span><b>SÍ</b></button></div>
+  <div class="phase">FASE 2 · ACCIÓN</div><div class="acts acts3">${mbtn(NONE('maf_buy'), MAF_2[0])}${mbtn(NONE('maf_bribe'), MAF_2[1])}${mbtn(IMG('Vito/Color_Y', 'maf_raid'), MAF_2[2])}<button class="b-map wide">${MAF_2[3].l}<small>${MAF_2[3].s}</small></button></div>`;const phases = (cls, pose) => `<div class="phase">FASE 1 · RECAUDAR</div>${mafActs(cls, MAF_1, pose)}<div class="phase">FASE 2 · ACCIÓN</div>${mafActs(cls, MAF_2, pose)}`;
+const mafTurn = 'Turno de Don Darb';
+document.getElementById('maf-a').innerHTML = screen('bg-maf', 'Imperio Criminal', 'Ronda 5 · meta 15', mafTurn, MAF.map(mafA).join(''), phases('b-stamp', true),
+  `<div class="modal m-deed"><h4>Registro de la Propiedad</h4><p>CONTROLAR DISTRITO · Costo: 4💵. Elige el distrito a tomar.</p><div class="m-grid">${buyLots()}</div><button class="m-cancel">CANCELAR</button></div>
+   <div class="modal m-raid"><h4>ORDEN DE CLAUSURA</h4><p>REDADA POLICIAL · Elige el distrito de Lucía que quieres clausurar.</p><div class="m-grid">${raidLots()}</div><button class="m-cancel">CANCELAR</button></div>`);
+document.getElementById('maf-b').innerHTML = screen('bg-maf', 'Imperio Criminal', 'Ronda 5 · meta 15', mafTurn, MAF.map(mafB).join(''), phases('b-reg', false),
+  `<div class="modal m-reg"><span class="lcd">CONTROLAR · COSTO $004</span><div class="m-grid">${buyLots()}</div><button class="m-cancel">CANCELAR</button></div>
+   <div class="modal m-reg" style="background:linear-gradient(180deg,#3a5a7a,#1e3a5a);color:#e9eef2"><span class="lcd" style="color:#ff8a7a">REDADA · LUCÍA</span><div class="m-grid">${raidLots()}</div><button class="m-cancel">CANCELAR</button></div>`);
+document.getElementById('maf-c').innerHTML = screen('bg-maf', 'Imperio Criminal', 'Ronda 5 · meta 15', mafTurn, MAF.map(mafC).join(''), mapPhases(),
+  `<div class="modal m-map"><h4>Tu barrio</h4><p>CONTROLAR DISTRITO · Costo: 4💵. Toca la manzana que quieres tomar.</p><div class="m-grid">${buyLots(BARRIOS)}</div><button class="m-cancel">CANCELAR</button></div>
+   <div class="modal m-map"><h4>🚓 Barrio de Lucía</h4><p>REDADA POLICIAL · Toca la manzana que quieres clausurar.</p><div class="m-grid">${raidLots(BARRIOS)}</div><button class="m-cancel">CANCELAR</button></div>`);
+
+// ---------- Apuestas Clandestinas ----------
+const pokA = p => `<div class="ft ${p.turn ? 'turn' : ''} ${p.tgt ? 'tgt' : ''} ${p.danger ? 'danger' : ''} ${p.dead ? 'dead' : ''}">${p.turn ? '<span class="dealer">D</span>' : ''}<div class="row1"><img class="px" src="${IMG(p.c, p.dead ? 'lose' : 'idle')}" alt=""><div><div class="nm">${p.n}</div>${p.dead ? '' : `<span class="sleeve ${p.cd ? 'cd' : ''}">${p.tah}</span>`}</div></div>${p.dead ? '<div class="facedown"><i></i><i></i></div>' : `<div class="row1">${chips(p.tok)}<span class="cnt">${p.tok}<small> fichas</small></span></div>`}${p.danger ? '<span class="warn">¡ÚLTIMAS FICHAS!</span>' : ''}</div>`;
+const pokActs = `<div class="pk-acts"><button class="chipb r"><span class="c">APUESTA<br>BÁSICA<b>1</b></span><small>🎰 Arriesgas 1🎰 · d6 gana con 4+<br><span class="odds">50% ganas</span></small></button>
+  <button class="chipb k"><span class="c">GOLPE A<br>LA MESA<b>3</b></span><small>💥 Arriesgas 3🎰 · d20 ≥ 11, luego d12<br><span class="odds">50% ganas</span></small></button></div>
+  <button class="b-tahur"><span class="fan"><i>A♥</i><i>A♦</i><i>A♠</i></span><span>🎭 TRAMPA DE TAHÚR<small>Sin riesgo · d4 de robo</small></span></button>`;
+document.getElementById('pok-a').innerHTML = screen('bg-pok', 'Apuestas Clandestinas', 'Ronda 7', 'Turno de Lucía · elige apuesta y rival', POK.map(pokA).join(''), pokActs);
+const seat = (p, i) => `<div class="seat s${i + 1}"><img class="px" src="${IMG(p.c, p.dead ? 'lose' : 'idle')}" alt=""><b>${p.n}</b>${p.dead ? 'BANCARROTA' : chips(p.tok) + p.tok + ' fichas'}</div>`;
+document.getElementById('pok-a2').innerHTML = `<div class="scr bg-pok"><div class="hd"><b>Apuestas Clandestinas</b><span>Ronda 7</span></div><div class="turn">Turno de Lucía · elige apuesta y rival</div>
+  <div class="oval"><div class="logo-felt"><img class="px" src="../assets/icons/icon-512.png" alt="">CRIMINAL DICE</div>${[POK[0], POK[1], POK[2], POK[3]].map(seat).join('')}</div><div style="height:30px"></div>${pokActs}</div>`;
+
+// ---------- menú: rueda de reconocimiento (con el máximo de capos) ----------
+const SKINS = ['Mafioso','Mafiosa','El Patrón','El Brummie','El Sopra','Sr. Fisk','El Gordo','Gustavo','Sr. Montana','Don Vito','T-800','T-X'];
+const COLS = ['R','B','G','Pu','Y','P','W'];
+const LINE = [{ l:'JEFE 1', n:'Darb', c:'Mafioso/Color_R', k:'R', s:0 }, { l:'JEFE 2', n:'Lucía', c:'Mafiosa/Color_B', k:'B', s:1 }, { l:'BOT 1', n:'Bot 1', c:'Bot/Color_G', k:'G', bot:1 }, { l:'BOT 2', n:'Bot 2', c:'Bot/Color_Pu', k:'Pu', bot:1 }];
+
+const SKEYS = ['Mafioso','Mafiosa','Patron','Brummie','Soprano','Fisk','Tony','Gustavo','Montana','Vito','Terminator','TX'];
+const suspect = s => `<div class="suspect ${s.bot ? 'bot' : ''}" data-k="${s.k}" data-i="${s.s || 0}"><span class="ht">180<br>170<br>160</span><img class="px" src="${IMG(s.c)}" alt=""><span class="board">${s.l}<input value="${s.n}" ${s.bot ? 'disabled' : 'maxlength="16"'}></span>
+  ${s.bot ? '<span class="lab">Los bots siempre son el robot</span>' : `<div class="picker"><button class="arr pv" aria-label="Capo anterior">◀</button><button class="arr nx" aria-label="Capo siguiente">▶</button></div><span class="pname"><span class="pn">${SKINS[s.s]}</span><small>${s.s + 1} de ${SKINS.length} · lista ▾</small><select aria-label="Elegir capo">${SKINS.map((k, j) => `<option value="${j}" ${j === s.s ? 'selected' : ''}>${k}</option>`).join('')}</select></span>
+  <div class="colors">${COLS.map(k => `<i style="--c:${pc[k]}" class="${k === s.k ? 'sel' : (k === 'R' || k === 'B') ? 'used' : ''}"></i>`).join('')}</div>`}</div>`;
+document.querySelectorAll('.lineup').forEach(el => { el.innerHTML = LINE.map(suspect).join(''); });
+const setSkin = (sus, j) => { j = (j + SKINS.length) % SKINS.length; sus.dataset.i = j; sus.querySelector('img').src = IMG(SKEYS[j] + '/Color_' + sus.dataset.k);
+  sus.querySelector('.pn').textContent = SKINS[j]; sus.querySelector('.pname small').textContent = (j + 1) + ' de ' + SKINS.length + ' · lista ▾'; sus.querySelector('select').value = j; };
+document.addEventListener('click', e => { const b = e.target.closest('.picker .arr'); if (!b) return; const s = b.closest('.suspect'); setSkin(s, +s.dataset.i + (b.classList.contains('nx') ? 1 : -1)); });
+document.addEventListener('change', e => { if (e.target.matches('.pname select')) setSkin(e.target.closest('.suspect'), +e.target.value); });</script>
+</body>
+</html>

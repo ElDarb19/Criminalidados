@@ -27,13 +27,18 @@ function charNext(el) { const l = (el.dataset.c || '').split('|'); l.shift(); if
 window.addEventListener('criminaldice:start', e => CD.start(e.detail));
 
 const COUNTDOWN_MS = 3200;                            // duración de la cuenta atrás entre contratos
+// Orden siempre: Mercado (si toca) → cuenta atrás → empieza el contrato (o el siguiente atraco).
+CD.countdown = async function (G, title, kicker) {
+  if (CD.cfg.tutorial) return;
+  G.loading = { title, kicker }; CD.publish(); render(); await sleep(COUNTDOWN_MS); G.loading = null; CD.publish(); render();
+};
 CD.mod = () => MODULES[CD.contract]();               // contrato en curso (en Modo Party va cambiando)
 CD.beginContract = async function (G) {      // mercado (contrato único) → evento de ciudad → preparación → a jugar
   if (CD.cfg.tutorial) await TUT.ready();       // el tutorial espera a que el jugador lea la bienvenida
   if (MK.on() && !MK.party()) await CD.openMarket('MERCADO NEGRO', ['Compra antes del contrato · ' + CONTRACT_NAMES[CD.contract]]);
   // Cuenta atrás de proyector (3, 2, 1) antes de cada contrato. La decide el anfitrión y viaja en el estado (G.loading),
   // así sale a la vez en todos los dispositivos; mientras dura, G.wait sigue activo y nadie (ni los bots) puede jugar.
-  if (!CD.cfg.tutorial) { G.loading = { title:GAME_TITLES[CD.contract], n:(G.pi || 0) + 1, party:CD.cfg.mode === 'party' }; CD.publish(); render(); await sleep(COUNTDOWN_MS); G.loading = null; CD.publish(); render(); }
+  await CD.countdown(G, GAME_TITLES[CD.contract], CD.cfg.mode === 'party' ? 'CONTRATO ' + ((G.pi || 0) + 1) : 'PRÓXIMO CONTRATO');
   await MK.rollEvent(G);
   await CD.mod().init(G);
   MK.contractStart(G);
@@ -581,7 +586,7 @@ function render() {
   setPodium($$('between-podium'), G.between && G.between.podium ? podiumHtml(G, G.between.podium) : '');
   const cd = $$('countdown'), ld = G.loading;                                // cuenta atrás entre contratos
   if (ld && cd.classList.contains('hidden')) {
-    $$('countdown-k').textContent = ld.party ? 'CONTRATO ' + ld.n : 'PRÓXIMO CONTRATO'; $$('countdown-t').textContent = ld.title;
+    $$('countdown-k').textContent = ld.kicker || ''; $$('countdown-t').textContent = ld.title;
     cd.classList.remove('hidden', 'run'); void cd.offsetWidth; cd.classList.add('run');
     const num = cd.querySelector('.leader span'), t0 = performance.now(); clearInterval(CD.cdTimer); num.textContent = '3';
     CD.cdTimer = setInterval(() => { num.textContent = Math.max(1, 3 - Math.floor((performance.now() - t0) / (COUNTDOWN_MS / 3))); }, 100);

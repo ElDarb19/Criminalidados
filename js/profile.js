@@ -84,11 +84,14 @@ const PROFILE = {
   },
   reactHtml() {
     const r = this.reacts();
-    return `<h3 class="pf-h">Chat rápido · ${r.length}/${REACT_MAX}</h3>
-      <p class="pf-note pf-react-note">Elige hasta ${REACT_MAX} reacciones para enviar en las partidas online. Salen en el orden en que las elijas: ${r.map(esc).join(' ')}</p>
+    // Telegrama: arriba el mensaje con lo elegido (separado por STOP) y debajo las teclas para elegir.
+    return `<h3 class="pf-h">Chat rápido · ${r.length}/${REACT_MAX}</h3><div class="telegram">
+      <div class="tg-head"><span>TELEGRAMA</span><span>CAPO-CABLE</span></div>
+      <p class="tg-msg">${r.map(esc).join(' <i>STOP</i> ')} <i>STOP</i></p>
+      <p class="tg-note">Elige hasta ${REACT_MAX} reacciones para mandar en las partidas online. Salen en el orden en que las elijas.</p>
       <div class="pf-reacts">${REACTIONS.map(e => { const on = r.includes(e);
         return `<button type="button" class="pf-rx ${on ? 'on' : ''} ${e.length > 2 ? 'txt' : ''}" aria-pressed="${on}" aria-label="${on ? 'Quitar' : 'Elegir'} ${esc(e)}" onclick="PROFILE.toggleReact('${e}')">${e}</button>`; }).join('')}</div>
-      <p id="pf-react-msg" class="ac-msg" role="status"></p>`;
+      <p id="pf-react-msg" class="ac-msg" role="status"></p></div>`;
   },
   reactMsg(t) { const m = $$('pf-react-msg'); if (m) m.textContent = t; },
   prefs() { const d = this.load(); return { name:cleanName(d.name).trim(), color:COLORS[d.color] ? d.color : null, char:this.owns(d.char) ? d.char : null,
@@ -275,7 +278,7 @@ const PROFILE = {
       <div class="pf-fields"><label class="pf-label" for="pf-name">Nombre</label><input id="pf-name" type="text" maxlength="16" placeholder="Capo 1" value="${esc(p.name)}">
       <span class="pf-label">Personaje</span><div class="chars">${CHARACTERS.filter(c => this.owns(c.key)).map(c => `<button type="button" class="char-btn ${(p.char || 'Mafioso') === c.key ? 'sel' : ''}" aria-pressed="${(p.char || 'Mafioso') === c.key}" onclick="PROFILE.set('char','${c.key}')">${c.label}</button>`).join('')}</div>
       <span class="pf-label">Color favorito</span><div class="swatches">${COLOR_KEYS.map(c => `<button type="button" class="sw ${p.color === c ? 'sel' : ''}" style="--c:${COLORS[c]}" data-tag="${colorTag(c)}" aria-label="${COLOR_LABELS[c]}" onclick="PROFILE.set('color','${c}')"></button>`).join('')}</div></div></div>
-      <p class="pf-note">Se usan solos en tu puesto del menú y al unirte a una sala online. Puedes cambiarlos en el menú cuando quieras. Si en una sala tu color ya está ocupado, lo conserva quien entró antes.</p>
+      <div class="memo"><span class="memo-clip" aria-hidden="true"></span><b>NOTA</b> Tu nombre, capo y color se ponen solos en tu puesto del menú y al unirte a una sala online. Puedes cambiarlos en el menú cuando quieras. Si en una sala tu color ya está ocupado, lo conserva quien entró antes.</div>
       ${this.diceHtml(p)}
       <div id="pf-react">${this.reactHtml()}</div>
       <h3 class="pf-h">Cuenta</h3><div id="ac-zone">${typeof ACCOUNT !== 'undefined' ? ACCOUNT.html() : ''}</div>`;
@@ -284,7 +287,9 @@ const PROFILE = {
     const own = k => DICE_ITEMS.filter(i => i.kind === k && this.owns(i.key));
     const row = (k, none, cur) => [`<button type="button" class="char-btn ${!cur ? 'sel' : ''}" aria-pressed="${!cur}" onclick="PROFILE.set('${k}',null)">${none}</button>`]
       .concat(own(k).map(i => `<button type="button" class="char-btn ${cur === i.id ? 'sel' : ''}" aria-pressed="${cur === i.id}" onclick="PROFILE.set('${k}','${i.id}')">${esc(i.label)}</button>`)).join('');
-    return `<h3 class="pf-h">Tus dados</h3><div class="pf-dice"><canvas class="dice-prev" width="96" height="96" data-fin="${p.fin || ''}" data-aura="${p.aura || ''}" aria-hidden="true"></canvas>
+    // Bolsa de evidencias: el dado va dentro de la bolsa con su franja roja; acabado y aura se eligen debajo.
+    return `<h3 class="pf-h">Tus dados</h3><div class="pf-dice evidence"><div class="ev-bag"><span class="ev-strip">EVIDENCIA · CASO Nº ${String(this.load().games + 101).padStart(4, '0')}</span>
+        <canvas class="dice-prev" width="96" height="96" data-fin="${p.fin || ''}" data-aura="${p.aura || ''}" aria-hidden="true"></canvas><span class="ev-note">Arma del crimen: d20</span></div>
       <div class="pf-fields"><span class="pf-label">Acabado</span><div class="chars">${row('fin', 'Normal', p.fin)}</div>
       <span class="pf-label">Aura</span><div class="chars">${row('aura', 'Ninguna', p.aura)}</div>
       ${own('fin').length + own('aura').length ? '' : '<p class="pf-note">Compra acabados y auras en la Tienda.</p>'}</div></div>`;
