@@ -13,7 +13,8 @@ const ECON = {
   EXTORSIONADOR: 4, MATEMATICO: 15, COBRADOR: 50,    // 💲 por turno sin daño · 💲 al sacar el máximo en un dado · 💲 al sacar 1 en d6
   EVENT_CHANCE: 0.65,                // probabilidad de que haya un Evento de Ciudad en cada contrato (si están activados)
   LEY_SECA: 0.40,                    // con el evento Ley Seca, probabilidad de que afecte en cada turno
-  TAX: n => Math.floor(n * 0.9)      // Comisionado: lo que te queda tras el 10% (igual que la versión anterior: redondea hacia abajo)
+  TAX: n => Math.floor(n * 0.9),     // Comisionado: lo que te queda tras el 10% (igual que la versión anterior: redondea hacia abajo)
+  TAX_MIN: 6                         // el Comisionado solo cobra a quien tiene 6 o más (fichas, Efectivo o botín sin asegurar)
 };
 const ITEMS = [
   { id:'contact_armero', icon:'🔫', name:'Armero Clandestino', cost:360, kind:'p', desc:'+2 a tus tiradas d20 (máximo 20). Un 18 o 19 se vuelve 20 y cuenta como crítico.', incompatible:[] },
@@ -45,7 +46,7 @@ const EVENTS = {
   ley_seca:    { title:'📰 LEY SECA CLANDESTINA', desc:'40% de probabilidad en cada turno: -50% a curaciones · -1 a las tiradas de d6', games:['rpg', 'exp', 'maf', 'pok'] },
   inspectores: { title:'📰 GUERRA DE INSPECTORES', desc:'Recaudación x2 · 50% de riesgo de inspección en la Recaudación Segura', games:['maf'] },
   carnicero:   { title:'💀 JEFE: EL CARNICERO', desc:'El jefe tiene +10 HP/COB, +1 daño y recibe +1 daño. Vencerlo otorga x2 de recompensa; si gana el jefe, se lleva x1.5.', games:['rpg', 'exp'] },
-  comisionado: { title:'💀 JEFE: COMISIONADO CORRUPTO', desc:'-10% de Efectivo/Fichas/Botín al terminar tu turno', games:['exp', 'maf', 'pok'] }
+  comisionado: { title:'💀 JEFE: COMISIONADO CORRUPTO', desc:'-10% de Efectivo/Fichas/Botín al terminar tu turno, si tienes 6 o más', games:['exp', 'maf', 'pok'] }
 };
 // Utilidad (0-1) de cada objeto por contrato: la usa la IA para comprar. Si falta un dato, vale 0.5.
 const ITEM_VALUE = {
@@ -161,7 +162,7 @@ const MK = {
   turnEnd(G, p) {
     if (this.eventsOn() && this.ev() === 'comisionado') {
       const f = { maf:'coins', pok:'tokens', exp:'temp' }[CD.contract];
-      if (f && p[f] > 0) {
+      if (f && p[f] >= ECON.TAX_MIN) {
         const left = ECON.TAX(p[f]); CD.log(`🕵️‍♂️ EL COMISIONADO confisca ${p[f] - left} a ${p.name}.`); CD.float(p.slot, '-' + (p[f] - left) + ' COMISIONADO', 'dmg'); p[f] = left;
         if (CD.contract === 'pok' && p.tokens <= 0) { p.tokens = 0; p.alive = false; p.elimN = G.elimCount = (G.elimCount || 0) + 1; CD.log('💀 ' + p.name + ' queda sin fichas por el Comisionado.'); if (CD.alive().length <= 1) POK.finishGame(G, 'Último en pie'); }
       }

@@ -110,6 +110,8 @@ window.addEventListener('error', function (e) {
   <button id="btn-settings" class="btn-settings" type="button" aria-expanded="false" aria-controls="settings-panel" onclick="settingsToggle()">⚙️ Ajustes</button>
   <div id="settings-panel" class="settings-panel hidden" role="group" aria-label="Ajustes">
     <button id="set-music" class="set-row" type="button" role="switch" aria-checked="true" onclick="musicToggle()"><span>🎵 Música</span><i class="set-state">SÍ</i></button>
+    <label class="set-vol" for="set-music-vol"><span>Volumen de la música</span><output id="set-music-out" for="set-music-vol">25%</output>
+      <input id="set-music-vol" type="range" min="0" max="100" step="5" value="25" oninput="musicVolume(this.value)"></label>
     <button id="set-sfx" class="set-row" type="button" role="switch" aria-checked="true" onclick="settingsFlip('sfx')"><span>🔊 Efectos de sonido</span><i class="set-state">SÍ</i></button>
     <button id="set-fast" class="set-row" type="button" role="switch" aria-checked="false" onclick="settingsFlip('fast')"><span>⏩ Bots rápidos</span><i class="set-state">NO</i></button>
     <button id="set-calm" class="set-row" type="button" role="switch" aria-checked="false" onclick="settingsFlip('calm')"><span>🎞️ Reducir animaciones</span><i class="set-state">NO</i></button>
@@ -186,7 +188,8 @@ window.addEventListener('error', function (e) {
   <div class="confirm-btns"><button id="confirm-no" class="btn-cancel" type="button">CANCELAR</button><button id="confirm-ok" class="start" type="button"></button></div>
 </div></div>
 
-<div id="modal-profile" class="modal-overlay hidden" style="z-index:4050" role="dialog" aria-modal="true" aria-labelledby="profile-title"><div class="modal-content profile-box">
+<div id="modal-profile" class="modal-overlay hidden" style="z-index:4050" role="dialog" aria-modal="true" aria-labelledby="profile-title" onclick="if (event.target === this) PROFILE.close()"><div class="modal-content profile-box">
+  <button class="modal-x" type="button" aria-label="Cerrar el perfil" onclick="PROFILE.close()">✕</button>
   <h2 id="profile-title">👤 Perfil del Capo</h2>
   <p class="pf-purse" aria-live="polite"><i class="coin" aria-hidden="true"></i> <b id="pf-gold">0</b> de oro</p>
   <div class="tab-header" role="tablist">
@@ -196,13 +199,12 @@ window.addEventListener('error', function (e) {
     <button class="tab-btn" type="button" data-tab="top" onclick="PROFILE.tab('top')">🏆 TOP</button>
   </div>
   <div id="profile-body"></div>
-  <button class="btn-cancel" type="button" onclick="PROFILE.close()">CERRAR</button>
 </div></div>
-<div id="modal-shop" class="modal-overlay hidden" style="z-index:4050" role="dialog" aria-modal="true" aria-labelledby="shop-title"><div class="modal-content profile-box">
+<div id="modal-shop" class="modal-overlay hidden" style="z-index:4050" role="dialog" aria-modal="true" aria-labelledby="shop-title" onclick="if (event.target === this) PROFILE.closeShop()"><div class="modal-content profile-box">
+  <button class="modal-x" type="button" aria-label="Cerrar la tienda" onclick="PROFILE.closeShop()">✕</button>
   <h2 id="shop-title"><i class="coin big" aria-hidden="true"></i> Tienda del Capo</h2>
   <p class="pf-purse" aria-live="polite"><i class="coin" aria-hidden="true"></i> <b id="shop-gold">0</b> de oro</p>
   <div id="shop-body"></div>
-  <button class="btn-cancel" type="button" onclick="PROFILE.closeShop()">CERRAR</button>
 </div></div>
 <div id="ach-toast" class="ach-toast hidden" role="status"></div>
 
@@ -355,7 +357,7 @@ window.addEventListener('error', function (e) {
         <h3>💀 Jefe: Comisionado Corrupto</h3>
         <p><b>Contratos:</b> El Gran Atraco, Imperio Criminal y Apuestas Clandestinas.</p>
         <ul>
-          <li>Al terminar tu turno te confisca el <b>10%</b> (redondeando a su favor):</li>
+          <li>Al terminar tu turno te confisca el <b>10%</b> (redondeando a su favor), pero <b>solo si tienes 6 o más</b>; con 5 o menos no te toca:</li>
           <li><b>El Gran Atraco:</b> del botín que aún no aseguraste.</li>
           <li><b>Imperio Criminal:</b> de tu Efectivo.</li>
           <li><b>Apuestas Clandestinas:</b> de tus fichas.</li>
@@ -370,6 +372,8 @@ window.addEventListener('error', function (e) {
         </ul>
       </div>
 
+      <p class="manual-credits">🎵 <b>Música:</b> «Streetlight Serenade» de Shane Ivers (<a href="https://www.silvermansound.com" target="_blank" rel="noopener">silvermansound.com</a>, licencia <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>) ·
+        «Sleek Panther» y «Closed Curtains» de David Renda (<a href="https://www.fesliyanstudios.com" target="_blank" rel="noopener">Fesliyan Studios</a>).</p>
       <button class="btn-cancel" onclick="closeManualGuide()">CERRAR MANUAL</button>
     </div>
   </div>

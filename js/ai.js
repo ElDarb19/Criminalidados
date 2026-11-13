@@ -70,8 +70,8 @@ const AI = {
     if (me.temp >= k.bank && !behind) return { type:'surface' };
     // 3. Con poca Cobertura y botín en las manos, asegura antes de arriesgarse a que la arresten.
     if (me.hp <= 3 && me.temp > 0) return { type:'surface' };
-    const tax = MK.eventsOn() && MK.ev() === 'comisionado';                  // el Comisionado confisca 10% cada turno
-    if (tax && me.temp >= 4) return { type:'surface' };
+    const tax = MK.eventsOn() && MK.ev() === 'comisionado';                  // el Comisionado confisca 10% cada turno (desde 6)
+    if (tax && me.temp >= ECON.TAX_MIN) return { type:'surface' };
     // 4. Peligro real: el peor golpe que puede venir (granada de un rival con cargas, o una trampa) y si lo dejaría arrestado.
     const bombers = foes.filter(f => f.torpedoUses < mx);
     const purga = MK.eventsOn() && MK.ev() === 'purga' ? 2 : 0;

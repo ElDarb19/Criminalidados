@@ -46,7 +46,12 @@ const CHARACTERS = [{ key:'Mafioso', label:'Mafioso' }, { key:'Mafiosa', label:'
   { key:'Gustavo', label:'Gustavo', price:700 },
   { key:'Montana', label:'Sr. Montana', price:700 },
   { key:'Vito', label:'Don Vito', price:800 },
-  { key:'Terminator', label:'T-800', secret:true }];          // capo secreto: lo desbloquea el logro "Juicio Final"
+  { key:'Terminator', label:'T-800', secret:true },            // capos secretos: los dos los desbloquea el logro "Juicio Final"
+  { key:'TX', label:'T-X', secret:true }];                     // la versión de la Mafiosa (cara con la piel arrancada, cuerpo del Bot)
+// Capos en preparación: salen en la Tienda como "Próximamente" solo con su nombre y una silueta genérica (sorpresa):
+// g:'h' = assets/characters/None/silueta_h.png, g:'m' = silueta_m.png. Cuando uno esté listo, se pasa a CHARACTERS con su precio.
+const COMING_SOON = [{ key:'Snorky', label:'Snorky', g:'h' }, { key:'Viuda', label:'La Viuda Negra', g:'m' }, { key:'Reina', label:'La Reina del Sur', g:'m' },
+  { key:'Cantante', label:'La Cantante del Club', g:'m' }, { key:'Flapper', label:'La Flapper', g:'m' }, { key:'Contadora', label:'La Contadora', g:'m' }, { key:'MaBarker', label:'Ma Barker', g:'m' }];
 const GAMES = ['rpg','exp','maf','pok'];
 const IMPLEMENTED = ['rpg', 'exp', 'maf', 'pok'];   // contratos ya migrados a 4 jugadores; añade aquí cada uno al terminarlo
 const GAME_NAMES = { rpg:'Guerra de Bandas', exp:'El Gran Atraco', maf:'Imperio Criminal', pok:'Apuestas Clandestinas' };

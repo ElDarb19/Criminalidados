@@ -14,6 +14,11 @@ const DICE_ITEMS = [
   { key:'fin:marfil',    kind:'fin',  id:'marfil',   label:'Marfil',   sub:'hueso pulido, contorno de tu color',   price:500, online:true },
   { key:'fin:billete',   kind:'fin',  id:'billete',  label:'Billete',  sub:'papel moneda verde, contorno de tu color', price:500, online:true },
   { key:'fin:marmol',    kind:'fin',  id:'marmol',   label:'Mármol Negro', sub:'piedra negra con vetas, contorno de tu color', price:500, online:true },
+  { key:'fin:cromo',     kind:'fin',  id:'cromo',    label:'Cromo',    sub:'metal pulido con brillos, contorno de tu color', price:600, online:true },
+  { key:'fin:perla',     kind:'fin',  id:'perla',    label:'Perla',    sub:'nácar con reflejos rosa y celeste', price:500, online:true },
+  { key:'fin:orosa',     kind:'fin',  id:'orosa',    label:'Oro Rosa', sub:'metal rosado cepillado',     price:500, online:true },
+  { key:'fin:labial',    kind:'fin',  id:'labial',   label:'Lápiz Labial', sub:'rojo brillante con un beso', price:500, online:true },
+  { key:'fin:cristal',   kind:'fin',  id:'cristal',  label:'Cristal',  sub:'transparente, el número flota', price:500, online:true },
   { key:'aura:fuego',    kind:'aura', id:'fuego',    label:'Fuego',    sub:'llamas que suben',           price:400 },
   { key:'aura:aire',     kind:'aura', id:'aire',     label:'Aire',     sub:'remolino de viento',         price:400 },
   { key:'aura:tierra',   kind:'aura', id:'tierra',   label:'Tierra',   sub:'rocas que orbitan',          price:400 },
@@ -23,10 +28,16 @@ const DICE_ITEMS = [
   { key:'aura:billetes', kind:'aura', id:'billetes', label:'Billetes', sub:'lluvia de dólares',          price:400 },
   { key:'aura:monedas',  kind:'aura', id:'monedas',  label:'Monedas',  sub:'oro que cae girando',        price:400 },
   { key:'aura:neon',     kind:'aura', id:'neon',     label:'Neón',     sub:'letrero de club nocturno',   price:400 },
-  { key:'aura:sirena',   kind:'aura', id:'sirena',   label:'Sirena',   sub:'luces de patrulla roja y azul', price:400, online:true }
+  { key:'aura:sirena',   kind:'aura', id:'sirena',   label:'Sirena',   sub:'luces de patrulla roja y azul', price:400, online:true },
+  { key:'aura:casino',   kind:'aura', id:'casino',   label:'Luces de Casino', sub:'bombillas que corren en cadena', price:400, online:true },
+  { key:'aura:petalos',  kind:'aura', id:'petalos',  label:'Pétalos',  sub:'pétalos de rosa que caen',   price:400, online:true },
+  { key:'aura:diamantes', kind:'aura', id:'diamantes', label:'Diamantes', sub:'destellos de joyería',   price:400, online:true },
+  { key:'aura:corazones', kind:'aura', id:'corazones', label:'Corazones Rotos', sub:'corazones que suben', price:400, online:true },
+  { key:'aura:boa',      kind:'aura', id:'boa',      label:'Boa de Plumas', sub:'plumas rosas alrededor', price:400, online:true },
+  { key:'aura:perfume',  kind:'aura', id:'perfume',  label:'Perfume',  sub:'nubecitas rosas con brillo',  price:400, online:true }
 ];
-// Auras en prueba: se dibujan (para verlas en Versiones/Dados_opciones/nuevos.html) pero aún no se venden.
-const DICE_DRAFTS = ['casino'];
+// En prueba: se dibujan (para verlos en Versiones/Dados_opciones/nuevos.html) pero aún no se venden.
+const DICE_DRAFTS = [];
 
 const DICEFX = (() => {
   const C = 48, R = (a, b) => a + Math.random() * (b - a), pick = a => a[Math.floor(Math.random() * a.length)], SQ = (x, y) => Math.sqrt(x * x + y * y);
@@ -89,6 +100,33 @@ const DICEFX = (() => {
       step(p) { p.a += .03; },
       draw(g, p) { const t = p.life / p.max, x = C + Math.cos(p.a) * 30, y = C + Math.sin(p.a) * 30; g.globalAlpha = Math.sin(t * Math.PI) * (Math.random() < .08 ? .2 : 1);
         g.fillStyle = p.c; g.fillRect(x | 0, y | 0, 2, 2); g.globalAlpha = .35; g.fillRect((x | 0) - 1, (y | 0) - 1, 4, 4); g.globalAlpha = 1; } },
+    // ---- auras para chicas (en prueba, ver DICE_DRAFTS) ----
+    petalos: { rate:.3, behind:true,                      // pétalos de rosa que caen meciéndose
+      spawn() { return { x:R(8, 88), y:-3, vy:R(.35, .6), life:0, max:R(130, 180), ph:R(0, 6) }; },
+      step(p) { p.x += Math.sin(p.life * .07 + p.ph) * .5; p.y += p.vy; },
+      draw(g, p) { const f = Math.sin(p.life * .12 + p.ph) > 0, x = p.x | 0, y = p.y | 0;
+        g.fillStyle = '#8a1838'; g.fillRect(x - 1, y - 1, f ? 5 : 3, 4); g.fillStyle = '#e8456e'; g.fillRect(x, y, f ? 3 : 1, 2); g.fillStyle = '#ffb0c4'; g.fillRect(x, y, 1, 1); } },
+    diamantes: { rate:.45,                                // destellos de diamante alrededor del dado
+      spawn() { const a = R(0, Math.PI * 2), r = R(25, 38); return { x:C + Math.cos(a) * r, y:C + Math.sin(a) * r * .85, life:0, max:R(24, 36) }; },
+      step() {},
+      draw(g, p) { const s = Math.sin(p.life / p.max * Math.PI), n = Math.round(s * 4), x = p.x | 0, y = p.y | 0;
+        g.fillStyle = '#9fe8ff'; g.fillRect(x - n, y, n * 2 + 1, 1); g.fillRect(x, y - n, 1, n * 2 + 1);
+        g.fillStyle = '#ffffff'; g.fillRect(x - 1, y, 3, 1); g.fillRect(x, y - 1, 1, 3); } },
+    corazones: { rate:.22, behind:true,                   // corazones que suben; algunos rotos
+      spawn() { return { x:R(10, 80), y:R(70, 92), vy:R(-.45, -.3), life:0, max:R(90, 130), broken:Math.random() < .4 }; },
+      step(p) { p.y += p.vy; p.x += Math.sin(p.life * .06) * .2; },
+      draw(g, p) { g.globalAlpha = Math.min(1, (p.max - p.life) / 25); heart(g, p.x | 0, p.y | 0, p.broken); g.globalAlpha = 1; } },
+    boa: { rate:1.6,                                      // boa de plumas rosa que rodea el dado
+      spawn() { return { a:R(0, Math.PI * 2), r:R(29, 34), life:0, max:R(30, 50), c:pick(['#ff9ec8', '#ff7ab4', '#ffc4de', '#e0568f']) }; },
+      step(p) { p.a += .025; p.r += R(-.2, .2); },
+      draw(g, p) { const x = C + Math.cos(p.a) * p.r, y = C + Math.sin(p.a) * p.r * .55 + 6, t = p.life / p.max; g.globalAlpha = Math.sin(t * Math.PI);
+        g.fillStyle = p.c; g.fillRect(x | 0, y | 0, 2, 2); g.fillRect((x | 0) + (p.life % 2 ? 1 : -1), (y | 0) - 1, 1, 1); g.globalAlpha = 1; } },
+    perfume: { rate:.5, behind:true,                      // nubecitas rosas de perfume con brillitos
+      spawn() { const s = Math.random() < .5 ? -1 : 1; return { x:C + s * R(18, 28), y:C + R(-6, 14), vx:s * R(.05, .25), vy:R(-.4, -.2), life:0, max:R(60, 90) }; },
+      step(p) { p.x += p.vx; p.y += p.vy; },
+      draw(g, p) { const t = p.life / p.max, s = 2 + (t * 5 | 0); g.globalAlpha = (1 - t) * .75;
+        g.fillStyle = t < .4 ? '#ffc4e0' : '#e89ac4'; g.fillRect((p.x - s / 2) | 0, (p.y - s / 2) | 0, s, s);
+        if (p.life % 12 < 2) { g.fillStyle = '#ffffff'; g.fillRect((p.x | 0) + 2, (p.y | 0) - 3, 1, 1); } g.globalAlpha = 1; } },
     // frame(g, ms): auras que se dibujan enteras en cada cuadro (sin partículas), detrás del dado.
     sirena: { rate:0,                                     // luces de patrulla: un difuminado rojo (izquierda) y uno azul (derecha) que aparecen y desaparecen
       frame(g, ms) { const w = Math.sin((ms % 1400) / 1400 * Math.PI * 2);
@@ -96,6 +134,13 @@ const DICEFX = (() => {
     casino: { rate:0,                                     // marquesina de casino: bombillas que se encienden en cadena
       frame(g, ms) { marquee(g, Math.floor(ms / 120)); } }
   };
+  const HEART = ['.AA.AA.', 'ABBABBA', 'ABWBBBA', 'ABBBBBA', '.ABBBA.', '..ABA..', '...A...'];
+  function heart(g, x, y, broken, P) {                    // corazón de 7x7 (con grieta si está roto); P = pintor de las auras estáticas
+    const put = P || ((px, py, c) => { g.fillStyle = c; g.fillRect(px, py, 1, 1); });
+    HEART.forEach((row, j) => [...row].forEach((ch, i) => { if (ch === '.') return;
+      const crack = broken && ((j === 1 && i === 3) || (j === 2 && i === 4) || (j === 3 && i === 3) || (j === 4 && i === 4) || (j === 5 && i === 3));
+      put(x + i - 3, y + j - 3, crack ? '#2a0610' : ch === 'A' ? '#5a0c1e' : ch === 'W' ? '#ffd0dc' : '#e8304e'); }));
+  }
   // ---- piezas de la Sirena y la Marquesina (las usan la versión animada y la estática) ----
   // Sirena: resplandor difuminado de cada lado (r = fuerza del rojo, b = del azul, de 0 a 1) con destellos de lente redondos
   const SIREN = [{ x:C - 17, rgb:'255,40,30', core:'255,190,180', bokeh:[[-10, -9, 6], [2, 9, 7], [-6, 13, 3]] },
@@ -168,7 +213,23 @@ const DICEFX = (() => {
       const d = g.getImageData(0, 0, 96, 96).data;
       for (let i = 0; i < 96 * 96; i++) if (d[i * 4 + 3] > 4) P(i % 96, (i / 96) | 0, 'rgba(' + d[i * 4] + ',' + d[i * 4 + 1] + ',' + d[i * 4 + 2] + ',' + (d[i * 4 + 3] / 255).toFixed(3) + ')');
     },
-    casino(P) { marquee(null, null, P); }                 // marquesina con las bombillas alternas encendidas
+    casino(P) { marquee(null, null, P); },                // marquesina con las bombillas alternas encendidas
+    petalos(P) {                                          // pétalos repartidos alrededor del dado
+      [[14, 18], [80, 14], [8, 50], [86, 46], [20, 80], [74, 82], [46, 8], [50, 88], [30, 12], [64, 86]].forEach(([x, y], i) => {
+        const w = i % 2 ? 5 : 3; for (let j = -1; j < 3; j++) for (let k = -1; k < w - 1; k++) P(x + k, y + j, j === -1 || k === -1 || j === 2 || k === w - 2 ? '#8a1838' : '#e8456e');
+        P(x, y, '#ffb0c4'); }); },
+    diamantes(P) {                                        // destellos fijos en estrella
+      [[16, 20, 4], [80, 18, 3], [10, 56, 3], [86, 62, 4], [28, 84, 3], [70, 84, 3], [48, 9, 3]].forEach(([x, y, n]) => {
+        for (let k = -n; k <= n; k++) { P(x + k, y, '#9fe8ff'); P(x, y + k, '#9fe8ff'); }
+        for (let k = -1; k <= 1; k++) { P(x + k, y, '#ffffff'); P(x, y + k, '#ffffff'); } }); },
+    corazones(P) { [[14, 22, 0], [82, 20, 1], [10, 62, 1], [86, 66, 0], [48, 10, 0], [30, 86, 0], [68, 86, 1]].forEach(([x, y, b]) => heart(null, x, y, !!b, P)); },
+    boa(P) {                                              // boa de plumas: anillo esponjoso rosa
+      for (let t = 0; t < Math.PI * 2; t += .02) { const x = C + Math.cos(t) * 32, y = C + Math.sin(t) * 18 + 6, k = Math.round(t * 50);
+        P(x, y, ['#ff9ec8', '#ff7ab4', '#ffc4de', '#e0568f'][k % 4]); P(x + (k % 3) - 1, y - 1, '#ffc4de'); P(x, y + 1, '#c0407a'); } },
+    perfume(P) {                                          // nubecitas rosas a los lados
+      [[14, 40, 5], [10, 30, 3], [18, 24, 2], [82, 44, 5], [86, 32, 3], [78, 26, 2]].forEach(([x, y, r]) => {
+        for (let j = -r; j <= r; j++) for (let k = -r; k <= r; k++) if (j * j + k * k <= r * r) P(x + k, y + j, j * j + k * k > (r - 1) * (r - 1) ? '#e89ac4' : '#ffc4e0'); });
+      [[22, 18], [74, 20], [6, 44]].forEach(([x, y]) => P(x, y, '#ffffff')); }
   };
 
   // ---------- el dado (48x48) con su acabado ----------
@@ -180,7 +241,16 @@ const DICEFX = (() => {
     marfil:  { at:(x, y) => ((x * 7 + y * 13) % 11 === 0 ? '#c8b890' : (y + (x >> 2)) % 9 === 0 ? '#d8cba6' : '#efe6cc') },        // vetas finas de hueso
     billete: { at:(x, y) => ((x + y) % 4 === 0 ? '#6e9a62' : (x - y + 48) % 7 === 0 ? '#c8e2b4' : '#9cc48a') },              // guilloché de billete
     marmol:  { at:(x, y) => { const v = Math.abs(Math.sin(x * .33 + Math.sin(y * .27) * 2.4 + y * .11));                                   // vetas grises sobre negro (no blancas: así no se pierden los números)
-      return v < .1 ? '#8a8a92' : v < .22 ? '#4e4e56' : (x * 5 + y * 3) % 13 === 0 ? '#2e2e34' : '#1c1c21'; } }
+      return v < .1 ? '#8a8a92' : v < .22 ? '#4e4e56' : (x * 5 + y * 3) % 13 === 0 ? '#2e2e34' : '#1c1c21'; } },
+    cromo:   { at:(x, y) => { if ((x - y * .6 + 96) % 22 < 2) return '#ffffff';                                                         // metal pulido: cielo claro arriba,
+      const t = y / 48; return t < .3 ? '#e4eaf0' : t < .58 ? '#c4ccd6' : t < .64 ? '#6a737e' : t < .71 ? '#2c3139' : t < .84 ? '#8c97a4' : '#c6ced8'; } },   // horizonte oscuro (bajo los números) y reflejo abajo, con brillos en diagonal
+    // ---- en prueba (DICE_DRAFTS) ----
+    perla:   { at:(x, y) => { const v = Math.sin(x * .18 + y * .11) + Math.sin(y * .23 - x * .07);                                       // nácar: blanco con reflejos rosa y celeste
+      return (x * 3 + y * 5) % 29 === 0 ? '#ffffff' : v > .7 ? '#f0c8dc' : v < -.7 ? '#c8dcf2' : '#f2ece8'; } },
+    orosa:   { at:(x, y) => ((x + y * 2) % 13 < 2 ? '#fbd8c8' : (x - y + 48) % 17 === 0 ? '#b8786a' : y < 20 ? '#ecbaa6' : '#d89c88') },    // oro rosa cepillado
+    labial:  { at:(x, y) => { const lx = x - 33, ly = y - 33, lips = (lx * lx) / 42 + (ly * ly) / 8 <= 1 && !(ly === 0 && Math.abs(lx) < 5) && !(ly < 0 && Math.abs(lx) < 1);
+      return lips ? '#ffc0cc' : (x - y + 48) % 15 < 2 ? '#ff7a90' : y < 18 ? '#d42a44' : '#b01830'; } },                                  // rojo labial brillante con un beso marcado
+    cristal: { alpha:150, at:(x, y) => ((x + y) % 11 === 0 ? '#ffffff' : y < 16 ? '#d8f2ff' : '#a8d8ee') }                               // transparente: se ve el fondo y el número "flota"
   };
   const dieCache = {};
   function layers(sides, color, val) { const d = BASE + 'assets/D' + sides + '/';
@@ -200,7 +270,8 @@ const DICEFX = (() => {
       own = n ? [sr / n, sg / n, sb / n] : [200, 200, 200];
       for (let y = 0; y < 48; y++) for (let x = 0; x < 48; x++) { const i = (y * 48 + x) * 4; if (!cd.data[i + 3]) continue;
         const shade = .62 + .5 * (top ? lum(i) / top : 1), c = rgb(MATERIAL[fin].at(x, y));
-        cd.data[i] = Math.min(255, c[0] * shade); cd.data[i + 1] = Math.min(255, c[1] * shade); cd.data[i + 2] = Math.min(255, c[2] * shade); }
+        cd.data[i] = Math.min(255, c[0] * shade); cd.data[i + 1] = Math.min(255, c[1] * shade); cd.data[i + 2] = Math.min(255, c[2] * shade);
+        if (MATERIAL[fin].alpha) cd.data[i + 3] = MATERIAL[fin].alpha; }
       cx.putImageData(cd, 0, 0);
     }
     g.drawImage(cc, 0, 0); g.drawImage(L.base, 0, 0);

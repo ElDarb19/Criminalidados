@@ -36,7 +36,7 @@ const ACHIEVEMENTS = [
     test:c => c.won && c.s.taken === 0 && !(c.party ? (CD.cfg.games || []).every(g => g === 'maf') : c.single('maf')) },   // en Imperio Criminal nunca se recibe daño: sería un logro regalado
   { id:'coleccionista', tier:'leyenda', icon:'🗂️', name:'Coleccionista',        desc:'Consigue los 8 títulos del Expediente.',                 test:c => FILE.TITLES.every(t => c.d.titles[t.key] > 0) },
   { id:'leyenda',      tier:'leyenda', icon:'👑', name:'Leyenda de la Ciudad',  desc:'Gana 25 partidas.',                                      test:c => c.d.wins >= 25 },
-  { id:'juicio_final', tier:'secreto', icon:'⚙️', name:'Juicio Final', hidden:true, unlocks:'Terminator',
+  { id:'juicio_final', tier:'secreto', icon:'⚙️', name:'Juicio Final', hidden:true, unlocks:['Terminator', 'TX'],
     desc:'Gana un Modo Party a 8 o más victorias contra 3 bots.',
     test:c => c.won && c.party && (CD.cfg.winsNeeded || 0) >= 8 && c.G.players.filter(q => q.bot).length >= 3 }
 ];
@@ -46,7 +46,7 @@ const PROFILE = {
   blank() {
     return { name:'', color:null, char:null, games:0, wins:0, online:0,
       by:Object.fromEntries(GAMES.map(g => [g, { p:0, w:0 }])), party:{ p:0, w:0 },
-      tot:{ dealt:0, gained:0, healed:0, nat20:0, nat1:0, acts:0 }, titles:{}, ach:{}, gold:0, earned:0, paid:{}, owned:{}, react:null, fin:null, aura:null, goldv:2 };
+      tot:{ dealt:0, gained:0, healed:0, nat20:0, nat1:0, acts:0 }, titles:{}, ach:{}, streak:0, best:0, gold:0, earned:0, paid:{}, owned:{}, react:null, fin:null, aura:null, goldv:2 };
   },
   load() {
     if (this.d) return this.d;
@@ -57,13 +57,20 @@ const PROFILE = {
     // Las recompensas subieron (v2, al llegar los dados a la tienda): los logros ya cobrados reciben la diferencia una vez.
     const raise = (saved.goldv || 1) < 2 ? ACHIEVEMENTS.filter(a => this.d.paid[a.id]).reduce((n, a) => n + TIERS[a.tier].gold - (GOLD_V1[a.tier] || 0), 0) : 0;
     this.d.gold += raise; this.d.goldv = 2;
+    // capos secretos añadidos después a un logro que ya tenías (p. ej. la T-X de Juicio Final): se entregan sin volver a cobrar
+    let gift = false; ACHIEVEMENTS.forEach(a => { if (this.d.paid[a.id]) [].concat(a.unlocks || []).forEach(k => { if (!this.d.owned[k]) { this.d.owned[k] = true; gift = true; } }); });
+    if (gift && !(back || raise)) this.save();
     if (back || raise) { this.save(); setTimeout(() => this.notify('<i class="coin big" aria-hidden="true"></i>', 'ORO POR TUS LOGROS', '+' + (back + raise) + ' de oro'), 600); }
     setTimeout(() => this.checkAll(true), 700);       // quien ya tenía todos los logros antes de existir el premio también lo recibe
+    setTimeout(() => this.tutButton());
     return this.d;
   },
   save(local) {                                    // local: solo en el dispositivo (sin subir a la nube)
     try { localStorage.setItem(this.KEY, JSON.stringify(this.d)); } catch (e) {}
     if (!local && typeof ACCOUNT !== 'undefined') ACCOUNT.later();
+  },
+  tutButton() {                                    // con el logro del tutorial, el botón de abajo de ¡COMENZAR! sobra: queda solo "Repetir tutorial" en Ajustes
+    const b = $$('btn-tutorial'); if (b && this.d) b.classList.toggle('hidden', !!this.d.ach.graduado);
   },
   reacts() {                                       // reacciones del chat rápido (máx. REACT_MAX, solo del catálogo)
     const r = (this.load().react || []).filter(e => REACTIONS.includes(e)).slice(0, REACT_MAX);
@@ -90,7 +97,7 @@ const PROFILE = {
   // ---------- oro y tienda ----------
   pay(a) {                                         // cobra un logro (una sola vez en la vida del perfil)
     const d = this.d, g = TIERS[a.tier].gold; d.paid[a.id] = true; d.gold += g;
-    if (a.unlocks) d.owned[a.unlocks] = true;
+    [].concat(a.unlocks || []).forEach(k => { d.owned[k] = true; });   // unlocks: un capo o una lista de capos
     return g;
   },
   // Oro por partidas online (solo cuentan los jugadores humanos, nunca los bots). Con 2-3 humanos cobra solo el 1.º;
@@ -144,6 +151,7 @@ const PROFILE = {
     const d = this.load(), won = G.result.winner === p.slot, party = CD.cfg.mode === 'party';
     const row = FILE.rows(G).find(r => r.p.slot === p.slot), s = row.s;
     d.games++; if (won) d.wins++;
+    d.streak = won ? (d.streak || 0) + 1 : 0; d.best = Math.max(d.best || 0, d.streak);   // racha de victorias seguidas
     if (CD.cfg.online) d.online++;
     if (party) { d.party.p++; if (won) d.party.w++; } else { d.by[CD.contract].p++; if (won) d.by[CD.contract].w++; }
     Object.keys(d.tot).forEach(k => { d.tot[k] += s[k] || 0; });
@@ -161,10 +169,10 @@ const PROFILE = {
   },
   unlock(id, quiet) {
     const d = this.load(), a = ACHIEVEMENTS.find(x => x.id === id); if (!a || d.ach[id]) return;
-    d.ach[id] = Date.now();
+    d.ach[id] = Date.now(); this.tutButton();
     const g = d.paid[id] ? 0 : this.pay(a);
     if (!quiet) this.save();
-    this.notify(a.icon, 'LOGRO DESBLOQUEADO', a.name + (g ? ' · +' + g + ' de oro' : a.unlocks ? ' · capo secreto' : ''));
+    this.notify(a.icon, 'LOGRO DESBLOQUEADO', a.name + (g ? ' · +' + g + ' de oro' : a.unlocks ? ([].concat(a.unlocks).length > 1 ? ' · capos secretos' : ' · capo secreto') : ''));
   },
   // ---------- todos los logros: premio del Dado del Capo y gran celebración (una sola vez en la vida del perfil) ----------
   ALL_PRIZE:'fin:capo',                            // el dado del logo: acabado secreto de DICE_ITEMS (sin precio)
@@ -223,6 +231,7 @@ const PROFILE = {
   // ---------- ventana de la tienda (aparte del perfil, con su propio botón) ----------
   openShop() { this.load(); settingsToggle(false); this.close(); this.renderShop(); $$('modal-shop').classList.remove('hidden'); },
   closeShop() { const m = $$('modal-shop'); if (m) m.classList.add('hidden'); },
+  // (también se cierran tocando fuera de la ventana —onclick del fondo en index.html— o con Esc, más abajo)
   renderShop() {
     const b = $$('shop-body'); if (!b) return;
     b.innerHTML = this.shopHtml(); $$('shop-gold').textContent = this.load().gold; this.dicePreviews();
@@ -275,7 +284,11 @@ const PROFILE = {
     const d = this.load(), pct = d.games ? Math.round(d.wins / d.games * 100) : 0;
     const fav = FILE.TITLES.filter(t => d.titles[t.key] > 0).sort((a, b) => d.titles[b.key] - d.titles[a.key])[0];
     const box = (n, l) => `<div class="pf-stat"><b>${n}</b><small>${l}</small></div>`;
+    const plays = GAMES.map(g => ({ n:GAME_NAMES[g], p:d.by[g].p, w:d.by[g].w })).concat({ n:'Modo Party', p:d.party.p, w:d.party.w })
+      .filter(x => x.p > 0).sort((a, b) => b.p - a.p || b.w - a.w), top = plays[0];          // contrato favorito: el más jugado
     return `<div class="pf-stats">${box(d.games, 'partidas')}${box(d.wins, 'victorias')}${box(pct + '%', 'de victorias')}${box(d.online, 'online')}</div>
+      <div class="pf-stats">${box('🔥 ' + (d.streak || 0), 'racha actual')}${box('🏅 ' + (d.best || 0), 'mejor racha')}</div>
+      <p class="pf-fav">${top ? 'Contrato favorito: <b>' + top.n + '</b> (' + top.p + (top.p === 1 ? ' partida' : ' partidas') + ', ' + top.w + ' ganadas)' : 'Aún no tienes contrato favorito: juega uno.'}</p>
       <h3 class="pf-h">Por contrato</h3><table class="pf-table"><tr><th></th><th>Jugadas</th><th>Ganadas</th></tr>
       ${GAMES.map(g => `<tr><td>${GAME_NAMES[g]}</td><td>${d.by[g].p}</td><td>${d.by[g].w}</td></tr>`).join('')}<tr><td>🎉 Modo Party</td><td>${d.party.p}</td><td>${d.party.w}</td></tr></table>
       <h3 class="pf-h">Totales del Expediente</h3><div class="pf-stats">${box(d.tot.dealt, 'daño causado')}${box(d.tot.gained, 'botín y ganancias')}${box(d.tot.healed, 'curación')}${box(d.tot.nat20, '20 naturales')}</div>
@@ -285,7 +298,7 @@ const PROFILE = {
   achHtml() {
     const d = this.load(), n = ACHIEVEMENTS.filter(a => d.ach[a.id]).length;
     return `<p class="pf-count">${n} de ${ACHIEVEMENTS.length} logros</p><div class="pf-ach">${ACHIEVEMENTS.map(a => { const on = d.ach[a.id], veil = a.hidden && !on, g = TIERS[a.tier].gold;
-      const prize = g ? '<i class="coin" aria-hidden="true"></i> ' + g : a.unlocks ? '🎭 Capo secreto' : '';
+      const prize = g ? '<i class="coin" aria-hidden="true"></i> ' + g : a.unlocks ? ([].concat(a.unlocks).length > 1 ? '🎭 Capos secretos' : '🎭 Capo secreto') : '';
       return `<div class="ach ${on ? 'on' : ''}"><span class="ach-ic">${on ? a.icon : veil ? '❔' : '🔒'}</span><div><b>${veil ? '???' : esc(a.name)}</b><small>${veil ? 'Logro secreto. Sigue jugando…' : esc(a.desc)}</small>
         <span class="ach-meta"><span class="tier tier-${a.tier}">${TIERS[a.tier].label}</span>${veil ? '' : `<span class="ach-gold">${prize}</span>`}</span>${on ? `<em>${new Date(on).toLocaleDateString('es')}</em>` : ''}</div></div>`; }).join('')}</div>`;
   },
@@ -300,7 +313,9 @@ const PROFILE = {
       <h3 class="pf-h">Capos</h3><div class="shop">${items.map(c => { const own = this.owns(c.key), can = d.gold >= c.price;
         return `<div class="shop-item ${own ? 'own' : ''}" style="--pc:${COLORS[col]}"><div class="avatar"><img src="assets/characters/${c.key}/${col}/idle.png" alt=""></div>
           <b>${esc(c.label)}</b>${own ? '<span class="shop-own">✔ Tuyo</span>'
-          : `<button type="button" class="shop-buy" ${can ? '' : 'disabled'} onclick="PROFILE.buy('${c.key}')"><i class="coin" aria-hidden="true"></i> ${c.price}</button>${can ? '' : `<small>Te faltan ${c.price - d.gold}</small>`}`}</div>`; }).join('')}</div>
+          : `<button type="button" class="shop-buy" ${can ? '' : 'disabled'} onclick="PROFILE.buy('${c.key}')"><i class="coin" aria-hidden="true"></i> ${c.price}</button>${can ? '' : `<small>Te faltan ${c.price - d.gold}</small>`}`}</div>`; }).join('')}
+        ${COMING_SOON.map(c => `<div class="shop-item soon" style="--pc:var(--line)"><div class="avatar"><img src="assets/characters/None/silueta_${c.g}.png" alt=""></div>
+          <b>${esc(c.label)}</b><span class="shop-soon">PRÓXIMAMENTE</span></div>`).join('')}</div>
       <h3 class="pf-h">Dados</h3><p class="pf-note">Solo cambian cómo se ve tu dado al tirar (también para los demás en online), nunca el resultado. El acabado y el aura se eligen por separado en Tu Capo.</p>
       <div class="shop">${DICE_ITEMS.map(c => { const own = this.owns(c.key), can = d.gold >= c.price;
         return `<div class="shop-item ${own ? 'own' : ''}"><canvas class="dice-prev" width="96" height="96" data-fin="${c.kind === 'fin' ? c.id : ''}" data-aura="${c.kind === 'aura' ? c.id : ''}" aria-hidden="true"></canvas>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Capas femeninas · Criminal Dice</title>
+<style>
+  :root { --bg:#14110d; --card:#1f1a14; --line:#3a3024; --gold:#e4c77e; --cream:#e9dfc7; }
+  body { margin:0; padding:16px; background:var(--bg); color:var(--cream); font:15px/1.5 system-ui, sans-serif; }
+  h1 { color:var(--gold); margin:0 0 4px; } h2 { color:var(--gold); margin:24px 0 2px; font-size:1.1rem; }
+  p { margin:0 0 10px; color:#c9bda2; max-width:60rem; }
+  .row { display:flex; flex-wrap:wrap; gap:10px; }
+  figure { margin:0; background:#3a3a3a; border:1px solid var(--line); border-radius:8px; padding:6px; text-align:center; }
+  canvas { width:192px; height:192px; image-rendering:pixelated; display:block; }
+  figcaption { font-size:.85rem; color:#e9dfc7; }
+</style>
+</head>
+<body>
+<h1>Capas femeninas (propuestas, etapa 1)</h1>
+<p>Tres versiones en verde de cada una, solo la pose idle. Se abre desde el mismo servidor que el juego. Los archivos para retocar en Paint están en Versiones/Chicas_opciones/&lt;Nombre&gt;/idle_A.png, idle_B.png e idle_C.png.</p>
+<div id="out"></div>
+<script src="generar_chicas_opciones.js"></script>
+<script>
+  CHICAS.build().then(all => {
+    const out = document.getElementById('out');
+    Object.values(all).forEach(ch => {
+      const h = document.createElement('h2'); h.textContent = ch.label; out.appendChild(h);
+      const p = document.createElement('p'); p.textContent = ch.inspo; out.appendChild(p);
+      const row = document.createElement('div'); row.className = 'row'; out.appendChild(row);
+      Object.entries(ch.v).forEach(([v, c]) => { const f = document.createElement('figure'), cap = document.createElement('figcaption');
+        cap.textContent = 'Versión ' + v; f.append(c, cap); row.appendChild(f); });
+    });
+  });
+</script>
+</body>
+</html>

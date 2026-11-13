@@ -106,6 +106,21 @@ test('Eventos · Ley Seca afecta ~40% de los turnos y no cuenta como daño', asy
   G.dry = true; G.stats = {}; diceMk(4); const v = await CD.roll(6, G.players[0], 'x'); eq(v, 3, 'd6 con Ley Seca');
   eq((G.stats[0] || { taken:0 }).taken, 0, 'daño recibido');
 });
+test('Eventos · El Comisionado solo cobra el 10% a quien tiene 6 o más', async () => {
+  const G = pok(), CD = E('CD'), MK = E('MK'); CD.contract = 'pok'; CD.G = G; CD.cfg.events = true; G.event = { code:'comisionado' };
+  const [a, b] = G.players; a.tokens = 5; b.tokens = 12;
+  MK.turnEnd(G, a); eq(a.tokens, 5, 'con 5 fichas');
+  MK.turnEnd(G, b); eq(b.tokens, 10, 'con 12 fichas');
+});
+test('Online · Quien vuelve en plena tienda espera a que cierre el Mercado y luego retoma el control', async () => {
+  const G = game('rpg', [{}, {}]), CD = E('CD'), p = G.players[1];
+  Object.assign(p, { bot:true, dropped:true, name:'Jefe 2 (desconectado)' }); G.market = { order:[0], done:{} };
+  CD.presenceNow = { 0:true, 1:true }; CD.restorePlayer(1);
+  eq(p.bot, true, 'sigue el bot durante la tienda'); eq(p.backSoon, true, 'queda en espera');
+  G.market = null; CD.restoreWaiting();
+  eq(p.bot, false, 'retoma el control al cerrar el mercado'); eq(p.name, 'Jefe 2', 'nombre sin "(desconectado)"');
+  CD.presenceNow = null;
+});
 test('IA · Con Soborno en Imperio cobra con la d6', async () => {
   const G = maf(), me = G.players[0]; E('CD').contract = 'maf'; E('CD').G = G; me.force6 = true;
   for (let i = 0; i < 20; i++) eq(E('AI').maf(G, me).type, 'harvest6', 'recaudación');
@@ -151,7 +166,7 @@ test('Tienda · Cada dado decorado se dibuja (animado y estático) sin errores',
   ok(!bad.length, bad.join(' · '));
 });
 test('Tienda · Los capos secretos tienen un logro que los desbloquea', async () => {
-  const sin = E('CHARACTERS').filter(c => c.secret && !E('ACHIEVEMENTS').some(a => a.unlocks === c.key)).map(c => c.key);
+  const sin = E('CHARACTERS').filter(c => c.secret && !E('ACHIEVEMENTS').some(a => [].concat(a.unlocks || []).includes(c.key))).map(c => c.key);
   ok(!sin.length, 'sin logro: ' + sin.join(', '));
 });
 

@@ -40,9 +40,12 @@ function tone(ctx, type, freqs, dur, vol, delay = 0) {
 //   victoria.mp3  → pantalla final (opcional: si no está, sigue la música del contrato)
 // Si falta alguno, ese momento queda en silencio. Suenan en bucle y cambian con un fundido suave.
 const MUSIC = { menu:'menu', rpg:'rpg', exp:'exp', maf:'maf', pok:'pok', victoria:'victoria' };
-const MUSIC_DIR = 'assets/audios/musica/', MUSIC_VOL = 0.35;
-const MUS = { el:null, key:null, want:null, on:true, unlocked:false, avail:{} };
-try { MUS.on = localStorage.getItem('cd-music') !== 'off'; } catch (e) {}
+// Volumen de la música: lo elige cada jugador con la barra de Ajustes (0-100, se recuerda en su navegador).
+// MUSIC_VOL_DEFAULT es el de quien nunca la tocó: suave, por debajo de los efectos. MUSIC_VOL_MAX es el tope de la barra al 100%.
+const MUSIC_DIR = 'assets/audios/musica/', MUSIC_VOL_DEFAULT = 25, MUSIC_VOL_MAX = 0.6;
+const MUS = { el:null, key:null, want:null, on:true, unlocked:false, avail:{}, vol:MUSIC_VOL_DEFAULT };
+try { MUS.on = localStorage.getItem('cd-music') !== 'off'; const v = parseInt(localStorage.getItem('cd-music-vol'), 10); if (v >= 0 && v <= 100) MUS.vol = v; } catch (e) {}
+const musicLevel = () => MUS.vol / 100 * MUSIC_VOL_MAX;
 Object.keys(MUSIC).forEach(k => {                                 // detecta qué pistas existen
   MUS.avail[k] = null;
   fetch(MUSIC_DIR + MUSIC[k] + '.mp3', { method:'HEAD' }).then(r => { MUS.avail[k] = r.ok; if (r.ok && MUS.want === k) musicPlay(k); }).catch(() => { MUS.avail[k] = false; });
@@ -56,7 +59,7 @@ function musicPlay(key) {
   if (!MUS.on || !MUS.unlocked || MUS.avail[key] !== true || MUS.key === key) return;
   const old = MUS.el; if (old) musicFade(old, 0, 900, () => old.pause());
   const el = new Audio(MUSIC_DIR + MUSIC[key] + '.mp3'); el.loop = true; el.volume = 0;
-  MUS.el = el; MUS.key = key; el.play().then(() => musicFade(el, MUSIC_VOL, 1200)).catch(() => { MUS.key = null; });
+  MUS.el = el; MUS.key = key; el.play().then(() => musicFade(el, musicLevel(), 1200)).catch(() => { MUS.key = null; });
 }
 // Pide la música de un momento del juego ('menu', un contrato o 'victoria'). Si esa pista no existe, sigue la actual.
 function musicSet(key) {
@@ -69,7 +72,14 @@ function musicToggle() {
   if (MUS.on && MUS.want) musicPlay(MUS.want);
   musicButton();
 }
-function musicButton() { const b = document.getElementById('set-music'); if (b) settingsRow(b, MUS.on, MUS.on ? '🎵 Música' : '🔇 Música'); }
+function musicButton() { const b = document.getElementById('set-music'); if (b) settingsRow(b, MUS.on, MUS.on ? '🎵 Música' : '🔇 Música');
+  const r = document.getElementById('set-music-vol'), o = document.getElementById('set-music-out');
+  if (r) { r.value = MUS.vol; r.disabled = !MUS.on; r.setAttribute('aria-valuetext', MUS.vol + '%'); } if (o) o.textContent = MUS.vol + '%'; }
+function musicVolume(v) {                                         // barra de volumen de Ajustes (0-100)
+  MUS.vol = Math.max(0, Math.min(100, parseInt(v, 10) || 0)); try { localStorage.setItem('cd-music-vol', MUS.vol); } catch (e) {}
+  if (MUS.el) MUS.el.volume = musicLevel();
+  musicButton();
+}
 // Los navegadores solo dejan sonar música después de que el usuario toca la pantalla.
 ['pointerdown', 'keydown', 'touchstart'].forEach(ev => window.addEventListener(ev, () => { if (!MUS.unlocked) { MUS.unlocked = true; if (MUS.want) musicPlay(MUS.want); } }, { passive:true }));
 document.addEventListener('DOMContentLoaded', () => { musicButton(); if (!MUS.want) musicSet('menu'); });

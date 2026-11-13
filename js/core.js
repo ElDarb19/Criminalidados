@@ -158,9 +158,17 @@ CD.keepRoom = function () {
 };
 CD.restorePlayer = function (slot) {
   const G = CD.G, p = G && G.players[slot]; if (!p || !p.dropped || G.over) return;
-  p.bot = false; p.dropped = false; p.name = CD.cfg.players[slot].name;
+  if (G.market) {                                  // volvió en plena tienda: el bot termina sus compras y retoma el control al cerrarse el mercado
+    if (!p.backSoon) { p.backSoon = true; CD.log('📡 ' + CD.cfg.players[slot].name + ' volvió: retoma el control cuando cierre el Mercado Negro.'); CD.publish(); render(); }
+    return;
+  }
+  p.bot = false; p.dropped = false; p.backSoon = false; p.name = CD.cfg.players[slot].name;
   CD.log('📡 ' + p.name + ' volvió a conectarse y retoma el control.');
   CD.publish(); render();
+};
+CD.restoreWaiting = function () {                  // al cerrarse el mercado: devuelve el control a quien volvió durante la tienda (si sigue conectado)
+  const G = CD.G; if (!G) return;
+  G.players.filter(p => p.backSoon).forEach(p => { p.backSoon = false; if (CD.presenceNow && CD.presenceNow[p.slot]) CD.restorePlayer(p.slot); });
 };
 // Invitado que vuelve tras recargar: toma el último estado y la bitácora sin repetir animaciones, y sigue desde ahí.
 CD.catchUp = async function () {
@@ -426,8 +434,13 @@ CD.rank = function (players, key, text) {
 function podiumHtml(G, pod) {
   const medal = { 1:'🥇', 2:'🥈', 3:'🥉' };
   return pod.map(e => { const p = G.players[e.slot], L = charList(p, e.place === 1 ? 'win' : 'idle');
+    const die = e.place === 1 ? `<canvas class="pod-die" width="96" height="96" data-color="${p.color}" data-fin="${p.fin || ''}" data-aura="${p.aura || ''}" aria-hidden="true"></canvas>` : '';   // el ganador luce su dado y su aura
     return `<div class="pod p${Math.min(e.place, 4)}" style="--pc:${COLORS[p.color]}"><span class="medal">${medal[e.place] || e.place + 'º'}</span>
-      <img src="${L[0]}" data-c="${L.join('|')}" onerror="charNext(this)" alt=""><div><b>${esc(p.name)}</b><small>${esc(e.text)}</small></div></div>`; }).join('');
+      <img src="${L[0]}" data-c="${L.join('|')}" onerror="charNext(this)" alt="">${die}<div><b>${esc(p.name)}</b><small>${esc(e.text)}</small></div></div>`; }).join('');
+}
+function setPodium(el, html) {                         // solo se redibuja si cambia (así no se reinician la entrada ni el aura del dado)
+  if (el.dataset.h === html) return; el.dataset.h = html; el.innerHTML = html;
+  if (typeof DICEFX !== 'undefined') el.querySelectorAll('.pod-die').forEach(cv => DICEFX.show(cv, { sides:20, color:cv.dataset.color, val:20, fin:cv.dataset.fin || null, aura:cv.dataset.aura || null }));
 }
 CD.finish = function (winnerSlot, summary) {
   const G = CD.G;
@@ -480,9 +493,9 @@ CD.openMarket = async function (title, lines) {
   G.market = { title, lines, order:humans.map(p => p.slot), cur:0, done:{} };
   G.players.filter(p => p.bot).forEach(p => { AI.shop(G, p); MK.leave(p); });
   CD.publish(); render();
-  if (!humans.length) { G.market = null; CD.publish(); render(); return; }
+  if (!humans.length) { G.market = null; CD.restoreWaiting(); CD.publish(); render(); return; }
   await new Promise(res => { CD.marketResolve = res; });
-  G.market = null; CD.publish(); render();
+  G.market = null; CD.restoreWaiting(); CD.publish(); render();
 };
 CD.marketAct = function (slot, op, id) {
   const G = CD.G, m = G.market; if (!m) return; const p = G.players[slot];
@@ -539,9 +552,9 @@ function render() {
   const evd = G.event && G.event.code && EVENTS[G.event.code], chip = $$('g-event');
   chip.classList.toggle('hidden', !evd); if (evd) chip.textContent = evd.title + (G.event.boss != null ? ' · ' + G.players[G.event.boss].name.toUpperCase() : '') + ' — ' + evd.desc;
   MK.render();
-  $$('between-podium').innerHTML = G.between && G.between.podium ? podiumHtml(G, G.between.podium) : '';
+  setPodium($$('between-podium'), G.between && G.between.podium ? podiumHtml(G, G.between.podium) : '');
   $$('modal-over').classList.toggle('hidden', !G.over);
-  if (G.over) { $$('over-text').textContent = G.result.lost ? 'Partida interrumpida' : G.result.winner == null ? 'Empate' : '🏆 ' + G.players[G.result.winner].name; $$('over-sub').textContent = G.result.summary || ''; $$('over-podium').innerHTML = G.result.podium ? podiumHtml(G, G.result.podium) : '';
+  if (G.over) { $$('over-text').textContent = G.result.lost ? 'Partida interrumpida' : G.result.winner == null ? 'Empate' : '🏆 ' + G.players[G.result.winner].name; $$('over-sub').textContent = G.result.summary || ''; setPodium($$('over-podium'), G.result.podium ? podiumHtml(G, G.result.podium) : '');
     $$('over-rematch').classList.toggle('hidden', !CD.auth || !!G.result.lost);
     $$('over-wait').classList.toggle('hidden', CD.auth || !!G.result.lost); }
   $$('g-react').classList.toggle('hidden', !(CD.cfg.online && CD.me >= 0) || G.result && G.result.lost);

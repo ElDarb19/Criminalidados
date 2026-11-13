@@ -78,7 +78,7 @@ const ACCOUNT = {
       const here = PROFILE.load(), mine = !here.owner || here.owner === u.uid;   // si este dispositivo era de otra cuenta, no se mezcla
       PROFILE.d = this.merge(mine ? here : PROFILE.blank(), snap.val());
       PROFILE.d.owner = u.uid;
-      PROFILE.save(true);
+      PROFILE.save(true); PROFILE.tutButton();       // el logro del tutorial puede venir de la nube
       await this.push();
       if (typeof renderAll === 'function') PROFILE.toMenu();
       if (!$$('modal-profile').classList.contains('hidden')) PROFILE.tab(PROFILE.cur);
@@ -90,7 +90,8 @@ const ACCOUNT = {
     const d = PROFILE.blank(), max = (x, y) => Math.max(x || 0, y || 0);
     d.name = b.name || a.name || ''; d.color = b.color || a.color || null; d.char = b.char || a.char || null; d.react = b.react || a.react || null;
     d.fin = b.fin || a.fin || null; d.aura = b.aura || a.aura || null; d.goldv = Math.max(b.goldv || 1, a.goldv || 1);   // dados elegidos y versión de las recompensas
-    ['games', 'wins', 'online', 'earned'].forEach(k => { d[k] = max(a[k], b[k]); });
+    ['games', 'wins', 'online', 'earned', 'best'].forEach(k => { d[k] = max(a[k], b[k]); });   // best: mejor racha de victorias
+    d.streak = ((a.games || 0) >= (b.games || 0) ? a.streak : b.streak) || 0;                    // racha actual: la del dispositivo con más partidas
     d.allAt = a.allAt && b.allAt ? Math.min(a.allAt, b.allAt) : a.allAt || b.allAt || null;   // ya celebró los logros completos   // earned: oro ganado en partidas online
     GAMES.forEach(g => ['p', 'w'].forEach(k => { d.by[g][k] = max(a.by && a.by[g] && a.by[g][k], b.by && b.by[g] && b.by[g][k]); }));
     ['p', 'w'].forEach(k => { d.party[k] = max(a.party && a.party[k], b.party && b.party[k]); });

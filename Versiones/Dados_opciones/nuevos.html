@@ -34,12 +34,18 @@
   section('Dado del Capo — todos los dados', 'El mismo gorro en los 5 dados: más grande en el D6 y más pequeño en el D4 para no tapar el número.',
     [4, 6, 8, 12, 20].map(s => ({ label:'D' + s, opt:{ sides:s, color:'Color_R', val:s, fin:'capo' } })));
   section('Dado del Capo — todos los colores', '', COLS.map(c => ({ label:c, opt:{ sides:20, color:c, val:20, fin:'capo' } })));
-  [['marfil', 'Marfil'], ['billete', 'Billete verde'], ['marmol', 'Mármol Negro']].forEach(([f, n]) =>
+  [['perla', 'Perla (propuesta para chicas)'], ['orosa', 'Oro Rosa (propuesta para chicas)'], ['labial', 'Lápiz labial (propuesta para chicas)'], ['cristal', 'Cristal (propuesta para chicas)']].forEach(([f, n]) =>
+    section('Dados ' + n, 'Aún no se vende: es para que decidas.', ['Color_R', 'Color_B', 'Color_P', 'Color_Y'].map(c => ({ label:c, opt:{ sides:20, color:c, val:20, fin:f } }))
+      .concat([6, 12].map(s => ({ label:'D' + s, opt:{ sides:s, color:'Color_Pu', val:s, fin:f } })))));
+  [['petalos', 'Pétalos de rosa'], ['diamantes', 'Diamantes'], ['corazones', 'Corazones rotos'], ['boa', 'Boa de plumas'], ['perfume', 'Perfume']].forEach(([a, n]) =>
+    section('Aura ' + n + ' (propuesta para chicas)', 'Aún no se vende: es para que decidas.', [{ label:'Animada', opt:{ sides:20, color:'Color_P', val:20, aura:a } },
+      { label:'Estática', opt:{ sides:20, color:'Color_P', val:20, aura:a, calm:true } }, { label:'Animada (D6)', opt:{ sides:6, color:'Color_R', val:6, aura:a } }]));
+  [['cromo', 'Cromo'], ['marfil', 'Marfil'], ['billete', 'Billete verde'], ['marmol', 'Mármol Negro']].forEach(([f, n]) =>
     section('Dados ' + n, 'El material cambia el dado; el contorno conserva el color del jugador para saber de quién es la tirada.',
       COLS.map(c => ({ label:c, opt:{ sides:20, color:c, val:20, fin:f } })).concat([6, 12].map(s => ({ label:'D' + s, opt:{ sides:s, color:'Color_B', val:s, fin:f } })))));
   [['sirena', 'Sirena (luces de patrulla)', 'Animada: un difuminado rojo a la izquierda y uno azul a la derecha que aparecen y desaparecen por turnos. Estática: los dos encendidos.'],
    ['neon', 'Neón (la que ya está en la tienda)', 'Letrero de club nocturno: anillos rosa y cian que parpadean.'],
-   ['casino', 'Marquesina de Casino (propuesta, aún no se vende)', 'Un marco con bombillas como los carteles de casino: las luces corren en cadena alrededor del dado.']].forEach(([a, n, t]) =>
+   ['casino', 'Las Vegas (bombillas de casino)', 'Un marco con bombillas como los carteles de casino: las luces corren en cadena alrededor del dado.']].forEach(([a, n, t]) =>
     section('Aura ' + n, t, [{ label:'Animada', opt:{ sides:20, color:'Color_R', val:20, aura:a } }, { label:'Estática', opt:{ sides:20, color:'Color_R', val:20, aura:a, calm:true } },
       { label:'Animada (D6)', opt:{ sides:6, color:'Color_B', val:6, aura:a } }, { label:'Con el Dado del Capo', opt:{ sides:20, color:'Color_Y', val:20, fin:'capo', aura:a } }]));
 </script>

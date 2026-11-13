@@ -18,7 +18,7 @@
 .pcard{position:relative;display:flex;gap:12px;align-items:center;background:linear-gradient(180deg,var(--theme-card),rgba(11,10,8,.95));
   border:1px solid var(--line);border-radius:var(--radius-sm);padding:10px;transition:transform .2s,box-shadow .3s,border-color .3s,opacity .4s,filter .4s;animation:cd-fadeup .35s ease both}
 .pcard img{flex:0 0 68px;width:68px;height:68px;object-fit:contain;image-rendering:pixelated;border-radius:2px;
-  background:repeating-linear-gradient(0deg,rgba(233,223,199,.1) 0 1px,transparent 1px 9px),linear-gradient(#26211a,#14110d);border-bottom:4px solid var(--pc)}
+  background:var(--spot),repeating-linear-gradient(0deg,rgba(233,223,199,.1) 0 1px,transparent 1px 9px),linear-gradient(#26211a,#14110d);border-bottom:4px solid var(--pc)}
 .pcard>div{flex:1;min-width:0}
 .pcard b{font-family:var(--font-ui);font-weight:600;font-size:1.05rem;letter-spacing:.5px}
 .pcard small{display:block;font-family:var(--font-type);color:var(--cream-2);font-size:.74rem;line-height:1.35}
@@ -157,7 +157,7 @@ body.tutorial #menu-screen{padding-bottom:220px}
   background:radial-gradient(ellipse at top,rgba(255,226,160,.22),transparent 70%);animation:cd-lamp 3s ease-in-out infinite alternate}
 @keyframes cd-lamp{from{opacity:.75}to{opacity:1}}
 #fx-title{font-family:var(--font-display)!important;font-weight:400!important;font-size:1.35rem;letter-spacing:1px;color:#f0e2b6!important;margin:4px 0 6px}
-#fx-char{width:128px;height:128px;object-fit:contain;image-rendering:pixelated}
+#fx-char{width:128px;height:128px;object-fit:contain;image-rendering:pixelated;filter:var(--rim)}
 #fx:not(.hidden) #fx-char{animation:cd-slidein .45s cubic-bezier(.2,.9,.3,1.2) both}
 @keyframes cd-slidein{from{opacity:0;translate:-40px 0}to{opacity:1;translate:0 0}}
 #d-wrap{position:relative;width:96px;height:96px;margin:6px auto 4px;image-rendering:pixelated;filter:drop-shadow(0 8px 6px rgba(0,0,0,.55))}
@@ -187,7 +187,7 @@ body.tutorial #menu-screen{padding-bottom:220px}
 #over-podium,#between-podium{display:flex;flex-direction:column;gap:8px;margin:14px 0;text-align:left}
 .pod{position:relative;display:flex;align-items:center;gap:12px;background:var(--ink-2);border:1px solid rgba(233,223,199,.14);border-radius:var(--radius-sm);padding:8px 12px;
   animation:cd-rise .6s cubic-bezier(.2,.8,.3,1.2) both}
-.pod img{width:48px;height:48px;object-fit:contain;image-rendering:pixelated;border-bottom:3px solid var(--pc)}
+.pod img{width:48px;height:48px;object-fit:contain;image-rendering:pixelated;border-bottom:3px solid var(--pc);background:var(--spot)}
 .pod b{font-family:var(--font-ui);font-weight:600;font-size:1.05rem;letter-spacing:.5px}
 .pod small{display:block;font-family:var(--font-type);color:var(--cream-2);font-size:.76rem}
 .pod .medal{font-size:1.5rem;min-width:1.6em;text-align:center}
@@ -197,6 +197,8 @@ body.tutorial #menu-screen{padding-bottom:220px}
 .pod.p1::after{content:"EL CAPO";position:absolute;right:12px;top:10px;transform:rotate(-8deg);border:2px solid var(--blood);color:#e0604c;background:rgba(11,10,8,.55);
   font-family:var(--font-ui);font-weight:700;font-size:.72rem;letter-spacing:2px;padding:2px 8px;animation:cd-stamp2 .5s .6s cubic-bezier(.3,1.6,.5,1) both}
 @keyframes cd-stamp2{from{transform:rotate(-14deg) scale(2.2);opacity:0}to{transform:rotate(-8deg) scale(1);opacity:1}}
+.pod .pod-die{width:72px;height:72px;image-rendering:pixelated;flex:none;margin-left:-10px}
+@media (max-width:480px){.pod .pod-die{width:60px;height:60px;margin-left:-14px}.pod.p1{flex-wrap:wrap;row-gap:4px}.pod.p1>div{flex:1 1 100%;padding-left:4px}}
 .pod.p1 img{width:84px;height:84px}.pod.p1 .medal{font-size:2.4rem}.pod.p1 b{font-family:var(--font-display);font-weight:400;font-size:1.4rem;color:#f0e2b6}.pod.p1 small{font-size:.85rem;color:var(--cream)}
 .pod.p2{animation-delay:.15s}.pod.p3{animation-delay:.3s;opacity:.92}.pod.p4{animation-delay:.45s;opacity:.7;padding:5px 12px}.pod.p4 img{width:32px;height:32px}
 /* lluvia de monedas al terminar */
