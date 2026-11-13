@@ -22,6 +22,7 @@
 <script defer src="js/settings.js"></script>
 <script defer src="js/dice.js"></script>
 <script defer src="js/profile.js"></script>
+<script defer src="js/retos.js"></script>
 <script defer src="js/account.js"></script>
 <script defer src="js/core.js"></script>
 <script defer src="js/market.js"></script>
@@ -167,6 +168,7 @@ window.addEventListener('error', function (e) {
 <div id="modal-over" class="modal-overlay hidden" style="z-index:3700"><div class="modal-content">
   <p style="letter-spacing:2px;color:var(--text-light)">FIN DEL CONTRATO</p><h2 id="over-text" style="font-family:var(--font-display)"></h2><p id="over-sub" style="color:var(--text-light);font-size:.85rem"></p>
   <div id="over-podium"></div>
+  <div id="over-retos"></div>
   <div id="over-actions">
     <button id="over-file" class="start" onclick="FILE.open()">📁 VER EXPEDIENTE</button>
     <button id="over-rematch" class="start" onclick="CD.rematch()">🔁 REVANCHA</button>
@@ -196,6 +198,7 @@ window.addEventListener('error', function (e) {
     <button class="tab-btn active" type="button" data-tab="capo" onclick="PROFILE.tab('capo')">🎩 TU CAPO</button>
     <button class="tab-btn" type="button" data-tab="hist" onclick="PROFILE.tab('hist')">📜 HISTORIAL</button>
     <button class="tab-btn" type="button" data-tab="ach" onclick="PROFILE.tab('ach')">🏅 LOGROS</button>
+    <button class="tab-btn" type="button" data-tab="retos" onclick="PROFILE.tab('retos')">🎯 RETOS</button>
     <button class="tab-btn" type="button" data-tab="top" onclick="PROFILE.tab('top')">🏆 TOP</button>
   </div>
   <div id="profile-body"></div>
@@ -373,7 +376,8 @@ window.addEventListener('error', function (e) {
       </div>
 
       <p class="manual-credits">🎵 <b>Música:</b> «Streetlight Serenade» de Shane Ivers (<a href="https://www.silvermansound.com" target="_blank" rel="noopener">silvermansound.com</a>, licencia <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>) ·
-        «Sleek Panther» y «Closed Curtains» de David Renda (<a href="https://www.fesliyanstudios.com" target="_blank" rel="noopener">Fesliyan Studios</a>).</p>
+        «Sleek Panther» y «Closed Curtains» de David Renda (<a href="https://www.fesliyanstudios.com" target="_blank" rel="noopener">Fesliyan Studios</a>) ·
+        «Upbeat Swing» de Atlas Audio, «Noir Alley» de WelbornWorks y «Midnight Detective» de DesiFreeMusic (<a href="https://pixabay.com/music/" target="_blank" rel="noopener">Pixabay</a>).</p>
       <button class="btn-cancel" onclick="closeManualGuide()">CERRAR MANUAL</button>
     </div>
   </div>

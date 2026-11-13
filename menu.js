@@ -51,7 +51,7 @@ const CHARACTERS = [{ key:'Mafioso', label:'Mafioso' }, { key:'Mafiosa', label:'
 // Capos en preparación: salen en la Tienda como "Próximamente" solo con su nombre y una silueta genérica (sorpresa):
 // g:'h' = assets/characters/None/silueta_h.png, g:'m' = silueta_m.png. Cuando uno esté listo, se pasa a CHARACTERS con su precio.
 const COMING_SOON = [{ key:'Snorky', label:'Snorky', g:'h' }, { key:'Viuda', label:'La Viuda Negra', g:'m' }, { key:'Reina', label:'La Reina del Sur', g:'m' },
-  { key:'Cantante', label:'La Cantante del Club', g:'m' }, { key:'Flapper', label:'La Flapper', g:'m' }, { key:'Contadora', label:'La Contadora', g:'m' }, { key:'MaBarker', label:'Ma Barker', g:'m' }];
+  { key:'Cantante', label:'La Cantante del Club', g:'m' }, { key:'Flapper', label:'La Flapper', g:'m' }];   // solo los que Darb pidió preparar
 const GAMES = ['rpg','exp','maf','pok'];
 const IMPLEMENTED = ['rpg', 'exp', 'maf', 'pok'];   // contratos ya migrados a 4 jugadores; añade aquí cada uno al terminarlo
 const GAME_NAMES = { rpg:'Guerra de Bandas', exp:'El Gran Atraco', maf:'Imperio Criminal', pok:'Apuestas Clandestinas' };

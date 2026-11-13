@@ -121,6 +121,24 @@ test('Online · Quien vuelve en plena tienda espera a que cierre el Mercado y lu
   eq(p.bot, false, 'retoma el control al cerrar el mercado'); eq(p.name, 'Jefe 2', 'nombre sin "(desconectado)"');
   CD.presenceNow = null;
 });
+test('Retos · Los del día no se repiten hasta agotar la lista (y las misiones de la semana tampoco)', async () => {
+  const R = E('RETOS');
+  [[R.DAILY, R.PER_DAY, 101], [R.WEEKLY, R.PER_WEEK, 202]].forEach(([list, per, salt]) => {
+    const groups = Math.floor(list.length / per), base = 20000 - (20000 % groups), seen = new Set();
+    for (let n = base; n < base + groups; n++) R.pick(list, n, per, salt).forEach(x => { ok(!seen.has(x.id), 'repetido en la misma vuelta: ' + x.id); seen.add(x.id); });
+    eq(seen.size, groups * per, 'retos distintos en una vuelta');
+    ok(R.pick(list, base + groups, per, salt).every(x => x), 'la siguiente vuelta vuelve a sortear');
+  });
+});
+test('Retos · Avanzan con cada partida y pagan el oro una sola vez', async () => {
+  const R = E('RETOS'), d = { gold:0, earned:0 }, def = { id:'t_gana', icon:'🏆', text:'x', goal:2, inc:c => c.won ? 1 : 0 };
+  const keep = [R.today, R.thisWeek]; R.today = () => [def]; R.thisWeek = () => [];
+  try {
+    R.track({ won:true }, d); eq(d.retos.dp.t_gana, 1, 'avance tras 1 victoria'); eq(d.gold, 0, 'oro antes de completar');
+    R.track({ won:true }, d); eq(d.gold, R.DAILY_GOLD, 'oro al completar'); R.track({ won:true }, d); eq(d.gold, R.DAILY_GOLD, 'no paga dos veces');
+    eq(d.retos.dp.t_gana, 2, 'no pasa de la meta');
+  } finally { [R.today, R.thisWeek] = keep; }
+});
 test('IA · Con Soborno en Imperio cobra con la d6', async () => {
   const G = maf(), me = G.players[0]; E('CD').contract = 'maf'; E('CD').G = G; me.force6 = true;
   for (let i = 0; i < 20; i++) eq(E('AI').maf(G, me).type, 'harvest6', 'recaudación');

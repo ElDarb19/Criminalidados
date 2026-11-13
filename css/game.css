@@ -203,6 +203,7 @@ body.tutorial #menu-screen{padding-bottom:220px}
 .pod.p2{animation-delay:.15s}.pod.p3{animation-delay:.3s;opacity:.92}.pod.p4{animation-delay:.45s;opacity:.7;padding:5px 12px}.pod.p4 img{width:32px;height:32px}
 /* lluvia de monedas al terminar */
 #modal-over .modal-content,#modal-between .modal-content{overflow:hidden}
+#modal-over .modal-content{overflow-x:hidden;overflow-y:auto;max-height:94vh}   /* con los retos puede crecer: que se pueda bajar en el celular */
 #modal-over .modal-content::before,#modal-between .modal-content::before{content:"";position:absolute;inset:-40px 0 auto 0;height:140%;pointer-events:none;opacity:.45;
   background-image:radial-gradient(circle,#e4c77e 0 4px,transparent 5px),radial-gradient(circle,#c9a24a 0 3px,transparent 4px),radial-gradient(circle,#f3dfa6 0 3px,transparent 4px);
   background-size:90px 120px,130px 160px,70px 140px;background-position:10px 0,50px 30px,30px 60px;animation:cd-coins 3.5s linear infinite}

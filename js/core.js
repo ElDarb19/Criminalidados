@@ -453,6 +453,7 @@ CD.finish = function (winnerSlot, summary) {
 CD.partyResult = function (winnerSlot, summary) {
   const G = CD.G, goal = CD.cfg.winsNeeded, name = GAME_TITLES[G.contract];
   if (winnerSlot != null) G.wins[winnerSlot] = (G.wins[winnerSlot] || 0) + 1;
+  if (winnerSlot != null) { G.cwon = G.cwon || {}; const w = G.cwon[winnerSlot] = G.cwon[winnerSlot] || {}; w[G.contract] = (w[G.contract] || 0) + 1; }   // contratos ganados por tipo (retos y misiones)
   const M = CD.mod(), rank = M.ranking ? M.ranking(G) : null, rew = MK.on() && rank ? MK.settle(G, rank, winnerSlot) : null;
   if (rew) CD.log('💲 Recompensas: ' + G.players.map(p => p.name + ' +' + rew[p.slot].amount).join(' · '));
   const board = G.players.slice().sort((a, b) => (G.wins[b.slot] || 0) - (G.wins[a.slot] || 0) || a.slot - b.slot)     // de más a menos victorias
@@ -475,7 +476,7 @@ CD.nextContract = async function () {
   CD.contract = next;
   CD.G = { players:G.players.map(p => Object.assign({ slot:p.slot, name:p.name, color:p.color, char:p.char, bot:p.bot, dropped:!!p.dropped, persona:p.persona || null, fin:p.fin || null, aura:p.aura || null, alive:true, hp:0, max:0, poison:0, heals:0, blocked:false },
       MK.on() ? { money:p.money, contacts:p.contacts, consumable:p.consumable, stock:[], rerollCost:ECON.REROLL_BASE } : {})),
-    turn:0, round:1, start:0, log:G.log, fx:null, prompt:null, over:false, result:null, wait:true, started:false, contract:CD.contract, pi, wins:G.wins, stats:G.stats || {}, between:null, focus:null, event:null };   // las estadísticas suman todo el Modo Party
+    turn:0, round:1, start:0, log:G.log, fx:null, prompt:null, over:false, result:null, wait:true, started:false, contract:CD.contract, pi, wins:G.wins, cwon:G.cwon || {}, stats:G.stats || {}, between:null, focus:null, event:null };   // las estadísticas suman todo el Modo Party
   CD.applyContractUI(); CD.log('🎬 ——— Contrato ' + (pi + 1) + ': ' + GAME_TITLES[CD.contract] + ' ———'); CD.lastSnap = null; CD.publish(); render();
   await CD.beginContract(CD.G);
 };
@@ -560,8 +561,9 @@ function render() {
   $$('g-react').classList.toggle('hidden', !(CD.cfg.online && CD.me >= 0) || G.result && G.result.lost);
   musicSet(G.over && !G.result.lost ? 'victoria' : CD.contract);         // música del contrato (o de victoria al final)
   if (CD.cfg.tutorial) TUT.update();
-  if (!G.over) CD.recorded = false;                                       // historial y logros del perfil: una vez por final
+  if (!G.over) { CD.recorded = false; if (typeof RETOS !== 'undefined') RETOS.last = null; }   // historial y logros del perfil: una vez por final
   else if (!CD.recorded && !G.result.lost) { CD.recorded = true; if (!CD.cfg.tutorial) PROFILE.record(G); }
+  const rt = $$('over-retos'); if (rt) { const h = G.over && typeof RETOS !== 'undefined' ? RETOS.overHtml() : ''; if (rt.dataset.h !== h) { rt.dataset.h = h; rt.innerHTML = h; } }   // avance de retos y misiones
 }
 CD.choose = function (type) {                 // botón de acción
   const G = CD.G, me = G.players[G.turn]; if (G.between || G.over || G.wait || G.market) return;

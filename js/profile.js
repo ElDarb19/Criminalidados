@@ -159,6 +159,12 @@ const PROFILE = {
     const ctx = { G, p, s, d, won, party, single:g => !party && CD.contract === g };
     ACHIEVEMENTS.forEach(a => { if (!d.ach[a.id] && a.test(ctx)) this.unlock(a.id, true); });
     this.checkAll();
+    if (typeof RETOS !== 'undefined') {             // retos del día y misiones de la semana (js/retos.js)
+      const pod = (G.result.podium || []).find(e => e.slot === p.slot), cwon = (G.cwon || {})[p.slot] || {};
+      const rc = Object.assign({}, ctx, { online:!!CD.cfg.online, bots:G.players.filter(q => q.bot && !q.dropped).length, place:won ? 1 : pod ? pod.place : 0,
+        cw:g => party ? (cwon[g] || 0) : (won && CD.contract === g ? 1 : 0) });   // contratos de tipo g ganados en esta partida
+      RETOS.track(rc, d).filter(x => x.fresh).forEach(x => this.notify(x.kind === 'dia' ? '🎯' : '🗓️', x.kind === 'dia' ? 'RETO DEL DÍA' : 'MISIÓN DE LA SEMANA', x.def.text + ' · +' + x.gold + ' de oro'));
+    }
     if (CD.cfg.online) {                           // oro por el puesto final (1.º, o 2.º con 4 capos); los bots bajan el oro
       const all = CD.cfg.players || [], humans = all.filter(q => !q.bot).length, pod = (G.result.podium || []).find(e => e.slot === p.slot);
       const place = won ? 1 : pod && pod.place > 1 ? pod.place : 0;      // un empate en el 1.º puesto no paga como victoria
@@ -240,7 +246,7 @@ const PROFILE = {
     if (t === 'shop') t = 'capo';                  // la tienda ya no es una pestaña del perfil
     this.cur = t;
     document.querySelectorAll('#modal-profile .tab-btn').forEach(b => { const on = b.dataset.tab === t; b.classList.toggle('active', on); b.setAttribute('aria-selected', on); });
-    $$('profile-body').innerHTML = t === 'capo' ? this.capoHtml() : t === 'hist' ? this.histHtml() : t === 'shop' ? this.shopHtml() : t === 'top' ? ACCOUNT.topHtml() : this.achHtml();
+    $$('profile-body').innerHTML = t === 'capo' ? this.capoHtml() : t === 'hist' ? this.histHtml() : t === 'shop' ? this.shopHtml() : t === 'top' ? ACCOUNT.topHtml() : t === 'retos' ? RETOS.tabHtml(this.d) : this.achHtml();
     $$('pf-gold').textContent = this.d.gold;
     if (t === 'capo') $$('pf-name').addEventListener('input', e => this.set('name', cleanInput(e.target)));
     this.dicePreviews();
@@ -307,25 +313,26 @@ const PROFILE = {
     const items = CHARACTERS.filter(c => c.price);
     const T = this.ONLINE_GOLD, s = T.single, p = T.party;
     const cell = (r, i) => `<td><b>${r.first[i]}</b> · ${r.second[i]}</td>`;
+    // Casilla de la tienda: arriba la imagen, el nombre y la descripción; abajo (siempre a la misma altura) el precio o el estado.
+    const card = (c, pic, attr, pre) => { const own = this.owns(c.key), can = d.gold >= c.price;
+      const foot = own ? '<span class="shop-own">✔ Tuyo</span>'
+        : c.secret ? '<small class="shop-lock">🔒 Se gana completando todos los logros</small>'
+        : `${can ? '' : `<small>Te faltan ${c.price - d.gold}</small>`}<button type="button" class="shop-buy" ${can ? '' : 'disabled'} onclick="PROFILE.buy('${c.key}')"><i class="coin" aria-hidden="true"></i> ${c.price}</button>`;
+      return `<div class="shop-item ${own ? 'own' : ''}" ${attr}>${pic}<b>${pre || ''}${esc(c.label)}</b>${c.sub ? `<small class="shop-sub">${esc(c.sub)}</small>` : ''}<div class="shop-foot">${foot}</div></div>`; };
+    const dicePrev = c => `<canvas class="dice-prev" width="96" height="96" data-fin="${c.kind === 'fin' ? c.id : ''}" data-aura="${c.kind === 'aura' ? c.id : ''}" aria-hidden="true"></canvas>`;
     return `<p class="pf-note">Gana oro con los logros (cuanto más difícil, más paga) y ganando partidas online con al menos otra persona. Los logros alcanzan para casi toda la tienda; el resto, online. Más bots en la sala, menos oro. El 2.º puesto solo cobra si la partida es de 4 capos.</p>
       <table class="gold-table"><caption>Oro online: <b>1.º</b> · 2.º</caption><thead><tr><th></th><th>Sin bots</th><th>1 bot</th><th>2 bots</th></tr></thead>
         <tbody><tr><th>Contrato único</th>${[0, 1, 2].map(i => cell(s, i)).join('')}</tr><tr><th>Party a ${T.PARTY_MIN_WINS}+ victorias</th>${[0, 1, 2].map(i => cell(p, i)).join('')}</tr></tbody></table>
-      <h3 class="pf-h">Capos</h3><div class="shop">${items.map(c => { const own = this.owns(c.key), can = d.gold >= c.price;
-        return `<div class="shop-item ${own ? 'own' : ''}" style="--pc:${COLORS[col]}"><div class="avatar"><img src="assets/characters/${c.key}/${col}/idle.png" alt=""></div>
-          <b>${esc(c.label)}</b>${own ? '<span class="shop-own">✔ Tuyo</span>'
-          : `<button type="button" class="shop-buy" ${can ? '' : 'disabled'} onclick="PROFILE.buy('${c.key}')"><i class="coin" aria-hidden="true"></i> ${c.price}</button>${can ? '' : `<small>Te faltan ${c.price - d.gold}</small>`}`}</div>`; }).join('')}
+      <h3 class="pf-h">Capos</h3><div class="shop">${items.map(c => card(c, `<div class="avatar"><img src="assets/characters/${c.key}/${col}/idle.png" alt=""></div>`, `style="--pc:${COLORS[col]}"`)).join('')}
         ${COMING_SOON.map(c => `<div class="shop-item soon" style="--pc:var(--line)"><div class="avatar"><img src="assets/characters/None/silueta_${c.g}.png" alt=""></div>
-          <b>${esc(c.label)}</b><span class="shop-soon">PRÓXIMAMENTE</span></div>`).join('')}</div>
-      <h3 class="pf-h">Dados</h3><p class="pf-note">Solo cambian cómo se ve tu dado al tirar (también para los demás en online), nunca el resultado. El acabado y el aura se eligen por separado en Tu Capo.</p>
-      <div class="shop">${DICE_ITEMS.map(c => { const own = this.owns(c.key), can = d.gold >= c.price;
-        return `<div class="shop-item ${own ? 'own' : ''}"><canvas class="dice-prev" width="96" height="96" data-fin="${c.kind === 'fin' ? c.id : ''}" data-aura="${c.kind === 'aura' ? c.id : ''}" aria-hidden="true"></canvas>
-          <b>${c.kind === 'aura' ? 'Aura de ' : 'Dados '}${esc(c.label)}</b><small class="shop-sub">${esc(c.sub)}</small>${own ? '<span class="shop-own">✔ Tuyo</span>'
-          : c.secret ? '<small class="shop-sub">🔒 Se gana completando todos los logros</small>'
-          : `<button type="button" class="shop-buy" ${can ? '' : 'disabled'} onclick="PROFILE.buy('${c.key}')"><i class="coin" aria-hidden="true"></i> ${c.price}</button>${can ? '' : `<small>Te faltan ${c.price - d.gold}</small>`}`}</div>`; }).join('')}</div>`;
+          <b>${esc(c.label)}</b><div class="shop-foot"><span class="shop-soon">PRÓXIMAMENTE</span></div></div>`).join('')}</div>
+      <p class="pf-note shop-dice-note">Dados y auras solo cambian cómo se ve tu dado al tirar (también para los demás en online), nunca el resultado. Se eligen por separado en Tu Capo.</p>
+      <h3 class="pf-h">Dados</h3><div class="shop">${DICE_ITEMS.filter(c => c.kind === 'fin').map(c => card(c, dicePrev(c), '', 'Dados ')).join('')}</div>
+      <h3 class="pf-h">Auras</h3><div class="shop">${DICE_ITEMS.filter(c => c.kind === 'aura').map(c => card(c, dicePrev(c), '', 'Aura de ')).join('')}</div>`;
   },
   async reset() {
     if (!(await askConfirm('¿Borrar historial y logros?', 'Tu nombre, personaje y color se conservan, y también tu oro y lo que compraste. Los logros ya cobrados no vuelven a pagar. Esto no se puede deshacer.', 'SÍ, BORRAR'))) return;
-    const d = this.load(), keep = { name:d.name, color:d.color, char:d.char, gold:d.gold, earned:d.earned, paid:d.paid, owned:d.owned, owner:d.owner, fin:d.fin, aura:d.aura, react:d.react };
+    const d = this.load(), keep = { name:d.name, color:d.color, char:d.char, gold:d.gold, earned:d.earned, paid:d.paid, owned:d.owned, owner:d.owner, fin:d.fin, aura:d.aura, react:d.react, retos:d.retos };   // retos: para no volver a cobrar los ya hechos
     this.d = Object.assign(this.blank(), keep); this.save(); this.tab('hist');
   }
 };

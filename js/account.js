@@ -85,6 +85,15 @@ const ACCOUNT = {
       if (!$$('modal-shop').classList.contains('hidden')) PROFILE.renderShop();
     } catch (e) { console.warn('No se pudo leer el perfil de la nube', e); this.msg('No se pudo sincronizar. Revisa las reglas de Firebase.'); }
   },
+  mergeRetos(a, b) {                               // el día/semana más reciente; si es el mismo en los dos, el mayor avance de cada reto
+    a = a || {}; b = b || {}; const r = {}, mx = (x, y) => { const o = Object.assign({}, x); Object.keys(y || {}).forEach(k => { o[k] = Math.max(o[k] || 0, y[k] || 0); }); return o; };
+    const or = (x, y) => Object.assign({}, x, y);
+    if ((a.day || 0) === (b.day || 0)) Object.assign(r, { day:a.day || 0, dp:mx(a.dp, b.dp), dd:or(a.dd, b.dd) });
+    else Object.assign(r, (a.day || 0) > (b.day || 0) ? { day:a.day, dp:a.dp || {}, dd:a.dd || {} } : { day:b.day, dp:b.dp || {}, dd:b.dd || {} });
+    if ((a.week || 0) === (b.week || 0)) Object.assign(r, { week:a.week || 0, wp:mx(a.wp, b.wp), wd:or(a.wd, b.wd), ws:Object.assign({}, b.ws, a.ws) });
+    else Object.assign(r, (a.week || 0) > (b.week || 0) ? { week:a.week, wp:a.wp || {}, wd:a.wd || {}, ws:a.ws || {} } : { week:b.week, wp:b.wp || {}, wd:b.wd || {}, ws:b.ws || {} });
+    return r;
+  },
   merge(a, b) {
     if (!b) return a;
     const d = PROFILE.blank(), max = (x, y) => Math.max(x || 0, y || 0);
@@ -92,6 +101,7 @@ const ACCOUNT = {
     d.fin = b.fin || a.fin || null; d.aura = b.aura || a.aura || null; d.goldv = Math.max(b.goldv || 1, a.goldv || 1);   // dados elegidos y versión de las recompensas
     ['games', 'wins', 'online', 'earned', 'best'].forEach(k => { d[k] = max(a[k], b[k]); });   // best: mejor racha de victorias
     d.streak = ((a.games || 0) >= (b.games || 0) ? a.streak : b.streak) || 0;                    // racha actual: la del dispositivo con más partidas
+    d.retos = this.mergeRetos(a.retos, b.retos);                                                 // retos del día y misiones de la semana
     d.allAt = a.allAt && b.allAt ? Math.min(a.allAt, b.allAt) : a.allAt || b.allAt || null;   // ya celebró los logros completos   // earned: oro ganado en partidas online
     GAMES.forEach(g => ['p', 'w'].forEach(k => { d.by[g][k] = max(a.by && a.by[g] && a.by[g][k], b.by && b.by[g] && b.by[g][k]); }));
     ['p', 'w'].forEach(k => { d.party[k] = max(a.party && a.party[k], b.party && b.party[k]); });
