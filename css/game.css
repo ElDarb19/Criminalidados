@@ -204,8 +204,46 @@ html.calm #modal-event:not(.hidden) .newspaper{animation:none;transform:rotate(-
 .pod.p1::after{content:"EL CAPO";position:absolute;right:12px;top:10px;transform:rotate(-8deg);border:2px solid var(--blood);color:#e0604c;background:rgba(11,10,8,.55);
   font-family:var(--font-ui);font-weight:700;font-size:.72rem;letter-spacing:2px;padding:2px 8px;animation:cd-stamp2 .5s .6s cubic-bezier(.3,1.6,.5,1) both}
 @keyframes cd-stamp2{from{transform:rotate(-14deg) scale(2.2);opacity:0}to{transform:rotate(-8deg) scale(1);opacity:1}}
-.pod .pod-die{width:72px;height:72px;image-rendering:pixelated;flex:none;margin-left:-10px}
-@media (max-width:480px){.pod .pod-die{width:60px;height:60px;margin-left:-14px}.pod.p1{flex-wrap:wrap;row-gap:4px}.pod.p1>div{flex:1 1 100%;padding-left:4px}}
+/* ---- cuenta atrás de proyector entre contratos ---- */
+.countdown{position:fixed;inset:0;z-index:3950;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  background:radial-gradient(circle,rgba(30,24,16,.94),rgba(5,4,3,.98) 70%);animation:cd-fade .25s ease both}
+.countdown::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.25;background:repeating-linear-gradient(90deg,transparent 0 37px,rgba(255,255,255,.05) 37px 38px)}   /* rayas de película */
+.leader{position:relative;width:min(230px,62vw);aspect-ratio:1;border-radius:50%;overflow:hidden;background:#d9cfb8;box-shadow:0 0 0 8px #111,0 0 50px rgba(0,0,0,.9)}
+.leader::before{content:"";position:absolute;inset:0;background:conic-gradient(rgba(0,0,0,.38) var(--sw,0deg),transparent 0)}
+.countdown.run .leader::before{animation:cd-sweep 1.05s linear 3}
+.leader::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 49.5%,#111 49.5% 50.5%,transparent 50.5%),linear-gradient(0deg,transparent 49.5%,#111 49.5% 50.5%,transparent 50.5%),
+  radial-gradient(circle,transparent 57%,#111 57% 59%,transparent 59% 69%,#111 69% 70.5%,transparent 70.5%)}
+.leader span{position:absolute;inset:0;z-index:1;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:min(6rem,26vw);color:#111}
+@property --sw{syntax:'<angle>';inherits:false;initial-value:0deg}
+@keyframes cd-sweep{from{--sw:0deg}to{--sw:360deg}}
+.leader-k{margin:12px 0 0;font-family:var(--font-ui);font-size:.75rem;letter-spacing:4px;color:var(--cream-3)}
+.leader-t{margin:0;font-family:var(--font-display);font-size:clamp(1.4rem,6vw,2rem);color:var(--gold-2);text-shadow:0 2px 0 #000;text-align:center;padding:0 16px}
+html.calm .countdown.run .leader::before{animation:none}
+/* ---- escalones del podio con flashes de prensa ---- */
+.stage-podium{position:relative;overflow:hidden;border-radius:6px;padding:16px 6px 0;background:radial-gradient(ellipse at 50% 100%,#3a2a18,#0b0a08 72%);box-shadow:inset 0 0 30px rgba(0,0,0,.7)}
+.steps{position:relative;z-index:1;display:flex;align-items:flex-end;justify-content:center;gap:6px}
+.step{flex:1 1 0;max-width:150px;min-width:0;text-align:center;animation:cd-fadeup .5s ease both}
+.step.st2{animation-delay:.25s}.step.st3{animation-delay:.45s}
+.step-figs{position:relative;height:96px;display:flex;align-items:flex-end;justify-content:center}
+.step-figs img{width:84px;height:84px;object-fit:contain;image-rendering:pixelated;filter:var(--rim);margin-right:22px}
+.step.st1 .step-figs{height:112px}.step.st1 .step-figs img{width:100px;height:100px}
+.pod-die{position:absolute;right:calc(50% - 64px);bottom:-6px;width:58px;height:58px;image-rendering:pixelated;z-index:2}   /* su dado, delante del capo */
+.step-block{position:relative;padding:8px 4px 10px;border-radius:3px 3px 0 0;background:linear-gradient(180deg,#e3d2a6,#bfa977);color:#17120c;border-top:4px solid var(--pc);box-shadow:0 -2px 10px rgba(0,0,0,.4)}
+.step.st1 .step-block{min-height:92px;background:linear-gradient(180deg,#f3dfa6,#c9a24a)}
+.step.st2 .step-block{min-height:70px}.step.st3 .step-block{min-height:54px}
+.step-block .medal{display:block;font-size:1.4rem;line-height:1}
+.step.st1 .step-block .medal{font-size:1.9rem}
+.step-block b{display:block;font-family:var(--font-ui);font-weight:600;font-size:.85rem;letter-spacing:.3px;overflow-wrap:anywhere;margin-top:2px}
+.step-block small{display:block;font-family:var(--font-type);font-size:.66rem;color:#3a2e20;line-height:1.25}
+.step.st1 .step-block::after{content:"EL CAPO";position:absolute;right:-4px;top:-14px;transform:rotate(10deg);border:2px solid var(--blood);color:var(--blood);background:rgba(239,230,207,.92);
+  font-family:var(--font-ui);font-weight:700;font-size:.6rem;letter-spacing:2px;padding:0 5px}
+.flash{position:absolute;z-index:0;width:130px;height:130px;border-radius:50%;background:radial-gradient(circle,#fff 0 10%,rgba(255,255,255,.55) 25%,transparent 65%);opacity:0;animation:cd-flash 2.6s infinite;pointer-events:none}
+.flash.f1{left:-30px;top:20px}.flash.f2{right:-24px;top:4px;animation-delay:.8s}.flash.f3{left:42%;top:-50px;animation-delay:1.6s}
+@keyframes cd-flash{0%,8%{opacity:0}10%{opacity:.95}24%,100%{opacity:0}}
+html.calm .flash{display:none}
+@media (prefers-reduced-motion:reduce){.flash{display:none}}
+@media (max-width:420px){.step-figs img{width:62px;height:62px;margin-right:18px}.step.st1 .step-figs img{width:76px;height:76px}.step-figs{height:76px}.step.st1 .step-figs{height:90px}
+  .pod-die{width:46px;height:46px;right:calc(50% - 50px)}.step-block b{font-size:.74rem}.step-block small{font-size:.6rem}}
 .pod.p1 img{width:84px;height:84px}.pod.p1 .medal{font-size:2.4rem}.pod.p1 b{font-family:var(--font-display);font-weight:400;font-size:1.4rem;color:#f0e2b6}.pod.p1 small{font-size:.85rem;color:var(--cream)}
 .pod.p2{animation-delay:.15s}.pod.p3{animation-delay:.3s;opacity:.92}.pod.p4{animation-delay:.45s;opacity:.7;padding:5px 12px}.pod.p4 img{width:32px;height:32px}
 /* lluvia de monedas al terminar */
@@ -238,6 +276,45 @@ html.calm #modal-event:not(.hidden) .newspaper{animation:none;transform:rotate(-
 .mk-reroll{width:100%;margin-top:4px;padding:10px}.mk-empty{color:var(--cream-3);font-family:var(--font-type);font-size:.84rem}
 #modal-market .start{margin-top:16px}
 @media (max-width:520px){.mk-item{grid-template-columns:36px 1fr}.mk-item .opt{grid-column:1/-1;width:100%}}
+/* ===== Mercado Negro: maleta abierta (tapa con red arriba, fondo con correas abajo) ===== */
+#modal-market .modal-content{max-width:44rem;width:96vw;padding:10px;background:transparent;border:0;box-shadow:none}
+.suitcase{position:relative;padding:12px;border-radius:14px;background:linear-gradient(180deg,#6b3f1e,#4a2a14);box-shadow:0 22px 44px rgba(0,0,0,.75),inset 0 2px 0 rgba(255,220,170,.2)}
+.suitcase::before{content:"";position:absolute;inset:5px;border:2px dashed rgba(243,223,166,.25);border-radius:11px;pointer-events:none}   /* costura del cuero */
+.sc-lid{padding:12px;border-radius:8px;box-shadow:inset 0 0 22px rgba(0,0,0,.6);
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 2px,transparent 2px 22px),repeating-linear-gradient(90deg,rgba(0,0,0,.18) 0 2px,transparent 2px 22px),linear-gradient(180deg,#8a5a24,#6a4218)}   /* forro a cuadros */
+.sc-lid h2{text-align:center;margin:0 0 2px!important}
+.sc-lid .mk-lines,.sc-lid .mk-wait{text-align:center;color:#f3e6c4;margin:0 0 8px}
+.sc-net{margin-top:10px;padding:10px;border-radius:6px;border:2px solid #3a2410;
+  background:repeating-linear-gradient(45deg,rgba(58,36,16,.55) 0 2px,transparent 2px 14px),repeating-linear-gradient(-45deg,rgba(58,36,16,.55) 0 2px,transparent 2px 14px),rgba(0,0,0,.18)}   /* red del bolsillo */
+.suitcase h3{margin:0 0 8px!important;color:#f3dfa6!important;border-bottom-color:rgba(243,223,166,.3)!important}
+.sc-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.sc-hinges{display:flex;justify-content:space-around;height:12px;margin:0 30px}
+.sc-hinges i{width:46px;height:12px;border-radius:2px;background:linear-gradient(180deg,#f3dfa6,#8a6a26);box-shadow:0 2px 3px rgba(0,0,0,.5)}
+.sc-body{position:relative;padding:12px;border-radius:8px;overflow:hidden;box-shadow:inset 0 0 26px rgba(0,0,0,.7);
+  background:repeating-linear-gradient(45deg,#5a1414 0 6px,#4a1010 6px 12px)}   /* terciopelo rojo */
+.sc-body::before,.sc-body::after{content:"";position:absolute;left:-10%;right:-10%;top:50%;height:10px;background:linear-gradient(180deg,#7a4a22,#4a2a12);opacity:.55;pointer-events:none;z-index:0}
+.sc-body::before{transform:rotate(18deg)}.sc-body::after{transform:rotate(-18deg)}                  /* correas cruzadas */
+.sc-body>*{position:relative;z-index:1}
+.sc-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.sc-actions .mk-reroll,.sc-actions .start{margin:0!important;width:100%}
+.sc-handle{display:block;width:120px;height:18px;margin:6px auto -4px;border:5px solid #3a2410;border-top:0;border-radius:0 0 20px 20px}
+.suitcase.closed .sc-lid{text-align:center}
+/* objetos: tarjetas de papel */
+.suitcase .mk-item{grid-template-columns:34px 1fr;background:linear-gradient(180deg,#efe6cf,#ddcfa9);color:#20180f;border:0;box-shadow:0 4px 8px rgba(0,0,0,.45)}
+.suitcase .mk-item .opt{grid-column:1/-1;width:100%}
+.suitcase .mk-tx small{color:#3a2e20}.suitcase .mk-works{color:#5a4a34!important}.suitcase .mk-cost{color:#7a5a12}
+.suitcase .mk-tag.pas{background:#d6e6ee;color:#1f4a5e;border-color:#5e93ad}.suitcase .mk-tag.act{background:#f3dcc0;color:#7a3e10;border-color:#c27a32}
+.suitcase .mk-item .opt{background:#2a1d12;color:var(--gold-2);border-color:#8a6a26}
+.suitcase .mk-item .opt:disabled{opacity:.55}
+.suitcase .mk-item.mine{grid-template-columns:30px 1fr auto;padding:6px 8px}.suitcase .mk-item.mine .opt{grid-column:auto;width:auto;min-width:76px}
+.suitcase .mk-slot{background:transparent;border:2px dashed rgba(243,223,166,.45);box-shadow:none;color:#f3e6c4;min-height:64px}
+.suitcase .mk-slot small{color:#e9dcb8}.suitcase .mk-slot .mk-ic{opacity:.55}
+.suitcase .mk-item.off{opacity:.55}
+.mk-wallet{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;justify-content:space-between}
+.suitcase .mk-wallet{background:rgba(0,0,0,.35);border-color:rgba(243,223,166,.35);color:#f3e6c4;font-size:.8rem}
+.mk-cash{display:inline-flex;align-items:center;gap:6px;background:#6fb06a;color:#13240f;padding:3px 10px;border-radius:2px;border-left:6px solid #c9a24a;font-weight:700}   /* fajo con clip */
+#modal-market .mk-legend{background:rgba(11,10,8,.8);border-radius:6px;padding:8px 10px}
+@media (max-width:560px){.sc-grid{grid-template-columns:1fr}.suitcase{padding:8px}.sc-lid,.sc-body{padding:9px}.sc-actions{grid-template-columns:1fr}}
 .mk-tag{display:inline-block;font-family:var(--font-ui);font-size:.6rem;font-weight:600;letter-spacing:1px;padding:1px 6px;border-radius:2px;vertical-align:middle}
 .mk-tag.pas{background:rgba(127,178,204,.18);color:#a9d2e6;border:1px solid #5e93ad}
 .mk-tag.act{background:rgba(224,145,63,.18);color:#f2b77a;border:1px solid #c27a32}

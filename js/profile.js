@@ -268,7 +268,7 @@ const PROFILE = {
     // Ficha policial: foto con la regla de estatura, cartel con el nombre, sello y los datos del capo escritos a máquina.
     return `<div class="pf-capo"><div class="pf-card ficha"><div class="ficha-head"><span>DEPTO. DE POLICÍA</span><span>EXP. Nº ${exp}</span></div>
         <div id="pf-avatar" class="ficha-photo"><img id="pf-img" alt=""><span id="pf-plate" class="ficha-board"></span></div>
-        <span class="ficha-stamp" aria-hidden="true">${d.wins >= 10 ? 'BUSCADO' : 'FICHADO'}</span>
+        <span class="ficha-stamp" aria-hidden="true">${d.wins >= 10 ? 'BUSCADO' : 'SOSPECHOSO'}</span>
         <div class="ficha-rows"><b>PARTIDAS</b><span>${d.games} · ${d.wins} ${d.wins === 1 ? 'victoria' : 'victorias'}</span><b>RACHA</b><span>🔥 ${d.streak || 0} · mejor ${d.best || 0}</span>
           <b>FAVORITO</b><span>${favs[0] ? favs[0].n : '—'}</span></div>
         <div class="ficha-prints" aria-hidden="true"><i></i><i></i><i></i><i></i></div></div>
@@ -299,13 +299,20 @@ const PROFILE = {
     const box = (n, l) => `<div class="pf-stat"><b>${n}</b><small>${l}</small></div>`;
     const plays = GAMES.map(g => ({ n:GAME_NAMES[g], p:d.by[g].p, w:d.by[g].w })).concat({ n:'Modo Party', p:d.party.p, w:d.party.w })
       .filter(x => x.p > 0).sort((a, b) => b.p - a.p || b.w - a.w), top = plays[0];          // contrato favorito: el más jugado
-    return `<div class="pf-stats">${box(d.games, 'partidas')}${box(d.wins, 'victorias')}${box(pct + '%', 'de victorias')}${box(d.online, 'online')}</div>
-      <div class="pf-stats">${box('🔥 ' + (d.streak || 0), 'racha actual')}${box('🏅 ' + (d.best || 0), 'mejor racha')}</div>
-      <p class="pf-fav">${top ? 'Contrato favorito: <b>' + top.n + '</b> (' + top.p + (top.p === 1 ? ' partida' : ' partidas') + ', ' + top.w + ' ganadas)' : 'Aún no tienes contrato favorito: juega uno.'}</p>
-      <h3 class="pf-h">Por contrato</h3><table class="pf-table"><tr><th></th><th>Jugadas</th><th>Ganadas</th></tr>
-      ${GAMES.map(g => `<tr><td>${GAME_NAMES[g]}</td><td>${d.by[g].p}</td><td>${d.by[g].w}</td></tr>`).join('')}<tr><td>🎉 Modo Party</td><td>${d.party.p}</td><td>${d.party.w}</td></tr></table>
-      <h3 class="pf-h">Totales del Expediente</h3><div class="pf-stats">${box(d.tot.dealt, 'daño causado')}${box(d.tot.gained, 'botín y ganancias')}${box(d.tot.healed, 'curación')}${box(d.tot.nat20, '20 naturales')}</div>
-      <p class="pf-fav">${fav ? 'Título más repetido: <b>' + fav.icon + ' ' + fav.name + '</b> (' + d.titles[fav.key] + ' veces)' : 'Aún no tienes títulos del Expediente.'}</p>
+    // Libro de cuentas de la banda: renglones verdes, totales con doble raya y las derrotas en tinta roja.
+    const rows = GAMES.map(g => [GAME_NAMES[g], d.by[g].p, d.by[g].w]).concat([['Modo Party', d.party.p, d.party.w]]);
+    const tp = rows.reduce((n, r) => n + r[1], 0), tw = rows.reduce((n, r) => n + r[2], 0);
+    const line = (l, v) => `<tr><td>${l}</td><td colspan="3">${v}</td></tr>`;
+    return `<div class="ledger"><h3 class="ledger-title">Libro de Cuentas</h3>
+      <table class="ledger-t"><thead><tr><th>CONTRATO</th><th>JUGADAS</th><th>GANADAS</th><th>PERDIDAS</th></tr></thead><tbody>
+      ${rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td class="red">${r[1] - r[2]}</td></tr>`).join('')}
+      <tr class="total"><td>TOTAL</td><td>${tp}</td><td>${tw}</td><td class="red">${tp - tw}</td></tr></tbody></table>
+      <h4 class="ledger-sub">Balance</h4><table class="ledger-t ledger-kv"><tbody>
+      ${line('Victorias', pct + '% de las partidas')}${line('Partidas online', d.online)}${line('🔥 Racha actual', (d.streak || 0) + ' seguidas')}${line('🏅 Mejor racha', (d.best || 0) + ' seguidas')}
+      ${line('Contrato favorito', top ? top.n + ' (' + top.p + ')' : '—')}</tbody></table>
+      <h4 class="ledger-sub">Totales del Expediente</h4><table class="ledger-t ledger-kv"><tbody>
+      ${line('Daño causado', d.tot.dealt)}${line('Botín y ganancias', d.tot.gained)}${line('Curación', d.tot.healed)}${line('20 naturales', d.tot.nat20)}${line('1 naturales', d.tot.nat1)}
+      ${line('Título más repetido', fav ? fav.icon + ' ' + fav.name + ' (' + d.titles[fav.key] + ')' : '—')}</tbody></table></div>
       <button type="button" class="pf-reset" onclick="PROFILE.reset()">🗑️ Borrar historial y logros</button>`;
   },
   achHtml() {
@@ -321,9 +328,13 @@ const PROFILE = {
         <span class="ach-meta"><span class="tier tier-${a.tier}">${TIERS[a.tier].label}</span>${veil ? '' : `<span class="ach-gold">${prize}</span>`}</span>${on ? `<em>${new Date(on).toLocaleDateString('es')}</em>` : ''}</div>`; }).join('')}</div>`;
   },
   corkString() {                                   // hilo rojo entre las chinchetas de los logros conseguidos
-    const b = $$('pf-cork'); if (!b) return; const svg = b.querySelector('svg'), r0 = b.getBoundingClientRect();
-    const pts = [...b.querySelectorAll('.clip.on')].map(c => { const r = c.getBoundingClientRect(); return [r.left - r0.left + r.width / 2, r.top - r0.top + 4]; });
-    svg.setAttribute('viewBox', `0 0 ${r0.width} ${b.scrollHeight}`); svg.style.height = b.scrollHeight + 'px';
+    // La chincheta está en el centro del borde de arriba de cada recorte, y el recorte está girado (--tilt) sobre su centro:
+    // se calcula dónde queda la chincheta después del giro, en las coordenadas del corcho (sin escala ni giro).
+    const b = $$('pf-cork'); if (!b) return; const svg = b.querySelector('svg'), W = b.clientWidth, H = b.scrollHeight;
+    const pts = [...b.querySelectorAll('.clip.on')].map(c => {
+      const a = (parseFloat(c.style.getPropertyValue('--tilt')) || 0) * Math.PI / 180, h = c.offsetHeight / 2;
+      return [c.offsetLeft + c.offsetWidth / 2 + h * Math.sin(a), c.offsetTop + h - h * Math.cos(a)]; });
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.style.width = W + 'px'; svg.style.height = H + 'px'; svg.style.left = '0'; svg.style.top = '0';
     svg.innerHTML = pts.length > 1 ? `<polyline points="${pts.map(p => p.map(Math.round).join(',')).join(' ')}" fill="none" stroke="#b3261e" stroke-width="2" stroke-linejoin="round"/>` : '';
   },
   shopHtml() {
@@ -337,16 +348,18 @@ const PROFILE = {
         : c.secret ? '<small class="shop-lock">🔒 Se gana completando todos los logros</small>'
         : `${can ? '' : `<small>Te faltan ${c.price - d.gold}</small>`}<button type="button" class="shop-buy" ${can ? '' : 'disabled'} onclick="PROFILE.buy('${c.key}')"><i class="coin" aria-hidden="true"></i> ${c.price}</button>`;
       return `<div class="shop-item ${own ? 'own' : ''}" ${attr}>${pic}<b>${pre || ''}${esc(c.label)}</b>${c.sub ? `<small class="shop-sub">${esc(c.sub)}</small>` : ''}<div class="shop-foot">${foot}</div></div>`; };
-    const dicePrev = c => `<canvas class="dice-prev" width="96" height="96" data-fin="${c.kind === 'fin' ? c.id : ''}" data-aura="${c.kind === 'aura' ? c.id : ''}" aria-hidden="true"></canvas>`;
+    // Sastrería: cada capo en su maniquí; vitrina: cada dado o aura en una caja de cristal sobre un cojín de terciopelo.
+    const dicePrev = c => `<div class="vitrine-box"><canvas class="dice-prev" width="96" height="96" data-fin="${c.kind === 'fin' ? c.id : ''}" data-aura="${c.kind === 'aura' ? c.id : ''}" aria-hidden="true"></canvas><i class="cushion"></i></div>`;
+    const dummy = src => `<div class="dummy"><div class="avatar"><img src="${src}" alt=""></div><i class="dummy-stand"></i></div>`;
     return `<p class="pf-note">Gana oro con los logros (cuanto más difícil, más paga) y ganando partidas online con al menos otra persona. Los logros alcanzan para casi toda la tienda; el resto, online. Más bots en la sala, menos oro. El 2.º puesto solo cobra si la partida es de 4 capos.</p>
       <table class="gold-table"><caption>Oro online: <b>1.º</b> · 2.º</caption><thead><tr><th></th><th>Sin bots</th><th>1 bot</th><th>2 bots</th></tr></thead>
         <tbody><tr><th>Contrato único</th>${[0, 1, 2].map(i => cell(s, i)).join('')}</tr><tr><th>Party a ${T.PARTY_MIN_WINS}+ victorias</th>${[0, 1, 2].map(i => cell(p, i)).join('')}</tr></tbody></table>
-      <h3 class="pf-h">Capos</h3><div class="shop">${items.map(c => card(c, `<div class="avatar"><img src="assets/characters/${c.key}/${col}/idle.png" alt=""></div>`, `style="--pc:${COLORS[col]}"`)).join('')}
-        ${COMING_SOON.map(c => `<div class="shop-item soon" style="--pc:var(--line)"><div class="avatar"><img src="assets/characters/None/silueta_${c.g}.png" alt=""></div>
+      <h3 class="pf-h">Capos</h3><div class="shop tailor">${items.map(c => card(c, dummy(`assets/characters/${c.key}/${col}/idle.png`), `style="--pc:${COLORS[col]}"`)).join('')}
+        ${COMING_SOON.map(c => `<div class="shop-item soon" style="--pc:var(--line)">${dummy(`assets/characters/None/silueta_${c.g}.png`)}
           <b>${esc(c.label)}</b><div class="shop-foot"><span class="shop-soon">PRÓXIMAMENTE</span></div></div>`).join('')}</div>
       <p class="pf-note shop-dice-note">Dados y auras solo cambian cómo se ve tu dado al tirar (también para los demás en online), nunca el resultado. Se eligen por separado en Tu Capo.</p>
-      <h3 class="pf-h">Dados</h3><div class="shop">${DICE_ITEMS.filter(c => c.kind === 'fin').map(c => card(c, dicePrev(c), '', 'Dados ')).join('')}</div>
-      <h3 class="pf-h">Auras</h3><div class="shop">${DICE_ITEMS.filter(c => c.kind === 'aura').map(c => card(c, dicePrev(c), '', 'Aura de ')).join('')}</div>`;
+      <h3 class="pf-h">Dados</h3><div class="shop vitrine">${DICE_ITEMS.filter(c => c.kind === 'fin').map(c => card(c, dicePrev(c), '', 'Dados ')).join('')}</div>
+      <h3 class="pf-h">Auras</h3><div class="shop vitrine">${DICE_ITEMS.filter(c => c.kind === 'aura').map(c => card(c, dicePrev(c), '', 'Aura de ')).join('')}</div>`;
   },
   async reset() {
     if (!(await askConfirm('¿Borrar historial y logros?', 'Tu nombre, personaje y color se conservan, y también tu oro y lo que compraste. Los logros ya cobrados no vuelven a pagar. Esto no se puede deshacer.', 'SÍ, BORRAR'))) return;

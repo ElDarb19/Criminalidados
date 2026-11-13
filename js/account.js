@@ -169,10 +169,17 @@ const ACCOUNT = {
   },
   rowsHtml(rows) {
     if (!rows.length) return '<p class="pf-note">Aún no hay nadie. ¡Sé el primero!</p>';
-    const me = this.user && this.user.uid, medal = ['🥇', '🥈', '🥉'];
-    return `<ol class="top">${rows.map((r, i) => `<li class="${r.uid === me ? 'me' : ''}"><span class="top-n">${medal[i] || i + 1}</span>
-      <span class="avatar" style="--pc:${COLORS[r.color] || '#555'}"><img src="assets/characters/${CHARACTERS.some(c => c.key === r.char) ? r.char : 'Mafioso'}/${COLORS[r.color] ? r.color : 'Color_R'}/idle.png" alt=""></span>
-      <b class="top-name">${esc(r.name)}${r.uid === me ? ' <small>(tú)</small>' : ''}</b><span class="top-w">${r.wins}<small>victorias</small></span><span class="top-g">${r.games}<small>partidas</small></span></li>`).join('')}</ol>`;
+    // "Los más buscados": los 3 primeros en carteles de SE BUSCA pegados en una pared de ladrillo (la recompensa son
+    // sus victorias) y del 4.º al 50.º en la lista de "otros sospechosos".
+    const me = this.user && this.user.uid, img = r => `assets/characters/${CHARACTERS.some(c => c.key === r.char) ? r.char : 'Mafioso'}/${COLORS[r.color] ? r.color : 'Color_R'}/idle.png`;
+    const poster = (r, i) => `<li class="poster ${i === 0 ? 'first' : ''} ${r.uid === me ? 'me' : ''}" style="--r:${[-2, 2, -1][i]}deg;--pc:${COLORS[r.color] || '#555'}"><span class="rank">${i + 1}</span>
+      <span class="w">SE BUSCA</span><img src="${img(r)}" alt=""><b>${esc(r.name)}${r.uid === me ? ' <small>(tú)</small>' : ''}</b><small>${r.games} partidas</small>
+      <span class="rew">${r.wins} ${r.wins === 1 ? 'VICTORIA' : 'VICTORIAS'}</span></li>`;
+    const rest = rows.slice(3);
+    return `<ol class="wanted-wall">${rows.slice(0, 3).map(poster).join('')}</ol>
+      ${rest.length ? `<h3 class="pf-h">Otros sospechosos</h3><ol class="suspects" start="4">${rest.map((r, i) => `<li class="${r.uid === me ? 'me' : ''}"><span class="top-n">${i + 4}</span>
+        <span class="avatar" style="--pc:${COLORS[r.color] || '#555'}"><img src="${img(r)}" alt=""></span><b class="top-name">${esc(r.name)}${r.uid === me ? ' <small>(tú)</small>' : ''}</b>
+        <span class="top-w">${r.wins}<small>victorias</small></span><span class="top-g">${r.games}<small>partidas</small></span></li>`).join('')}</ol>` : ''}`;
   }
 };
 

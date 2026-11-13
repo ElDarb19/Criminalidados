@@ -26,10 +26,14 @@ function charNext(el) { const l = (el.dataset.c || '').split('|'); l.shift(); if
 
 window.addEventListener('criminaldice:start', e => CD.start(e.detail));
 
+const COUNTDOWN_MS = 3200;                            // duración de la cuenta atrás entre contratos
 CD.mod = () => MODULES[CD.contract]();               // contrato en curso (en Modo Party va cambiando)
 CD.beginContract = async function (G) {      // mercado (contrato único) → evento de ciudad → preparación → a jugar
   if (CD.cfg.tutorial) await TUT.ready();       // el tutorial espera a que el jugador lea la bienvenida
   if (MK.on() && !MK.party()) await CD.openMarket('MERCADO NEGRO', ['Compra antes del contrato · ' + CONTRACT_NAMES[CD.contract]]);
+  // Cuenta atrás de proyector (3, 2, 1) antes de cada contrato. La decide el anfitrión y viaja en el estado (G.loading),
+  // así sale a la vez en todos los dispositivos; mientras dura, G.wait sigue activo y nadie (ni los bots) puede jugar.
+  if (!CD.cfg.tutorial) { G.loading = { title:GAME_TITLES[CD.contract], n:(G.pi || 0) + 1, party:CD.cfg.mode === 'party' }; CD.publish(); render(); await sleep(COUNTDOWN_MS); G.loading = null; CD.publish(); render(); }
   await MK.rollEvent(G);
   await CD.mod().init(G);
   MK.contractStart(G);
@@ -435,10 +439,17 @@ CD.rank = function (players, key, text) {
 };
 function podiumHtml(G, pod) {
   const medal = { 1:'🥇', 2:'🥈', 3:'🥉' };
-  return pod.map(e => { const p = G.players[e.slot], L = charList(p, e.place === 1 ? 'win' : 'idle');
-    const die = e.place === 1 ? `<canvas class="pod-die" width="96" height="96" data-color="${p.color}" data-fin="${p.fin || ''}" data-aura="${p.aura || ''}" aria-hidden="true"></canvas>` : '';   // el ganador luce su dado y su aura
-    return `<div class="pod p${Math.min(e.place, 4)}" style="--pc:${COLORS[p.color]}"><span class="medal">${medal[e.place] || e.place + 'º'}</span>
-      <img src="${L[0]}" data-c="${L.join('|')}" onerror="charNext(this)" alt="">${die}<div><b>${esc(p.name)}</b><small>${esc(e.text)}</small></div></div>`; }).join('');
+  // Escalones del podio (2.º · 1.º · 3.º) con flashes de prensa: cada uno con su capo (el 1.º en pose de victoria) y su
+  // dado con el acabado y el aura que lleva. Del 4.º en adelante, en una fila pequeña debajo.
+  const die = p => `<canvas class="pod-die" width="96" height="96" data-color="${p.color}" data-fin="${p.fin || ''}" data-aura="${p.aura || ''}" aria-hidden="true"></canvas>`;
+  const step = (e, i) => { const p = G.players[e.slot], L = charList(p, i === 0 ? 'win' : 'idle');
+    return `<div class="step st${i + 1}" style="--pc:${COLORS[p.color]}"><div class="step-figs"><img src="${L[0]}" data-c="${L.join('|')}" onerror="charNext(this)" alt="">${die(p)}</div>
+      <div class="step-block"><span class="medal">${medal[e.place] || e.place + 'º'}</span><b>${esc(p.name)}</b><small>${esc(e.text)}</small></div></div>`; };
+  const top = pod.slice(0, 3), order = [1, 0, 2].filter(i => top[i]);
+  const rest = pod.slice(3).map(e => { const p = G.players[e.slot], L = charList(p, 'idle');
+    return `<div class="pod p4" style="--pc:${COLORS[p.color]}"><span class="medal">${e.place}º</span><img src="${L[0]}" data-c="${L.join('|')}" onerror="charNext(this)" alt=""><div><b>${esc(p.name)}</b><small>${esc(e.text)}</small></div></div>`; }).join('');
+  return `<div class="stage-podium"><span class="flash f1"></span><span class="flash f2"></span><span class="flash f3"></span>
+    <div class="steps">${order.map(i => step(top[i], i)).join('')}</div></div>${rest}`;
 }
 function setPodium(el, html) {                         // solo se redibuja si cambia (así no se reinician la entrada ni el aura del dado)
   if (el.dataset.h === html) return; el.dataset.h = html; el.innerHTML = html;
@@ -525,7 +536,7 @@ CD.exit = () => {
   // el navegador la bloquea hasta el siguiente toque). Online o a mitad de partida se recarga, que es lo más seguro.
   if (!CD.cfg.online && CD.G && CD.G.over) {
     CD.running = false; CD.G = null; CD.pending = null; CD.recorded = false; CD.lastSnap = null;
-    ['modal-over', 'modal-between', 'modal-market', 'modal-event', 'modal-file', 'fx', 'modal-roll', 'modal-choice'].forEach(id => { const m = $$(id); if (m) m.classList.add('hidden'); });
+    ['modal-over', 'modal-between', 'modal-market', 'modal-event', 'modal-file', 'fx', 'modal-roll', 'modal-choice', 'countdown'].forEach(id => { const m = $$(id); if (m) m.classList.add('hidden'); });
     $$('game-screen').classList.add('hidden'); $$('menu-screen').classList.remove('hidden');
     if (CD.bodyClass != null) document.body.className = CD.bodyClass;
     window.scrollTo(0, 0); musicSet('menu'); if (typeof renderAll === 'function') renderAll();
@@ -568,6 +579,13 @@ function render() {
   chip.classList.toggle('hidden', !evd); if (evd) chip.textContent = evd.title + (G.event.boss != null ? ' · ' + G.players[G.event.boss].name.toUpperCase() : '') + ' — ' + evd.desc;
   MK.render();
   setPodium($$('between-podium'), G.between && G.between.podium ? podiumHtml(G, G.between.podium) : '');
+  const cd = $$('countdown'), ld = G.loading;                                // cuenta atrás entre contratos
+  if (ld && cd.classList.contains('hidden')) {
+    $$('countdown-k').textContent = ld.party ? 'CONTRATO ' + ld.n : 'PRÓXIMO CONTRATO'; $$('countdown-t').textContent = ld.title;
+    cd.classList.remove('hidden', 'run'); void cd.offsetWidth; cd.classList.add('run');
+    const num = cd.querySelector('.leader span'), t0 = performance.now(); clearInterval(CD.cdTimer); num.textContent = '3';
+    CD.cdTimer = setInterval(() => { num.textContent = Math.max(1, 3 - Math.floor((performance.now() - t0) / (COUNTDOWN_MS / 3))); }, 100);
+  } else if (!ld) { cd.classList.add('hidden'); clearInterval(CD.cdTimer); }
   $$('modal-over').classList.toggle('hidden', !G.over);
   if (G.over) { $$('over-text').textContent = G.result.lost ? 'Partida interrumpida' : G.result.winner == null ? 'Empate' : '🏆 ' + G.players[G.result.winner].name; $$('over-sub').textContent = G.result.summary || ''; setPodium($$('over-podium'), G.result.podium ? podiumHtml(G, G.result.podium) : '');
     $$('over-rematch').classList.toggle('hidden', !CD.auth || !!G.result.lost);

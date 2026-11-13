@@ -292,21 +292,31 @@ const MK = {
     const G = CD.G, m = G && G.market, box = $$('modal-market'); if (!box) return;
     box.classList.toggle('hidden', !m); if (!m) return;
     const done = m.done || {}, who = CD.cfg.online ? G.players[CD.me] : G.players[m.order[m.cur]];
+    // Maleta abierta: en la tapa (con su red) van tus objetos y tu dinero; abajo, sujeto con correas, lo que está en venta
+    // y los botones de Renovar y Terminar compra. Siempre se ven los huecos máximos (3 contactos + 1 consumible).
     const head = `<h2>🛒 ${esc(m.title)}</h2><p class="mk-lines">${(m.lines || []).map(esc).join('<br>')}</p>`;
     if (!who || who.bot || (CD.cfg.online && done[who.slot])) {
       const st = m.order.map(s => `${esc(G.players[s].name)}: ${done[s] ? '✅ listo' : '⏳ comprando…'}`).join('<br>');
-      box.querySelector('.mk-body').innerHTML = head + `<p class="mk-wait">Esperando a los demás jugadores…<br>${st}</p>`; return;
+      box.querySelector('.mk-body').innerHTML = `<div class="suitcase closed"><div class="sc-lid">${head}<p class="mk-wait">Esperando a los demás jugadores…<br>${st}</p></div><i class="sc-handle"></i></div>`; return;
     }
     const full = who.contacts.length >= ECON.MAX_PASSIVES, rate = who.contacts.includes('contact_desguace') ? ECON.SELL_DESGUACE : ECON.SELL;
     const works = it => ['rpg', 'exp', 'maf', 'pok'].filter(c => this.compatible(it.id, c)).map(c => SHORT_NAMES[c]).join(' · ');
-    const card = (it, mode) => `<div class="mk-item ${mode !== 'sell' && !this.compatible(it.id, CD.contract) && !this.party() ? 'off' : ''}"><div class="mk-ic">${it.icon}</div><div class="mk-tx"><b>${esc(it.name)}</b> <span class="mk-tag ${it.kind === 'p' ? 'pas' : 'act'}">${it.kind === 'p' ? 'PASIVO' : 'ACTIVO · 1 USO'}</span> <span class="mk-cost">${mode === 'sell' ? '+' + Math.floor(it.cost * rate) : it.cost}💲</span>
-      <small>${esc(it.desc)}</small><small class="mk-works">Funciona en: ${works(it)}</small></div>
+    // Tus objetos van en versión corta (la descripción completa, al pasar el cursor); lo que está en venta, completo.
+    const card = (it, mode) => `<div class="mk-item ${mode === 'sell' ? 'mine' : ''} ${mode !== 'sell' && !this.compatible(it.id, CD.contract) && !this.party() ? 'off' : ''}" ${mode === 'sell' ? `title="${esc(it.desc)}"` : ''}><div class="mk-ic">${it.icon}</div><div class="mk-tx"><b>${esc(it.name)}</b> <span class="mk-tag ${it.kind === 'p' ? 'pas' : 'act'}">${it.kind === 'p' ? 'PASIVO' : 'ACTIVO · 1 USO'}</span> <span class="mk-cost">${mode === 'sell' ? '+' + Math.floor(it.cost * rate) : it.cost}💲</span>
+      ${mode === 'sell' ? '' : `<small>${esc(it.desc)}</small><small class="mk-works">Funciona en: ${works(it)}</small>`}</div>
       <button class="opt" onclick="MK.act('${mode}','${it.id}')" ${mode === 'buy' && (who.money < it.cost || (it.kind === 'p' ? full : !!who.consumable)) ? 'disabled' : ''}>${mode === 'buy' ? (it.kind === 'p' && full ? 'LLENO' : it.kind === 'c' && who.consumable ? 'SLOT OCUPADO' : 'COMPRAR') : 'VENDER'}</button></div>`;
-    const inv = who.contacts.map(id => card(ITEM_BY_ID[id], 'sell')).join('') + (who.consumable ? card(ITEM_BY_ID[who.consumable], 'sell') : '') || '<p class="mk-empty">Sin objetos todavía.</p>';
+    const empty = (t, k) => `<div class="mk-item mk-slot"><div class="mk-ic">${k === 'p' ? '🤝' : '🧪'}</div><div class="mk-tx"><b>${t}</b><small>Hueco libre</small></div></div>`;
+    const inv = Array.from({ length:ECON.MAX_PASSIVES }, (_, i) => who.contacts[i] ? card(ITEM_BY_ID[who.contacts[i]], 'sell') : empty('Contacto ' + (i + 1), 'p')).join('')
+      + (who.consumable ? card(ITEM_BY_ID[who.consumable], 'sell') : empty('Consumible', 'c'));
     const stock = who.stock.map(id => card(ITEM_BY_ID[id], 'buy')).join('') || '<p class="mk-empty">Tienda vacía: renueva la tienda.</p>';
-    box.querySelector('.mk-body').innerHTML = head + `<div class="mk-wallet"><b>${esc(who.name)}</b> · 💲 ${who.money} · Pasivos ${who.contacts.length}/${ECON.MAX_PASSIVES} · Activo ${who.consumable ? '1/1' : '0/1'}</div>
-      <p class="mk-legend"><span class="mk-tag pas">PASIVO</span> contacto que funciona solo, mientras lo tengas (máx. ${ECON.MAX_PASSIVES}) · <span class="mk-tag act">ACTIVO</span> consumible de un solo uso: lo activas tú en tu turno y se gasta (máx. 1)</p>
-      <h3>EN VENTA</h3>${stock}<button class="opt mk-reroll" onclick="MK.act('reroll')" ${who.money < who.rerollCost ? 'disabled' : ''}>🔄 Renovar tienda (${who.rerollCost}💲)</button>
-      <h3>TUS OBJETOS (PASIVOS Y ACTIVOS)</h3>${inv}<button class="start" onclick="MK.act('done')">${CD.cfg.online ? 'LISTO' : 'TERMINAR COMPRA'}</button>`;
+    box.querySelector('.mk-body').innerHTML = `<div class="suitcase"><div class="sc-lid">${head}
+        <div class="mk-wallet"><span class="mk-cash">💵 ${who.money}💲</span><span><b>${esc(who.name)}</b> · Pasivos ${who.contacts.length}/${ECON.MAX_PASSIVES} · Activo ${who.consumable ? '1/1' : '0/1'}</span></div>
+        <div class="sc-net"><h3>TUS OBJETOS</h3><div class="sc-grid">${inv}</div></div></div>
+      <div class="sc-hinges" aria-hidden="true"><i></i><i></i></div>
+      <div class="sc-body"><h3>EN VENTA</h3><div class="sc-grid">${stock}</div>
+        <div class="sc-actions"><button class="opt mk-reroll" onclick="MK.act('reroll')" ${who.money < who.rerollCost ? 'disabled' : ''}>🔄 Renovar tienda (${who.rerollCost}💲)</button>
+        <button class="start" onclick="MK.act('done')">${CD.cfg.online ? 'LISTO' : 'TERMINAR COMPRA'}</button></div></div>
+      <i class="sc-handle" aria-hidden="true"></i></div>
+      <p class="mk-legend"><span class="mk-tag pas">PASIVO</span> contacto que funciona solo, mientras lo tengas (máx. ${ECON.MAX_PASSIVES}) · <span class="mk-tag act">ACTIVO</span> consumible de un solo uso: lo activas tú en tu turno y se gasta (máx. 1)</p>`;
   }
 };

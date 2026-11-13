@@ -110,13 +110,13 @@ const RETOS = {
   },
   overHtml() {                                     // pequeño, al final de la partida: lo que hay y cuánto avanzaste
     if (!this.last) return '';
-    return `<div class="over-retos"><p class="over-retos-h">🎯 Retos del día y misiones · ${this.last.filter(x => x.done).length}/${this.last.length}</p><ul class="retos">${this.last.map(x => this.row(x)).join('')}</ul></div>`;
+    return `<div class="over-retos betbook"><p class="over-retos-h">🎯 Retos del día y misiones · ${this.last.filter(x => x.done).length}/${this.last.length}</p><ul class="retos">${this.last.map(x => this.row(x)).join('')}</ul></div>`;
   },
   tabHtml(d) {                                     // pestaña del Perfil
     const all = this.current(d), now = new Date(), mid = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
     const h = Math.max(1, Math.ceil((mid - now) / 36e5)), daysLeft = 7 - ((this.dayNo() + 3) % 7);
     return `<p class="pf-note">Cada día salen ${this.PER_DAY} retos nuevos y cada lunes ${this.PER_WEEK} misiones, iguales para todos los capos. Avanzan al terminar cualquier partida (local u online, el tutorial no cuenta). Pagan <i class="coin" aria-hidden="true"></i> ${this.DAILY_GOLD} cada reto y <i class="coin" aria-hidden="true"></i> ${this.WEEKLY_GOLD} cada misión.</p>
-      <h3 class="pf-h">Retos del día <small class="retos-left">· cambian en ${h} h</small></h3><ul class="retos">${all.filter(x => x.kind === 'dia').map(x => this.row(x)).join('')}</ul>
-      <h3 class="pf-h">Misiones de la semana <small class="retos-left">· cambian en ${daysLeft} ${daysLeft === 1 ? 'día' : 'días'}</small></h3><ul class="retos">${all.filter(x => x.kind === 'semana').map(x => this.row(x)).join('')}</ul>`;
+      <div class="betbook"><h3 class="bet-h">Retos del día <small class="retos-left">· cambian en ${h} h</small></h3><ul class="retos">${all.filter(x => x.kind === 'dia').map(x => this.row(x)).join('')}</ul>
+      <h3 class="bet-h">Misiones de la semana <small class="retos-left">· cambian en ${daysLeft} ${daysLeft === 1 ? 'día' : 'días'}</small></h3><ul class="retos">${all.filter(x => x.kind === 'semana').map(x => this.row(x)).join('')}</ul></div>`;
   }
 };
