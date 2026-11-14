@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Imperio Criminal · opciones</title>
+<link href="https://fonts.googleapis.com/css2?family=Limelight&family=Oswald:wght@400;500;600;700&family=Special+Elite&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../menu.css">
+<style>
+/* Página solo de muestra (no la usa el juego). Imperio Criminal: distritos como ciudad, redadas y botones sin dinero. */
+body{margin:0;padding:16px 12px 70px;background:radial-gradient(ellipse at top,#2a2117,#0b0a08 70%);color:var(--cream);font-family:var(--font-type)}
+.wrap{max-width:84rem;margin:0 auto}
+h1{font-family:var(--font-display);font-weight:400;color:#f0bf7f;margin:0 0 4px}
+.lead{color:var(--cream-2);max-width:58rem;font-size:.9rem}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:18px;margin-top:14px;align-items:start}
+.ob{padding:10px;border-radius:6px;background:rgba(0,0,0,.35)}
+.ob>h3{margin:0 0 4px;font-family:var(--font-ui);letter-spacing:2px;font-size:.95rem;color:var(--gold-2)}
+.ob>p{margin:0 0 10px;font-size:.76rem;color:var(--cream-2);line-height:1.45}
+.px{image-rendering:pixelated}
+.cap{margin:12px 0 4px;font-family:var(--font-ui);font-size:.66rem;letter-spacing:2px;color:var(--cream-3)}
+/* pantalla */
+.scr{position:relative;max-width:440px;margin:0 auto;padding:10px;border-radius:10px;overflow:hidden;background:radial-gradient(ellipse at 50% 0,rgba(255,200,130,.17),transparent 60%),#140e08}
+.hd{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding-bottom:6px;margin-bottom:6px;border-bottom:1px solid rgba(255,255,255,.15)}
+.hd b{font-family:var(--font-display);font-weight:400;font-size:1.15rem;color:#f0e2b6}
+.hd span{font-family:var(--font-ui);font-size:.7rem;letter-spacing:2px;color:var(--cream-2)}
+.turn{text-align:center;font-family:var(--font-ui);letter-spacing:1px;font-size:.8rem;margin:4px 0 8px}
+.pls{display:grid;gap:8px}
+.acts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.acts .wide{grid-column:1/-1}
+button{font:inherit;cursor:pointer}
+button:disabled{cursor:not-allowed}
+.odds{display:block;width:fit-content;margin:4px auto 0;padding:1px 7px;border-radius:9px;font-size:.58rem;letter-spacing:0}
+
+/* ---------- edificios (SVG): el color del dueño va en --own ---------- */
+.bld{display:block;width:100%;height:100%}
+.bld .body{fill:#3a3128}.bld .win{fill:#1a1510}.bld .acc{fill:#5a4a32}
+.lot.own .bld .body{fill:color-mix(in srgb,var(--own) 55%,#2a2018)}
+.lot.own .bld .win{fill:#ffe9a8}
+.lot.own .bld .acc{fill:var(--own)}
+.lot.raid .bld .win{fill:#2a2a3a}
+
+/* ===================== A · SKYLINE DE NOCHE ===================== */
+.A .card{position:relative;display:grid;grid-template-columns:56px 1fr;gap:8px;padding:8px;border-radius:8px;background:linear-gradient(180deg,#0e1424,#1a1410 80%);border:1px solid #2a2a3a}
+.A .card.turn{border-color:var(--gold-2);box-shadow:0 0 14px rgba(228,199,126,.4)}
+.A .card img{width:56px;height:56px}
+.A .nm{font-family:var(--font-ui);font-weight:600;font-size:.85rem;letter-spacing:1px}
+.A .st{font-size:.62rem;color:var(--cream-2)}
+.A .st b{color:var(--gold-3)}
+.A .sky{grid-column:1/-1;display:grid;grid-template-columns:repeat(6,1fr);align-items:end;gap:2px;height:72px;padding:0 2px;border-bottom:3px solid #3a3530;
+  background:radial-gradient(circle at 85% 20%,#f3efd0 0 5px,transparent 6px),radial-gradient(circle at 20% 35%,rgba(255,255,255,.5) 0 1px,transparent 2px),radial-gradient(circle at 55% 15%,rgba(255,255,255,.5) 0 1px,transparent 2px)}
+.A .lot{position:relative;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center}
+.A .lot .bld{height:52px}
+.A .lot .tag{font-family:var(--font-ui);font-size:.5rem;letter-spacing:.3px;color:var(--cream-3);line-height:1.1;text-align:center}
+.A .lot .tag b{display:block;font-size:.7rem;color:var(--cream-2)}
+.A .lot.own .tag b{color:var(--own);text-shadow:0 0 6px var(--own)}
+.A .lot.raid::after{content:"";position:absolute;left:10%;right:10%;top:30%;height:7px;background:repeating-linear-gradient(90deg,#f5c518 0 6px,#111 6px 10px);transform:rotate(-12deg)}
+.A .siren{position:absolute;top:0;left:50%;transform:translateX(-50%);font-size:.6rem;line-height:1;padding:1px 3px;border-radius:3px;background:#111;color:#fff;font-family:var(--font-ui);white-space:nowrap;animation:siren 1s steps(2) infinite}
+@keyframes siren{0%{box-shadow:-4px 0 8px #ff2a2a}50%{box-shadow:4px 0 8px #2a6aff}}
+/* botones: persianas de tienda; si no alcanza el dinero, la persiana baja con el letrero */
+.A .act{position:relative;min-height:96px;padding:6px 4px;border:2px solid #5a4a32;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,#2a2018,#1a1410);color:var(--cream);font-family:var(--font-ui);font-size:.74rem;letter-spacing:.5px;overflow:hidden}
+.A .act img{display:block;width:36px;height:36px;margin:0 auto 2px}
+.A .act small{display:block;font-size:.58rem;color:var(--cream-2)}
+.A .act .odds{border:1px solid #d99347;color:#f0bf7f}
+.A .act:hover:not(:disabled){border-color:#f0bf7f;box-shadow:0 0 12px rgba(217,147,71,.5)}
+.A .act:disabled{color:#8a7a5a}
+.A .act:disabled::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(180deg,#6a6a6a 0 5px,#4a4a4a 5px 7px);opacity:.92}
+.A .act .why{position:absolute;left:50%;top:50%;z-index:1;transform:translate(-50%,-50%) rotate(-4deg);padding:2px 6px;background:#f3ecd6;color:#a3241c;border:2px solid #a3241c;font-size:.56rem;font-weight:700;letter-spacing:1px;white-space:nowrap}
+.A .act .why small{color:#5a4a32;font-size:.52rem;letter-spacing:0;font-weight:400}
+
+/* ===================== B · ESCRITURAS DE PROPIEDAD ===================== */
+.B .card{position:relative;padding:8px;border-radius:4px;background:#efe3c4;color:#20180f;box-shadow:2px 3px 0 rgba(0,0,0,.45)}
+.B .card.turn{outline:2px solid #a3241c;outline-offset:2px}
+.B .top{display:flex;gap:8px;align-items:center}
+.B .top img{width:48px;height:48px;border-bottom:3px solid var(--pc)}
+.B .nm{font-family:var(--font-ui);font-weight:700;font-size:.86rem;letter-spacing:1px}
+.B .st{font-size:.62rem;color:#4a3a22}
+.B .deeds{display:grid;grid-template-columns:repeat(6,1fr);gap:3px;margin-top:6px}
+.B .lot{position:relative;display:flex;flex-direction:column;align-items:center;min-height:62px;padding:2px 1px;border:1px dashed #a89878;background:#e6d8b4;color:#8a7a5a;overflow:hidden}
+.B .lot .band{align-self:stretch;height:6px;background:#c8b892}
+.B .lot .bld{width:30px;height:30px;margin-top:2px}
+.B .lot b{font-family:var(--font-ui);font-size:.66rem;line-height:1}
+.B .lot small{font-family:var(--font-ui);font-size:.44rem;line-height:1.1}
+.B .lot.own{border:1px solid #20180f;background:#fbf3dc;color:#20180f}
+.B .lot.own .band{background:var(--own)}
+.B .lot.raid{background:#fbf3dc}
+.B .lot.raid::after{content:"CLAUSURADO";position:absolute;left:-6px;right:-6px;top:44%;transform:rotate(-30deg);background:#a3241c;color:#fff;font-family:var(--font-ui);font-size:.42rem;letter-spacing:1px;text-align:center;padding:1px 0}
+.B .lot .t{position:absolute;top:8px;right:1px;font-family:var(--font-ui);font-size:.5rem;color:#a3241c;font-weight:700}
+/* botones: fichas de papel; sin dinero, el precio tachado y un candado */
+.B .act{position:relative;min-height:96px;padding:6px 4px;border:1px solid #8a7a5a;background:#efe3c4;color:#20180f;font-family:var(--font-ui);font-size:.74rem;box-shadow:2px 3px 0 rgba(0,0,0,.45)}
+.B .act img{display:block;width:36px;height:36px;margin:0 auto 2px}
+.B .act small{display:block;font-size:.58rem;color:#4a3a22}
+.B .act .price{display:inline-block;margin-top:3px;padding:0 6px;border-radius:8px;background:#20180f;color:#f3dfa6;font-size:.62rem}
+.B .act:disabled{background:#d8cfb8;color:#6a5a42;box-shadow:none}
+.B .act:disabled img{filter:grayscale(1);opacity:.5}
+.B .act:disabled .price{background:transparent;color:#a3241c;border:1px solid #a3241c;text-decoration:line-through}
+.B .act:disabled::after{content:"🔒";position:absolute;top:4px;right:6px;font-size:.8rem}
+.B .act .need{display:block;margin-top:2px;font-size:.56rem;color:#a3241c;font-weight:600}
+.B .act:hover:not(:disabled){box-shadow:0 0 0 2px #a3241c}
+
+/* ===================== C · VISTA AÉREA DEL BARRIO ===================== */
+.C .card{position:relative;padding:8px;border-radius:8px;background:#1a1612;border:1px solid #3a3128}
+.C .card.turn{border-color:var(--gold-2);box-shadow:0 0 14px rgba(228,199,126,.35)}
+.C .top{display:flex;gap:8px;align-items:center}
+.C .top img{width:48px;height:48px}
+.C .nm{font-family:var(--font-ui);font-weight:600;font-size:.86rem;letter-spacing:1px}
+.C .st{font-size:.62rem;color:var(--cream-2)}
+.C .st b{color:var(--gold-3)}
+.C .city{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px;padding:6px;border-radius:4px;background:#4a4a46;
+  background-image:repeating-linear-gradient(90deg,transparent 0 10px,rgba(243,223,166,.6) 10px 14px,transparent 14px 24px)}
+.C .lot{position:relative;display:grid;grid-template-columns:30px 1fr;align-items:center;gap:3px;min-height:44px;padding:3px;border-radius:3px;background:#2e3a2a;border:2px solid #1e261c;color:#a8b8a0}
+.C .lot .bld{width:30px;height:30px}
+.C .lot b{display:block;font-family:var(--font-ui);font-size:.72rem;line-height:1}
+.C .lot small{display:block;font-family:var(--font-ui);font-size:.5rem;line-height:1.1}
+.C .lot.own{background:color-mix(in srgb,var(--own) 30%,#2e2a22);border-color:var(--own);color:#fff}
+.C .lot.own::before{content:"";position:absolute;top:-6px;right:4px;width:10px;height:8px;background:var(--own);clip-path:polygon(0 0,100% 30%,0 60%);border-left:2px solid #ddd}
+.C .lot.raid{border-style:dashed}
+.C .lot .cops{position:absolute;inset:auto 2px 2px auto;padding:0 3px;border-radius:3px;background:#111;color:#fff;font-family:var(--font-ui);font-size:.55rem;animation:siren 1s steps(2) infinite}
+.C .lot.raid::after{content:"";position:absolute;left:0;right:0;bottom:-2px;height:4px;background:repeating-linear-gradient(90deg,#fff 0 4px,#d4513f 4px 8px)}
+/* botones: carteles de calle con contador de dinero; sin dinero, la barra muestra cuánto falta */
+.C .act{position:relative;min-height:96px;padding:6px 4px 8px;border:2px solid #d99347;border-radius:6px;background:linear-gradient(180deg,#2a1e12,#1a120a);color:var(--cream);font-family:var(--font-ui);font-size:.74rem}
+.C .act img{display:block;width:36px;height:36px;margin:0 auto 2px}
+.C .act small{display:block;font-size:.58rem;color:var(--cream-2)}
+.C .act .bar{display:block;height:6px;margin:5px 4px 0;border-radius:3px;background:#3a3128;overflow:hidden}
+.C .act .bar i{display:block;height:100%;background:#7cc47f}
+.C .act .cnt{display:block;font-size:.56rem;margin-top:2px;color:#b7f0c0}
+.C .act:disabled{border-color:#5a4a32;color:#8a7a5a;background:#1a1612}
+.C .act:disabled img{filter:grayscale(1) brightness(.6)}
+.C .act:disabled .bar i{background:#d4513f}
+.C .act:disabled .cnt{color:#ff9a8a}
+.C .act:hover:not(:disabled){box-shadow:0 0 12px rgba(217,147,71,.5)}
+
+/* A + C: tarjetas de A (la clase .A) y botones de C; el botón elegido y la tabla del soborno */
+.AC .card{background:linear-gradient(180deg,#0e1424,#1a1410 80%);border:1px solid #2a2a3a}
+.AC .card.turn{border-color:var(--gold-2)}
+.AC .act:disabled::before{content:none}
+/* en A + C los distritos son los del skyline (se anulan los de la vista aérea) */
+.AC .lot{display:flex;min-height:0;padding:0;border:0;border-radius:0;background:none;color:inherit}
+.AC .lot.own{background:none;border:0}.AC .lot.own::before{content:none}
+.AC .lot .bld{width:100%;height:52px}
+.AC .lot.raid::after{content:"";position:absolute;left:10%;right:10%;top:30%;bottom:auto;height:7px;background:repeating-linear-gradient(90deg,#f5c518 0 6px,#111 6px 10px);transform:rotate(-12deg)}
+.AC .act.sel{border-color:#f0bf7f;box-shadow:0 0 0 2px #f0bf7f,0 0 14px rgba(217,147,71,.5)}
+.AC .act .odds{border:1px solid #d99347;color:#f0bf7f}
+.bribe{margin-top:10px;padding:8px;border-radius:6px;border:1px dashed #d99347;background:rgba(0,0,0,.35);text-align:center;font-family:var(--font-ui);font-size:.74rem}
+.bribe>b{display:block;letter-spacing:1px;color:#f0bf7f}
+.bribe-t{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0}
+.bribe-t span{padding:4px;border-radius:4px;background:#2a1e12;border:1px solid #5a4a32;font-size:.66rem;color:var(--cream-2)}
+.bribe-t span:nth-child(2){border-color:#7cc47f;box-shadow:0 0 8px rgba(124,196,127,.5)}
+.bribe-t b{display:block;font-size:1rem;color:#fff}
+.bribe-t .gold b{color:var(--gold-3)}
+.bribe-t small{display:block;font-size:.55rem}
+.bribe p{margin:0;font-family:var(--font-type);color:var(--cream-2)}
+.bribe p b{color:#b7f0c0}
+/* interruptor común de Lavar dinero en fase 1 (como ya está), apagado sin dinero */
+.sw-row{grid-column:1/-1;display:flex;align-items:center;gap:10px;min-height:56px;padding:6px 10px;border:1px solid #8a7a5a;background:#efe3c4;color:#20180f;font-family:var(--font-ui);font-size:.78rem;text-align:left}
+.sw-row small{display:block;font-size:.58rem;font-weight:400}
+.sw-row .road{position:relative;flex:0 0 auto;width:70px;height:28px;margin-left:auto;border-radius:14px;background:#4a4a4a}
+.sw-row .road i{position:absolute;top:2px;left:2px;width:24px;height:24px;border-radius:50%;background:#c9b88e;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:.8rem}
+.sw-row:disabled{opacity:.6}
+.sw-row:disabled .road::after{content:"SIN 💵";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:.55rem;color:#fff;letter-spacing:1px}
+</style>
+</head>
+<body><div class="wrap">
+  <h1>Imperio Criminal · opciones nuevas</h1>
+  <p class="lead">Tres formas de dibujar la ciudad. En las tres se ven los <b>distritos como lugares</b> (Muelles con su grúa, Estación con su reloj, Teatros con su marquesina, Mercado con su toldo, Fábricas con su chimenea y Casino con su letrero), los <b>distritos en redada</b> y los <b>botones que no se pueden usar por falta de dinero</b> (con lo que falta). Ejemplo: es el turno de Darb, que tiene 3💵: le alcanza para la Redada, pero no para Controlar Distrito (4💵) ni para Sobornar (5💵).</p>
+  <div class="opts" id="opts"></div>
+</div>
+<script>
+const IMG = (c, f) => '../assets/characters/' + c + '/' + (f || 'idle') + '.png';
+const NONE = f => '../assets/characters/None/' + f + '.png';
+const BARRIOS = ['Muelles', 'Estación', 'Teatros', 'Mercado', 'Fábricas', 'Casino'];
+const pc = { R:'#c2382b', B:'#3a6ab0', G:'#3a9a5a' };
+const P = [
+  { n:'Darb', c:'Vito/Color_R', k:'R', coins:3, pr:6, own:[1, 3, 5], raid:{}, turn:true },
+  { n:'Lucía', c:'Mafiosa/Color_B', k:'B', coins:7, pr:9, own:[2, 4, 6], raid:{ 4:2 } },
+  { n:'Bot 1', c:'Bot/Color_G', k:'G', coins:1, pr:4, own:[3, 6], raid:{ 6:1 } }
+];
+// edificios de cada barrio (cuerpo, ventanas y detalle; el detalle y las luces toman el color del dueño)
+const B = {
+  1:'<rect class="acc" x="26" y="4" width="3" height="26"/><rect class="acc" x="12" y="4" width="22" height="3"/><rect class="acc" x="12" y="7" width="1.5" height="9"/><rect class="body" x="4" y="22" width="20" height="14"/><rect class="win" x="7" y="26" width="4" height="4"/><rect class="win" x="14" y="26" width="4" height="4"/><path d="M0 37h40v3H0z" fill="#2a4a6a"/>',
+  2:'<rect class="body" x="6" y="12" width="28" height="26"/><path class="acc" d="M4 12h32l-16-8z"/><circle cx="20" cy="18" r="4" fill="#f3efe6"/><path d="M20 15.5v2.5h2" stroke="#20180f" stroke-width="1" fill="none"/><rect class="win" x="10" y="26" width="5" height="12"/><rect class="win" x="25" y="26" width="5" height="12"/><rect class="win" x="17.5" y="26" width="5" height="8"/>',
+  3:'<rect class="body" x="5" y="10" width="30" height="28"/><rect class="acc" x="3" y="20" width="34" height="5"/><path d="M20 12l1.5 3h3l-2.5 2 1 3-3-2-3 2 1-3-2.5-2h3z" fill="#f3dfa6"/><rect class="win" x="9" y="28" width="6" height="10"/><rect class="win" x="25" y="28" width="6" height="10"/><rect class="win" x="17" y="29" width="6" height="9"/>',
+  4:'<rect class="body" x="5" y="16" width="30" height="22"/><path class="acc" d="M3 16h34l-3 6H6z"/><path d="M6 22h4v-6h-4zM14 22h4v-6h-4zM22 22h4v-6h-4zM30 22h4v-6h-4z" fill="#f3efe6" opacity=".5"/><rect class="win" x="9" y="26" width="22" height="8"/>',
+  5:'<path class="body" d="M3 38V20l8 5v-5l8 5v-5l8 5V12h6v26z"/><rect class="acc" x="27" y="4" width="6" height="8"/><circle cx="31" cy="2" r="2" fill="#777" opacity=".6"/><rect class="win" x="6" y="28" width="4" height="4"/><rect class="win" x="14" y="28" width="4" height="4"/><rect class="win" x="22" y="28" width="4" height="4"/>',
+  6:'<rect class="body" x="6" y="14" width="28" height="24"/><rect class="acc" x="8" y="6" width="24" height="9" rx="2"/><path d="M20 7.5c-2 2-4 3.2-4 5 0 1.2 1 2 2 2 .6 0 1.2-.3 1.5-.8l-.6 1.8h2.2l-.6-1.8c.3.5.9.8 1.5.8 1 0 2-.8 2-2 0-1.8-2-3-4-5z" fill="#f3efe6"/><rect class="win" x="10" y="20" width="5" height="5"/><rect class="win" x="17.5" y="20" width="5" height="5"/><rect class="win" x="25" y="20" width="5" height="5"/><rect class="win" x="16" y="29" width="8" height="9"/>'
+};
+const bld = i => `<svg class="bld" viewBox="0 0 40 40" aria-hidden="true">${B[i]}</svg>`;
+const lotCls = (p, i) => 'lot' + (p.own.includes(i) ? ' own' : '') + (p.raid[i] ? ' raid' : '');
+
+// acciones de la fase 2 para Darb (3💵)
+const me = P[0], cost = me.own.length + 1;
+const ACTS = [
+  { l:'Controlar Distrito', s:'Costo: ' + cost + '💵', price:cost, ico:NONE('maf_buy') },
+  { l:'Sobornar Político', s:'d20 de Influencia', price:5, ico:NONE('maf_bribe'), odds:'+1: 45% · +2: 50% · +4: 5%' },
+  { l:'Redada Policial', s:'Clausura un distrito rival', price:3, ico:IMG('Vito/Color_R', 'maf_raid') }
+];
+const can = a => me.coins >= a.price;
+
+function header() { return `<div class="hd"><b>Imperio Criminal</b><span>RONDA 5 · META 15</span></div><div class="turn">👉 Tu turno, Darb · <b>Fase 2: tu acción</b></div>`; }
+function pass(cls) { return `<button class="${cls} act wide" style="min-height:52px">⏳ Pasar turno<small>Guardas tu efectivo</small></button>`; }
+function phase1() { return `<p class="cap">Fase 1 · Lavar dinero con 1💵 o más, y sin dinero:</p>
+  <div class="acts"><button class="sw-row">Lavar dinero<small>Paga 1💵 para cobrar solo tú</small><span class="road"><i>💵</i></span></button>
+  <button class="sw-row" disabled>Lavar dinero<small>Necesitas 1💵 (tienes 0)</small><span class="road"></span></button></div>`; }
+
+// ---------- A · Skyline ----------
+function optA() {
+  const card = p => `<div class="card ${p.turn ? 'turn' : ''}" style="--own:${pc[p.k]}"><img class="px" src="${IMG(p.c)}" alt=""><div><div class="nm">${p.n}</div><div class="st">🏆 <b>${p.pr}</b>/15 influencia · 💵 <b>${p.coins}</b></div></div>
+    <div class="sky">${[1, 2, 3, 4, 5, 6].map(i => `<div class="${lotCls(p, i)}">${p.raid[i] ? `<span class="siren">🚓 ${p.raid[i]}</span>` : ''}${bld(i)}<span class="tag"><b>${i}</b>${BARRIOS[i - 1]}</span></div>`).join('')}</div></div>`;
+  const act = a => `<button class="act" ${can(a) ? '' : 'disabled'}><img class="px" src="${a.ico}" alt="">${a.l}<small>${a.s}</small>${a.odds && can(a) ? `<span class="odds">${a.odds}</span>` : ''}${can(a) ? '' : `<span class="why">CERRADO<br><small>faltan ${a.price - me.coins}💵</small></span>`}</button>`;
+  return `<div class="ob"><h3>A · Skyline de noche</h3><p>Cada capo tiene su silueta de ciudad: los edificios que controla se encienden con su color y los demás quedan a oscuras. Un distrito en redada tiene la cinta policial y la sirena con los turnos que le quedan. Si no te alcanza el dinero, al botón <b>le bajan la persiana</b> con un letrero de “CERRADO · faltan X💵”.</p>
+    <div class="scr A">${header()}<div class="pls">${P.map(card).join('')}</div><div class="acts">${ACTS.map(act).join('')}${pass('')}</div>${phase1()}</div></div>`;
+}
+// ---------- B · Escrituras ----------
+function optB() {
+  const card = p => `<div class="card ${p.turn ? 'turn' : ''}" style="--pc:${pc[p.k]};--own:${pc[p.k]}"><div class="top"><img class="px" src="${IMG(p.c)}" alt=""><div><div class="nm">${p.n}</div><div class="st">🏆 ${p.pr}/15 influencia · 💵 ${p.coins}</div></div></div>
+    <div class="deeds">${[1, 2, 3, 4, 5, 6].map(i => `<div class="${lotCls(p, i)}"><span class="band"></span>${bld(i)}<b>${i}</b><small>${BARRIOS[i - 1]}</small>${p.raid[i] ? `<span class="t">${p.raid[i]}t</span>` : ''}</div>`).join('')}</div></div>`;
+  const act = a => `<button class="act" ${can(a) ? '' : 'disabled'}><img class="px" src="${a.ico}" alt="">${a.l}<small>${a.s}</small><span class="price">${a.price}💵</span>${can(a) ? '' : `<span class="need">Te faltan ${a.price - me.coins}💵</span>`}</button>`;
+  return `<div class="ob"><h3>B · Escrituras de propiedad</h3><p>Sigue el papel del mapa que ya está en el juego, pero cada distrito es una <b>escritura</b> con su edificio dibujado y una franja del color del dueño. Los clausurados por redada llevan una banda roja “CLAUSURADO” y los turnos que faltan. Sin dinero, el botón se pone gris con un <b>candado</b>, el precio tachado y “Te faltan X💵”.</p>
+    <div class="scr B" style="background:#1a140c">${header()}<div class="pls">${P.map(card).join('')}</div><div class="acts">${ACTS.map(act).join('')}${pass('')}</div>${phase1()}</div></div>`;
+}
+// ---------- C · Vista aérea ----------
+function optC() {
+  const card = p => `<div class="card ${p.turn ? 'turn' : ''}" style="--own:${pc[p.k]}"><div class="top"><img class="px" src="${IMG(p.c)}" alt=""><div><div class="nm">${p.n}</div><div class="st">🏆 <b>${p.pr}</b>/15 influencia · 💵 <b>${p.coins}</b></div></div></div>
+    <div class="city">${[1, 2, 3, 4, 5, 6].map(i => `<div class="${lotCls(p, i)}">${bld(i)}<span><b>${i}</b><small>${BARRIOS[i - 1]}</small></span>${p.raid[i] ? `<span class="cops">🚓 ${p.raid[i]}</span>` : ''}</div>`).join('')}</div></div>`;
+  const act = a => { const pct = Math.min(100, me.coins / a.price * 100);
+    return `<button class="act" ${can(a) ? '' : 'disabled'}><img class="px" src="${a.ico}" alt="">${a.l}<small>${a.s}</small><span class="bar"><i style="width:${pct}%"></i></span><span class="cnt">${me.coins}/${a.price}💵${can(a) ? ' ✓' : ' · faltan ' + (a.price - me.coins)}</span></button>`; };
+  return `<div class="ob"><h3>C · Vista aérea del barrio</h3><p>El barrio visto desde arriba: 6 manzanas separadas por calles, cada una con su edificio. Las tuyas llevan tu <b>bandera</b> y tu color; las que tienen redada, coches de policía con sirena y una valla. Cada botón tiene una <b>barra de dinero</b> (lo que tienes contra lo que cuesta): verde si alcanza, roja con “faltan X” si no.</p>
+    <div class="scr C">${header()}<div class="pls">${P.map(card).join('')}</div><div class="acts">${ACTS.map(act).join('')}${pass('')}</div>${phase1()}</div></div>`;
+}
+// ---------- A + C (elegida): skyline de A con los botones de barra de dinero de C ----------
+function optAC(coins, sel) {
+  const can2 = a => coins >= a.price;
+  const card = p => `<div class="card ${p.turn ? 'turn' : ''}" style="--own:${pc[p.k]}"><img class="px" src="${IMG(p.c)}" alt=""><div><div class="nm">${p.n}</div><div class="st">🏆 <b>${p.pr}</b>/15 influencia · 💵 <b>${p.turn ? coins : p.coins}</b></div></div>
+    <div class="sky">${[1, 2, 3, 4, 5, 6].map(i => `<div class="${lotCls(p, i)}">${p.raid[i] ? `<span class="siren">🚓 ${p.raid[i]}</span>` : ''}${bld(i)}<span class="tag"><b>${i}</b>${BARRIOS[i - 1]}</span></div>`).join('')}</div></div>`;
+  const act = a => { const ok = can2(a), pct = Math.min(100, coins / a.price * 100);
+    return `<button class="act ${sel === a.l ? 'sel' : ''}" ${ok ? '' : 'disabled'}><img class="px" src="${a.ico}" alt="">${a.l}<small>${a.s}</small>${a.odds && ok ? `<span class="odds">${a.odds}</span>` : ''}<span class="bar"><i style="width:${pct}%"></i></span><span class="cnt">${coins}/${a.price}💵${ok ? ' ✓' : ' · faltan ' + (a.price - coins)}</span></button>`; };
+  return `<div class="scr A C AC">${header().replace('Darb · ', 'Darb (' + coins + '💵) · ')}<div class="pls">${P.map(card).join('')}</div><div class="acts">${ACTS.map(act).join('')}${pass('')}</div>
+    ${sel ? `<div class="bribe"><b>🎩 SOBORNAR POLÍTICO · pagas 5💵 y tiras d20</b><div class="bribe-t"><span>1 – 9<b>+1</b><small>45%</small></span><span>10 – 19<b>+2</b><small>50%</small></span><span class="gold">20<b>+4</b><small>5%</small></span></div><p>Sacó <b>14</b> → <b>+2 de Influencia</b> (6 → 8 / 15)</p></div>` : ''}</div>`;
+}
+document.getElementById('opts').innerHTML =
+  `<div class="ob" style="grid-column:1/-1"><h3>A + C · la combinación elegida (ya está en el juego)</h3><p>El skyline de la opción A con los botones de barra de dinero de la C. A la izquierda, con 3💵: alcanza para la Redada, pero no para Sobornar. A la derecha, con 6💵 ya se puede <b>sobornar</b>: el botón se enciende con sus probabilidades y, al usarlo, sale la tabla del d20 con lo que sacaste.</p>
+    <div class="opts">${optAC(3)}${optAC(6, 'Sobornar Político')}</div></div>` + optA() + optB() + optC();
+</script>
+</body>
+</html>

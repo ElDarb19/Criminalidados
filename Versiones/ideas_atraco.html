@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El Gran Atraco · opciones</title>
+<link href="https://fonts.googleapis.com/css2?family=Limelight&family=Oswald:wght@400;500;600;700&family=Special+Elite&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../menu.css">
+<style>
+/* Página solo de muestra (no la usa el juego). El Gran Atraco: quién salió a salvo o lo arrestaron, y botones distintos entre sí. */
+body{margin:0;padding:16px 12px 70px;background:radial-gradient(ellipse at top,#1a2620,#0b0a08 70%);color:var(--cream);font-family:var(--font-type)}
+.wrap{max-width:84rem;margin:0 auto}
+h1{font-family:var(--font-display);font-weight:400;color:#b7d6e6;margin:0 0 4px}
+.lead{color:var(--cream-2);max-width:58rem;font-size:.9rem}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:18px;margin-top:14px;align-items:start}
+.ob{padding:10px;border-radius:6px;background:rgba(0,0,0,.35)}
+.ob>h3{margin:0 0 4px;font-family:var(--font-ui);letter-spacing:2px;font-size:.95rem;color:var(--gold-2)}
+.ob>p{margin:0 0 10px;font-size:.76rem;color:var(--cream-2);line-height:1.45}
+.px{image-rendering:pixelated}
+button{font:inherit;cursor:pointer}
+/* pizarra (igual que en el juego) */
+.scr{max-width:440px;margin:0 auto}
+.hd{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:6px;margin-bottom:6px;border-bottom:1px solid rgba(255,255,255,.15)}
+.hd b{font-family:var(--font-display);font-weight:400;font-size:1.15rem;color:#f0e2b6}
+.hd span{font-family:var(--font-ui);font-size:.7rem;letter-spacing:2px;color:var(--cream-2)}
+.turn{text-align:center;font-family:var(--font-ui);letter-spacing:1px;font-size:.8rem;margin:4px 0 8px}
+.board{position:relative;padding:10px;border:8px solid #5a3a20;border-radius:4px;background:radial-gradient(ellipse at 30% 20%,rgba(255,255,255,.06),transparent 60%),#24382d;box-shadow:inset 0 0 30px rgba(0,0,0,.55);color:#eef2ea}
+.sheets{display:flex;gap:6px;justify-content:center;margin-bottom:8px;font-size:.72rem}
+.sheets span{padding:2px 8px;border:1.5px solid rgba(238,242,234,.6);border-radius:8px 3px 9px 4px/4px 9px 3px 8px}
+.sheets .done{text-decoration:line-through;opacity:.7}.sheets .now{border-color:#ffe680;color:#ffe680}
+.pls{display:grid;gap:8px}
+.card{position:relative;display:grid;grid-template-columns:52px 1fr;gap:8px;align-items:center;padding:6px 8px;border:1.5px dashed rgba(238,242,234,.45);border-radius:8px 3px 9px 4px/4px 9px 3px 8px}
+.card img{width:52px;height:52px}
+.card .nm{font-size:.9rem}.card .st{font-size:.66rem}
+.card.turn{border-style:solid;border-color:#ffe680;box-shadow:0 0 12px rgba(255,230,128,.3)}
+.cw{display:flex;flex-wrap:wrap;gap:2px;margin-top:3px;align-items:center}
+.cw i{width:8px;height:8px;border:1.5px solid rgba(238,242,234,.8);border-radius:1px 2px}
+.cw i.on{background:repeating-linear-gradient(45deg,rgba(238,242,234,.9) 0 1.5px,transparent 1.5px 3px)}
+.cw em{margin-left:4px;font-style:normal;font-size:.62rem}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.acts .wide{grid-column:1/-1}
+.acts small{display:block;font-size:.58rem;opacity:.85}
+.odds{display:block;width:fit-content;margin:3px auto 0;padding:0 6px;border:1px solid currentColor;border-radius:8px;font-size:.56rem}
+
+/* ===================== A · TIZA Y DIBUJOS ===================== */
+/* a salvo: tiza verde, coche dibujado alejándose y el botín asegurado grande */
+.A .card.safe{border-color:#9be8a8;color:#c8f5cf}
+.A .card.safe img{opacity:.5}
+.A .card.safe .out{grid-column:1/-1;display:flex;align-items:center;gap:8px;font-size:.8rem;color:#9be8a8}
+.A .card.safe .out svg{width:56px;height:24px;stroke:#9be8a8;fill:none;stroke-width:1.6;stroke-linecap:round}
+.A .card.safe .out b{font-size:1rem}
+/* arrestado: barrotes de tiza sobre el capo y una X grande */
+.A .card.jail{border-color:#ff9a8a;color:#ffc9bf}
+.A .card.jail .ph{position:relative}
+.A .card.jail .ph::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 7px,rgba(238,242,234,.85) 7px 9px);border:2px solid rgba(238,242,234,.85)}
+.A .card.jail .out{grid-column:1/-1;font-size:.8rem;color:#ff9a8a}
+.A .card.jail .out s{opacity:.7}
+.A .card.jail::after{content:"";position:absolute;inset:10px 20%;background:linear-gradient(20deg,transparent 48%,rgba(255,154,138,.6) 48% 51%,transparent 51%),linear-gradient(-20deg,transparent 48%,rgba(255,154,138,.6) 48% 51%,transparent 51%);pointer-events:none}
+/* botones: cada acción con su dibujo y su tiza de color */
+.A .b{min-height:84px;padding:6px;border:1.5px solid var(--k);border-radius:10px 4px 12px 5px/5px 12px 4px 10px;background:transparent;color:var(--k);font-family:var(--font-type)}
+.A .b svg{display:block;width:40px;height:30px;margin:0 auto 2px;stroke:var(--k);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.A .b:hover{box-shadow:0 0 12px color-mix(in srgb,var(--k) 50%,transparent)}
+.A .b:disabled{opacity:.4;border-style:dashed}
+
+/* ===================== B · PLAN DEL GOLPE CON IMANES ===================== */
+.B .zones{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.B .zone{position:relative;min-height:86px;padding:18px 6px 6px;border:2px dashed rgba(238,242,234,.6);border-radius:8px;text-align:center;font-size:.7rem}
+.B .zone>b{position:absolute;top:2px;left:0;right:0;font-size:.66rem;letter-spacing:2px}
+.B .zone.car{border-color:#9be8a8;color:#9be8a8}
+.B .zone.car::before{content:"";position:absolute;inset:auto 8px 4px 8px;height:18px;border:1.5px solid #9be8a8;border-radius:12px 18px 4px 4px;opacity:.35}
+.B .zone.cell{border-color:#ff9a8a;color:#ff9a8a;background:repeating-linear-gradient(90deg,transparent 0 12px,rgba(255,154,138,.25) 12px 14px)}
+.B .mini{display:inline-flex;flex-direction:column;align-items:center;margin:0 4px}
+.B .mini img{width:40px;height:40px}
+.B .mini small{font-size:.6rem}
+/* botones: tarjetas del plan sujetas con un imán, con la pose del propio capo */
+.B .b{position:relative;min-height:96px;padding:12px 6px 6px;border:0;border-radius:2px;background:#efe6cf;color:#20180f;font-family:var(--font-ui);font-size:.74rem;box-shadow:2px 3px 0 rgba(0,0,0,.4);transform:rotate(var(--r,0deg))}
+.B .b::before{content:"";position:absolute;top:-6px;left:50%;width:16px;height:16px;margin-left:-8px;border-radius:50%;background:var(--k);box-shadow:inset -2px -2px 0 rgba(0,0,0,.3),0 2px 2px rgba(0,0,0,.4)}
+.B .b img{display:block;width:44px;height:44px;margin:0 auto}
+.B .b small{color:#4a3a22}
+.B .b .odds{color:#7a4a08}
+.B .b:hover{box-shadow:0 0 0 2px var(--k),2px 3px 0 rgba(0,0,0,.4)}
+.B .b:disabled{background:#c8bfa8;opacity:.75}.B .b:disabled img{filter:grayscale(1)}
+
+/* ===================== C · FICHAS DE DADO (como Apuestas) ===================== */
+/* sellos grandes sobre la ficha del capo */
+.C .card.safe,.C .card.jail{opacity:.85}
+.C .card.safe img,.C .card.jail img{filter:grayscale(.6)}
+.C .stamp{position:absolute;right:8px;top:50%;transform:translateY(-50%) rotate(-10deg);padding:2px 8px;border:3px double;font-family:var(--font-ui);font-weight:700;font-size:.8rem;letter-spacing:2px;background:rgba(36,56,45,.85)}
+.C .card.safe .stamp{border-color:#9be8a8;color:#9be8a8}
+.C .card.jail .stamp{border-color:#ff9a8a;color:#ff9a8a}
+.C .stamp small{display:block;font-size:.55rem;letter-spacing:1px;text-align:center}
+/* botones: una ficha redonda con el dado que se tira, cada una de su color */
+.C .acts{grid-template-columns:repeat(4,1fr)}
+.C .b{display:flex;flex-direction:column;align-items:center;gap:3px;padding:0;border:0;background:none;color:#eef2ea;font-family:var(--font-ui);font-size:.66rem}
+.C .tok{position:relative;display:flex;align-items:center;justify-content:center;width:60px;height:60px;border-radius:50%;border:3px solid var(--k);box-shadow:0 0 0 3px rgba(0,0,0,.3),0 0 12px color-mix(in srgb,var(--k) 45%,transparent);
+  background:radial-gradient(circle,#24382d 0 55%,color-mix(in srgb,var(--k) 25%,#24382d) 56%);font-family:var(--font-type);font-size:1.05rem;color:var(--k)}
+.C .tok::before{content:"";position:absolute;inset:4px;border-radius:50%;border:1.5px dashed var(--k);opacity:.6}
+.C .b:hover .tok{transform:translateY(-2px)}
+.C .b:disabled{opacity:.4}
+.C .b.wide{flex-direction:row;justify-content:center;gap:12px;min-height:64px;padding:6px;border:2px solid var(--k);border-radius:12px}
+.C .b.wide .tok{width:48px;height:48px;font-size:1.2rem}
+.C .b.wide span{text-align:left;font-size:.9rem}
+</style>
+</head>
+<body><div class="wrap">
+  <h1>El Gran Atraco · opciones</h1>
+  <p class="lead">Ejemplo en el atraco 2: <b>Lucía</b> ya escapó en el coche con 8 de botín asegurado, al <b>Bot 1</b> lo arrestaron (pierde lo que no aseguró) y <b>Darb</b> sigue dentro con su turno. En cada opción cambia cómo se ve quién salió y cómo se distinguen los 5 botones (Saquear, Bóveda, Reforzar, Granada y Coche), igual que ya tienen su forma propia Apuestas e Imperio.</p>
+  <div class="opts" id="opts"></div>
+</div>
+<script>
+const IMG = (c, f) => '../assets/characters/' + c + '/' + (f || 'idle') + '.png';
+const walls = (hp, max) => `<div class="cw">${Array.from({ length:max }, (_, i) => `<i class="${i < hp ? 'on' : ''}"></i>`).join('')}<em>${hp}/${max} COB</em></div>`;
+const head = () => `<div class="hd"><b>El Gran Atraco</b><span>ATRACO 2/3 · RONDA 6</span></div><div class="turn">👉 Tu turno, Darb</div>`;
+const sheets = '<div class="sheets"><span class="done">Atraco 1 ✓</span><span class="now">Atraco 2</span><span>Atraco 3</span></div>';
+const DARB = `<div class="card turn"><img class="px" src="${IMG('Vito/Color_R')}" alt=""><div><div class="nm">Darb</div><div class="st">💰 5 sin asegurar · 🔒 3</div>${walls(9, 20)}</div></div>`;
+// acciones con su color de tiza, dibujo y dado
+const ACT = [
+  { l:'Saquear Cajas', s:'d6: 1-2 trampa · 3-5 +1 · 6 +3', o:'67% botín', k:'#ffe680', d:'d6', pose:'exp_boxes',
+    svg:'<path d="M6 12h28v15H6zM6 12l4-6h20l4 6M20 12v15M14 18h12"/>' },
+  { l:'Forzar Bóveda', s:'d20 ≥ 11 → d12 de botín', o:'50% éxito', k:'#8fd3ff', d:'d20', pose:'exp_vault',
+    svg:'<rect x="6" y="3" width="28" height="24" rx="2"/><circle cx="20" cy="15" r="7"/><path d="M20 8v3M20 19v3M13 15h3M24 15h3"/>' },
+  { l:'Reforzar Cobertura', s:'d4 · 1 por atraco', k:'#eef2ea', d:'d4', pose:'exp_cover',
+    svg:'<path d="M20 3l12 5v8c0 7-5 11-12 13C13 27 8 23 8 16V8z"/><path d="M15 15l4 4 7-8"/>' },
+  { l:'Lanzar Granada', s:'1/3 · d4 a un rival', k:'#ff9a8a', d:'d4', pose:'exp_grenade',
+    svg:'<ellipse cx="18" cy="18" rx="9" ry="10"/><path d="M14 9h8M18 8V5h6l3 3M12 18h12M18 10v16"/>' },
+  { l:'Coche de Escape', s:'Asegura 💰 5', k:'#9be8a8', d:'🚗', pose:'exp_getaway', wide:true,
+    svg:'<path d="M4 20h32v-5l-5-6H13l-5 6H4zM8 15h28"/><circle cx="12" cy="22" r="3"/><circle cx="28" cy="22" r="3"/>' }
+];
+const CAR = '<svg viewBox="0 0 56 24" aria-hidden="true"><path d="M8 18h30v-5l-5-6H17l-4 6H8z"/><circle cx="15" cy="19" r="3"/><circle cx="31" cy="19" r="3"/><path d="M42 10h10M44 15h10M42 20h8"/></svg>';
+
+function optA() {
+  const lu = `<div class="card safe"><img class="px" src="${IMG('Mafiosa/Color_B', 'win')}" alt=""><div><div class="nm">Lucía</div><div class="st">Salió en la ronda 5</div></div><div class="out">${CAR}<span>A SALVO · 🔒 <b>8</b></span></div></div>`;
+  const bo = `<div class="card jail"><span class="ph"><img class="px" src="${IMG('Bot/Color_G', 'lose')}" alt=""></span><div><div class="nm">Bot 1</div><div class="st">Cobertura a 0 en la ronda 4</div></div><div class="out">¡ATRAPADO! · 💰 <s>4</s> perdido · 🔒 2</div></div>`;
+  const b = a => `<button class="b ${a.wide ? 'wide' : ''}" style="--k:${a.k}"><svg viewBox="0 0 40 30" aria-hidden="true">${a.svg}</svg>${a.l}<small>${a.s}</small>${a.o ? `<span class="odds">${a.o}</span>` : ''}</button>`;
+  return `<div class="ob"><h3>A · Tiza y dibujos</h3><p>Quien escapa se pinta en <b>tiza verde</b> con un coche alejándose y su botín asegurado grande. Al arrestado le dibujan <b>barrotes</b> encima, una X y el botín perdido tachado. Cada botón tiene su <b>dibujo y su color de tiza</b>: cajas amarillas, bóveda celeste, escudo blanco, granada roja y coche verde.</p>
+    <div class="scr">${head()}<div class="board A">${sheets}<div class="pls">${DARB}${lu}${bo}</div><div class="acts">${ACT.map(b).join('')}</div></div></div></div>`;
+}
+function optB() {
+  const b = (a, i) => `<button class="b ${a.wide ? 'wide' : ''}" style="--k:${a.k};--r:${[-2, 1.5, -1, 2, 0][i]}deg"><img class="px" src="${IMG('Vito/Color_R', a.pose)}" alt="">${a.l}<small>${a.s}</small>${a.o ? `<span class="odds">${a.o}</span>` : ''}</button>`;
+  return `<div class="ob"><h3>B · Plan del golpe con imanes</h3><p>En la pizarra hay dos zonas dibujadas: <b>EN EL COCHE</b> (los que escaparon, con su botín asegurado) y <b>COMISARÍA</b> (los arrestados, detrás de barrotes). Las fichas de los que salen se mudan ahí. Los botones son <b>tarjetas del plan sujetas con un imán</b> del color de la acción y llevan la <b>pose del propio capo</b>, como la Redada en Imperio.</p>
+    <div class="scr">${head()}<div class="board B">${sheets}<div class="pls">${DARB}</div>
+      <div class="zones"><div class="zone car"><b>🚗 EN EL COCHE</b><span class="mini"><img class="px" src="${IMG('Mafiosa/Color_B', 'win')}" alt=""><small>Lucía · 🔒 8</small></span></div>
+        <div class="zone cell"><b>🚨 COMISARÍA</b><span class="mini"><img class="px" src="${IMG('Bot/Color_G', 'lose')}" alt=""><small>Bot 1 · 🔒 2</small></span></div></div>
+      <div class="acts">${ACT.map(b).join('')}</div></div></div></div>`;
+}
+function optC() {
+  const lu = `<div class="card safe"><img class="px" src="${IMG('Mafiosa/Color_B', 'win')}" alt=""><div><div class="nm">Lucía</div><div class="st">🔒 8 asegurado</div></div><span class="stamp">A SALVO<small>🚗 ronda 5</small></span></div>`;
+  const bo = `<div class="card jail"><img class="px" src="${IMG('Bot/Color_G', 'lose')}" alt=""><div><div class="nm">Bot 1</div><div class="st">🔒 2 · perdió 💰 4</div></div><span class="stamp">ARRESTADO<small>🚨 ronda 4</small></span></div>`;
+  const b = a => a.wide ? `<button class="b wide" style="--k:${a.k}"><span class="tok">${a.d}</span><span>${a.l}<small>${a.s}</small></span></button>`
+    : `<button class="b" style="--k:${a.k}"><span class="tok">${a.d}</span>${a.l}<small>${a.o || a.s}</small></button>`;
+  return `<div class="ob"><h3>C · Fichas de dado (como Apuestas)</h3><p>Sobre las fichas de los que ya no juegan, un <b>sello grande</b>: “A SALVO” en verde o “ARRESTADO” en rojo, con la ronda. Los botones son <b>fichas redondas</b> con el dado que se tira (d6, d20, d4) y un color por acción; el Coche de Escape va abajo, ancho.</p>
+    <div class="scr">${head()}<div class="board C">${sheets}<div class="pls">${DARB}${lu}${bo}</div><div class="acts">${ACT.map(b).join('')}</div></div></div></div>`;
+}
+document.getElementById('opts').innerHTML = optA() + optB() + optC();
+</script>
+</body>
+</html>

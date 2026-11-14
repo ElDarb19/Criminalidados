@@ -40,7 +40,7 @@ const TUT = {
     { view:'market', html:() => 'Este es el <b>🕶️ Mercado Negro</b> (se activa en el menú). Compras <b>contactos</b> que funcionan solos (máximo ' + ECON.MAX_PASSIVES + ') y un <b>consumible</b> que usas desde tu turno. Empiezas con ' + ECON.START_PARTY + '💲 en Party (' + ECON.START_SINGLE + '💲 en un solo contrato) y ganas más según tu puesto.', button:'Siguiente' },
     { view:'event', focus:'#g-event', html:() => 'Con los <b>📰 Eventos de Ciudad</b> un titular cambia las reglas del contrato y queda arriba, en esta franja. Aquí, con la <b>Ley Seca</b>, en cada turno hay un 40% de que los d6 bajen 1: la Apuesta Básica gana menos veces. Otros: <b>Noche de Purga</b> (+2 de daño) o <b>El Carnicero</b>, un jefe que paga el doble a quien lo vence.', button:'Siguiente' },
     { view:'settings', focus:'#set-manual', text:'¿Dudas sobre una regla, un objeto o un evento? Abre <b>⚙️ Ajustes</b> (arriba a la izquierda) y entra en el <b>📖 Manual del Capo</b>: ahí están todos los contratos, el Mercado Negro y los Eventos de Ciudad.', button:'Siguiente' },
-    { view:'home', focus:'#top-btns', text:'¡Listo, Capo! Arriba a la derecha tienes tu <b>👤 Perfil</b> (logros, historial y TOP) y la <b>Tienda</b>, donde gastas el oro en capos y dados. Elige tu personaje y color, añade amigos o bots y monta tu partida, local u online. Pulsa <b>Saltar tutorial</b> y empieza a jugar.', last:true }
+    { view:'home', focus:'#top-btns', text:'¡Listo, Capo! Arriba a la derecha tienes tu <b>👤 Perfil</b> (logros, historial y TOP) y la <b>Tienda</b>, donde gastas el oro en capos y dados. Elige tu personaje y color, añade amigos o bots y monta tu partida, local u online. Pulsa <b>Terminar tutorial</b> y empieza a jugar.', last:true }
   ],
 
   start() {
@@ -70,7 +70,7 @@ const TUT = {
     c.innerHTML = '<p class="coach-kicker">🎓 TUTORIAL · <span id="coach-step"></span></p><p id="coach-text"></p><div class="coach-btns"><button id="coach-skip" type="button" class="coach-skip">Saltar tutorial</button><button id="coach-next" type="button" class="coach-next"></button></div>';
     document.body.appendChild(c);
     $$('coach-next').onclick = () => this.advance();
-    $$('coach-skip').onclick = () => this.stop();
+    $$('coach-skip').onclick = () => this.stop(true);
   },
   advance() {
     const s = this.STEPS[this.i];
@@ -80,12 +80,25 @@ const TUT = {
     if (s.next) s.next();
     this.update(); if (CD.G) { render(); CD.next(); }
   },
-  stop() {                                          // saltar o terminar: la partida (o el menú) sigue sin ayudas
+  stop(skip) {                                      // saltar o terminar: siempre se vuelve al menú principal
+    if (skip && CD.G && this.v !== 'home') return this.quit();
     if (this.v !== 'home') this.view(null);
     $$('menu-screen').inert = false; document.body.classList.remove('tut-over');
     this.off = true; this.focus(null); $$('coach').classList.add('hidden'); document.body.classList.remove('tutorial');
     if (this.release) { const r = this.release; this.release = null; r(); }
     if (CD.G) { render(); CD.next(); }
+  },
+  // Saltar a mitad del tutorial: se cierra la partida de práctica (no cuenta para nada y no da el logro) y vuelve el menú.
+  quit() {
+    const G = CD.G; if (G) { G.over = true; G.wait = true; G.result = { lost:true }; }   // frena a los bots y las tiradas pendientes
+    this.off = true; this.v = null; this.focus(null); $$('coach').classList.add('hidden');
+    if (this.release) { const r = this.release; this.release = null; r(); }
+    CD.running = false; CD.G = null; CD.pending = null; CD.recorded = false; CD.lastSnap = null;
+    ['modal-over', 'modal-between', 'modal-market', 'modal-event', 'modal-file', 'fx', 'modal-roll', 'modal-choice', 'countdown'].forEach(id => { const m = $$(id); if (m) m.classList.add('hidden'); });
+    settingsToggle(false);
+    const menu = $$('menu-screen'); menu.inert = false; menu.classList.remove('hidden'); $$('game-screen').classList.add('hidden');
+    document.body.className = this.bodyClass; document.body.classList.remove('tutorial', 'tut-over');
+    window.scrollTo(0, 0); musicSet('menu'); if (typeof renderAll === 'function') renderAll();
   },
   view(v) {                                         // cambia la pantalla de fondo; nada de lo que muestra se puede usar
     const G = CD.G, menu = $$('menu-screen'), game = $$('game-screen'), was = this.v;
@@ -133,6 +146,7 @@ const TUT = {
     if (!visible) return this.focus(null);
     $$('coach-step').textContent = (this.i + 1) + ' / ' + this.STEPS.length;
     $$('coach-text').innerHTML = s.html ? s.html() : s.text;
+    $$('coach-skip').textContent = s.last ? 'Terminar tutorial' : 'Saltar tutorial';     // en el último paso ya está completo (logro Graduado)
     const nb = $$('coach-next'), btn = s.button && (!s.ready || s.ready(this)); nb.classList.toggle('hidden', !btn); nb.textContent = s.button || '';
     this.focus(s.focus);
   }

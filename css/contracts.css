@@ -9,12 +9,14 @@
 
 /* ===================== GUERRA DE BANDAS · CALLEJÓN ===================== */
 /* cada capo pintado sobre una pared de ladrillo; la farola se enciende en su turno */
-body.theme-rpg .pcard{padding-top:20px;overflow:hidden;color:#f3efe6;border-color:#2a1612;
-  background:linear-gradient(180deg,rgba(0,0,0,.55),rgba(0,0,0,.25)),repeating-linear-gradient(0deg,transparent 0 13px,#2a1612 13px 15px),repeating-linear-gradient(90deg,#6a2e22 0 28px,#2a1612 28px 30px)}
-body.theme-rpg .pcard:nth-child(even){background:linear-gradient(180deg,rgba(0,0,0,.6),rgba(0,0,0,.3)),repeating-linear-gradient(0deg,transparent 0 13px,#2a1612 13px 15px),repeating-linear-gradient(90deg,#5e2a20 0 28px,#2a1612 28px 30px)}
-body.theme-rpg .pcard>div::before{content:"";position:absolute;top:0;left:50%;width:44px;height:8px;margin-left:-22px;border-radius:0 0 20px 20px;background:#3a3a3a}
-body.theme-rpg .pcard.turn>div::before{background:#ffe7a6;box-shadow:0 0 12px #ffd770}
-body.theme-rpg .pcard.turn{background:radial-gradient(ellipse 45% 90% at 50% 0,rgba(255,225,150,.35),transparent 70%),linear-gradient(180deg,rgba(0,0,0,.45),rgba(0,0,0,.2)),repeating-linear-gradient(0deg,transparent 0 13px,#2a1612 13px 15px),repeating-linear-gradient(90deg,#6a2e22 0 28px,#2a1612 28px 30px)}
+/* ladrillos intercalados: cada fila desplazada medio ladrillo, con tonos un poco distintos */
+body.theme-rpg{--bricks:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='30'%3E%3Crect width='60' height='30' fill='%232a1612'/%3E%3Crect x='0' y='0' width='28' height='13' fill='%236a2e22'/%3E%3Crect x='30' y='0' width='28' height='13' fill='%235e2a20'/%3E%3Crect x='-15' y='15' width='28' height='13' fill='%23743429'/%3E%3Crect x='15' y='15' width='28' height='13' fill='%23642c21'/%3E%3Crect x='45' y='15' width='28' height='13' fill='%23743429'/%3E%3C/svg%3E")}
+body.theme-rpg .pcard{padding-top:20px;overflow:hidden;color:#f3efe6;border-color:#1a0c0a;
+  background:linear-gradient(180deg,rgba(0,0,0,.72),rgba(0,0,0,.55)),var(--bricks) 0 0/60px 30px}           /* sin turno: en penumbra */
+body.theme-rpg .pcard>div::before{content:"";position:absolute;top:0;left:50%;width:44px;height:8px;margin-left:-22px;border-radius:0 0 20px 20px;background:#2a2a2a}
+body.theme-rpg .pcard.turn>div::before{background:#ffe7a6;box-shadow:0 0 12px #ffd770,0 0 26px rgba(255,215,112,.6)}
+body.theme-rpg .pcard.turn{background:radial-gradient(ellipse 55% 110% at 50% 0,rgba(255,225,150,.45),rgba(255,200,120,.12) 55%,transparent 75%),linear-gradient(180deg,rgba(0,0,0,.25),rgba(0,0,0,.35)),var(--bricks) 0 0/60px 30px}
+body.theme-rpg .pcard:not(.turn) img{filter:brightness(.8)}
 body.theme-rpg .pcard.turn::before{top:2px;left:8px}
 body.theme-rpg .pcard b{font-family:var(--font-type);font-weight:400;text-shadow:0 0 1px #fff}
 body.theme-rpg .pcard small{color:#e9d9c9}
@@ -25,9 +27,12 @@ body.theme-rpg .pcard .hp{display:none}
 .tally .tl.gold{stroke:var(--gold-3);filter:drop-shadow(0 0 3px rgba(243,223,166,.7))}
 .tally.poison .tl:not(.gold){stroke:#d6b4ff}
 /* eliminado: cinta amarilla de escena del crimen */
-body.theme-rpg .pcard.dead{opacity:.7}
-body.theme-rpg .pcard.dead::after{content:"ESCENA DEL CRIMEN · NO PASAR";left:-10%;right:-10%;top:50%;transform:translateY(-50%) rotate(-8deg);border:0;padding:3px 0;text-align:center;
-  background:repeating-linear-gradient(90deg,#f1c40f 0 40px,#1a1a1a 40px 44px);color:#111;font-size:.7rem;letter-spacing:2px;white-space:nowrap}
+/* eliminado: la ficha en blanco y negro, pero la cinta de la policía sigue amarilla con letras negras */
+body.theme-rpg .pcard.dead{opacity:1;filter:none;background:linear-gradient(180deg,rgba(0,0,0,.72),rgba(0,0,0,.6)),var(--bricks) 0 0/60px 30px;background-blend-mode:normal,luminosity}
+body.theme-rpg .pcard.dead>*{filter:grayscale(1) brightness(.75)}
+body.theme-rpg .pcard.dead{background-color:#333}
+body.theme-rpg .pcard.dead::after{content:"ESCENA DEL CRIMEN · NO PASAR · ESCENA DEL CRIMEN";left:-10%;right:-10%;top:50%;z-index:3;transform:translateY(-50%) rotate(-8deg);border:0;border-top:2px solid #111;border-bottom:2px solid #111;
+  padding:3px 0;text-align:center;background:#f5c518;color:#111;font-weight:700;font-size:.7rem;letter-spacing:2px;white-space:nowrap;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.6)}
 /* acciones: letreros de calle esmaltados */
 #g-actions .b-sign{border:2px solid #f3efe6;border-radius:6px;background:linear-gradient(180deg,#1f4a3a,#143428);color:#fff;box-shadow:inset 0 0 0 2px #143428,inset 0 0 0 3px rgba(243,239,230,.35),0 4px 0 #0b1f17}
 #g-actions .b-sign small{color:#d6e8de}
@@ -60,39 +65,66 @@ body.theme-exp .pcard.danger{border-color:#ff9a8a}
 .cwalls i.sh{border-color:#ffe680;background:repeating-linear-gradient(45deg,#ffe680 0 1.5px,transparent 1.5px 3px)}
 .cwalls em{margin-left:4px;font-style:normal;font-family:var(--font-type);font-size:.7rem;color:#eef2ea}
 /* acciones escritas con tiza */
-#g-actions .b-chalk{background:transparent;border:1.5px solid rgba(238,242,234,.7);border-radius:10px 4px 12px 5px/5px 12px 4px 10px;color:#eef2ea;font-family:var(--font-type);font-weight:400}
-#g-actions .b-chalk small{color:rgba(238,242,234,.8)}
-#g-actions .b-chalk .odds{border-color:rgba(238,242,234,.7);color:#eef2ea;background:transparent}
-#g-actions .b-chalk:hover:not(:disabled){border-color:#ffe680;box-shadow:0 0 12px rgba(255,230,128,.3)}
-#g-actions .b-chalk.selected{background:rgba(255,230,128,.18);border-color:#ffe680;color:#ffe680}
-#g-actions .b-chalk.selected small,#g-actions .b-chalk.selected .odds{color:#ffe680;border-color:#ffe680}
+/* cada acción con su dibujo y su color de tiza (--k) */
+#g-actions .b-chalk{--k:#eef2ea;background:transparent;border:1.5px solid var(--k);border-radius:10px 4px 12px 5px/5px 12px 4px 10px;color:var(--k);font-family:var(--font-type);font-weight:400}
+#g-actions .b-chalk .doodle{display:block;width:40px;height:30px;margin:0 auto 3px;stroke:var(--k);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#g-actions .b-chalk small{color:color-mix(in srgb,var(--k) 75%,#eef2ea)}
+#g-actions .b-chalk .odds{border-color:var(--k);color:var(--k);background:transparent}
+#g-actions .b-chalk:hover:not(:disabled){border-color:var(--k);box-shadow:0 0 12px color-mix(in srgb,var(--k) 50%,transparent)}
+#g-actions .b-chalk.selected{background:color-mix(in srgb,var(--k) 18%,transparent);border-width:2.5px;color:var(--k);box-shadow:0 0 14px color-mix(in srgb,var(--k) 55%,transparent)}
+#g-actions .b-chalk.selected small,#g-actions .b-chalk.selected .odds{color:var(--k);border-color:var(--k)}
+#g-actions .b-chalk:disabled{border-style:dashed}
+#g-actions .b-chalk.wide{border-color:var(--k)}
+/* quien ya salió del atraco: sello grande sobre su ficha (verde a salvo, rojo arrestado) */
+body.theme-exp .pcard.done,body.theme-exp .pcard.dead{opacity:.9;filter:none}
+body.theme-exp .pcard.done img,body.theme-exp .pcard.dead img{filter:grayscale(.6)}
+body.theme-exp .pcard.dead::after{content:none}
+body.theme-exp .pcard.done{border-color:rgba(155,232,168,.6)}
+body.theme-exp .pcard.dead{border-color:rgba(255,154,138,.6)}
+.exp-stamp{position:absolute;right:10px;top:50%;z-index:2;transform:translateY(-50%) rotate(-10deg);padding:2px 8px;border:3px double;background:rgba(36,56,45,.85);
+  font-family:var(--font-ui);font-weight:700;font-size:.85rem;letter-spacing:2px;text-align:center;line-height:1.2;animation:cd-stamp .35s cubic-bezier(.3,1.6,.5,1) both}
+.exp-stamp small{display:block;font-size:.56rem;letter-spacing:1px;font-weight:500;color:inherit!important;font-family:var(--font-ui)!important}
+.exp-stamp.safe{border-color:#9be8a8;color:#9be8a8}
+.exp-stamp.jail{border-color:#ff9a8a;color:#ff9a8a}
 
-/* ===================== IMPERIO CRIMINAL · MAPA DEL BARRIO ===================== */
-body.theme-maf .pcard{background:repeating-linear-gradient(0deg,transparent 0 23px,rgba(138,122,90,.18) 23px 24px),repeating-linear-gradient(90deg,transparent 0 23px,rgba(138,122,90,.18) 23px 24px),#efe3c4;
-  border:1px solid #8a7a5a;color:#20180f;box-shadow:2px 3px 0 rgba(0,0,0,.4)}
-body.theme-maf .pcard img{background:none;border-bottom:3px solid var(--pc)}
-body.theme-maf .pcard b{color:#20180f}
-body.theme-maf .pcard small{color:#4a3a22}
-body.theme-maf .pcard .hp{background:#d8c9a4;border-color:#8a7a5a}
-body.theme-maf .pcard .pw{color:#7a5410}
-body.theme-maf .pcard .persona{color:#4a3a22;border-color:#8a7a5a}
-body.theme-maf .pcard.turn::before{background:#a3241c;color:#f3ecd6}
-/* los 6 distritos: número arriba, nombre abajo */
-.dists.city{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}
-.dists.city .dist{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:34px;padding:2px;line-height:1;border-radius:2px;
-  background:rgba(32,24,15,.06);border:1px dashed #8a7a5a;color:#5a4a32;font-style:normal}
-.dists.city .dist b{font-family:var(--font-ui);font-weight:700;font-size:.85rem;color:inherit}
-.dists.city .dist small{font-family:var(--font-ui);font-size:.5rem;letter-spacing:.3px;color:inherit;line-height:1.1}
-.dists.city .dist.own{background:var(--pc);border:1px solid rgba(0,0,0,.35);color:#14100a}
-.dists.city .dist.raid{background:repeating-linear-gradient(45deg,var(--pc) 0 6px,rgba(0,0,0,.25) 6px 9px)}
-/* acciones: fichas de papel con su dibujo */
-#g-actions .b-map{background:#efe3c4;border:1px solid #8a7a5a;color:#20180f;box-shadow:2px 3px 0 rgba(0,0,0,.4)}
-#g-actions .b-map small{color:#4a3a22}
-#g-actions .b-map .odds{border-color:#8a5a10;color:#7a4a08;background:transparent}
+/* ===================== IMPERIO CRIMINAL · SKYLINE DE NOCHE + BARRA DE DINERO ===================== */
+/* cada capo con su silueta de ciudad: lo suyo encendido con su color, lo demás a oscuras */
+body.theme-maf .pcard{flex-wrap:wrap;background:linear-gradient(180deg,#0e1424,#1a1410 85%);border:1px solid #2a2a3a}
+body.theme-maf .pcard.turn{border-color:var(--gold-2)}
+body.theme-maf .pcard img{background:none}
+body.theme-maf .pcard .hp{display:none}
+body.theme-maf .pcard>div{flex:1 1 60%}
+.sky{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));align-items:end;gap:2px;height:76px;margin-top:6px;padding:0 2px;border-bottom:3px solid #3a3530;
+  background:radial-gradient(circle at 92% 16%,#f3efd0 0 5px,transparent 6px),radial-gradient(circle at 20% 30%,rgba(255,255,255,.5) 0 1px,transparent 2px),radial-gradient(circle at 55% 12%,rgba(255,255,255,.5) 0 1px,transparent 2px)}
+.sky .lot{position:relative;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;min-width:0}
+.sky .bld{display:block;width:100%;height:50px}
+.sky .bld .body{fill:#3a3128}.sky .bld .win{fill:#1a1510}.sky .bld .acc{fill:#5a4a32}
+.sky .lot.own .bld .body{fill:color-mix(in srgb,var(--pc) 55%,#2a2018)}
+.sky .lot.own .bld .win{fill:#ffe9a8}
+.sky .lot.own .bld .acc{fill:var(--pc)}
+.sky .lot.raid .bld .win{fill:#2a2a3a}
+.sky .tag{font-family:var(--font-ui);font-size:.5rem;letter-spacing:.2px;line-height:1.1;text-align:center;color:var(--cream-3);white-space:nowrap;overflow:hidden;max-width:100%}
+.sky .tag b{display:block;font-size:.72rem;color:var(--cream-2)}
+.sky .lot.own .tag b{color:var(--pc);text-shadow:0 0 6px var(--pc)}
+.sky .lot.raid::after{content:"";position:absolute;left:6%;right:6%;top:42%;height:7px;background:repeating-linear-gradient(90deg,#f5c518 0 6px,#111 6px 10px);transform:rotate(-12deg)}
+.sky .siren{position:absolute;top:0;left:50%;z-index:1;transform:translateX(-50%);padding:1px 3px;border-radius:3px;background:#111;color:#fff;font-family:var(--font-ui);font-size:.6rem;line-height:1;white-space:nowrap;animation:siren 1s steps(2) infinite}
+@keyframes siren{0%{box-shadow:-4px 0 8px #ff2a2a}50%{box-shadow:4px 0 8px #2a6aff}}
+/* acciones: carteles con su dibujo y una barra de dinero (verde si alcanza, roja con lo que falta) */
+#g-actions .b-map{border:2px solid #d99347;border-radius:6px;background:linear-gradient(180deg,#2a1e12,#1a120a);color:var(--cream)}
+#g-actions .b-map small{color:var(--cream-2)}
+#g-actions .b-map .odds{border-color:#d99347;color:#f0bf7f;background:transparent}
 #g-actions .b-map .ico{display:block;width:40px;height:40px;margin:0 auto 2px;image-rendering:pixelated}
-#g-actions .b-map:hover:not(:disabled){border-color:#a3241c;box-shadow:0 0 0 1px #a3241c,2px 3px 0 rgba(0,0,0,.4)}
-#g-actions .b-map.selected{background:#f8eccb;color:#20180f;border-color:#a3241c;box-shadow:0 0 0 2px #a3241c}
-#g-actions .b-map.selected small{color:#4a3a22}
+#g-actions .b-map:hover:not(:disabled){border-color:#f0bf7f;box-shadow:0 0 12px rgba(217,147,71,.5)}
+#g-actions .b-map.selected{background:linear-gradient(180deg,#4a3018,#2a1a0a);color:#fff;border-color:#f0bf7f;box-shadow:0 0 0 2px #f0bf7f}
+#g-actions .b-map.selected small{color:var(--cream-2)}
+#g-actions .b-map:disabled{opacity:1;border-color:#5a4a32;color:#8a7a5a;background:#1a1612}
+#g-actions .b-map:disabled .ico{filter:grayscale(1) brightness(.6)}
+#g-actions .b-map:disabled small{color:#6a5a42}
+.mbar{display:block;height:6px;margin:6px 4px 0;border-radius:3px;background:#3a3128;overflow:hidden}
+.mbar i{display:block;height:100%;background:#7cc47f;transition:width .4s}
+.mbar.no i{background:#d4513f}
+.mcnt{display:block;margin-top:2px;font-family:var(--font-ui);font-size:.62rem;letter-spacing:.5px;color:#b7f0c0}
+.mbar.no+.mcnt{color:#ff9a8a}
 #g-actions:has(.b-map:nth-child(4)){grid-template-columns:repeat(3,minmax(0,1fr))}
 /* Lavar dinero: interruptor de carretera */
 #g-actions .map-sw{display:grid;grid-template-columns:1fr auto auto;grid-template-areas:"t r s" "d r s";align-items:center;column-gap:10px;text-align:left;
@@ -106,6 +138,10 @@ body.theme-maf .pcard.turn::before{background:#a3241c;color:#f3ecd6}
 #g-actions .map-sw.on .road i{left:44px;background:#7cc47f}
 #g-actions .map-sw .sw-t{grid-area:s;min-width:26px;font-size:.85rem;color:#8a7a5a}
 #g-actions .map-sw.on .sw-t{color:#2a6a3a}
+#g-actions .map-sw:disabled{opacity:1;background:#bdb39a;color:#4a3a22;box-shadow:none}
+#g-actions .map-sw:disabled .road i{display:none}
+#g-actions .map-sw:disabled .road::after{content:"SIN 💵";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:.6rem;letter-spacing:1px;color:#fff}
+#g-actions .map-sw:disabled .road::before{content:none}
 /* ventana de distritos: lotes de papel con "Distrito N" grande y el barrio pequeño; sello rojo si no se puede */
 body.theme-maf #choice-opts{grid-template-columns:repeat(3,1fr);gap:8px}
 #choice-opts .m-lot{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:72px;padding:6px 2px 14px;

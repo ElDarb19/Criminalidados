@@ -22,7 +22,7 @@ const EXP = {
     G.turn = first; G.start = G.turn; G.prevStart = first; G.round = 1; G.focus = null;
     G.players.forEach(p => {
       const m = this.MAX_COB + (MK.boss() === p.slot ? 10 : 0) - (MK.has(p, 'contact_prestamista') ? ECON.PRESTAMISTA_HP : 0);   // Carnicero +10 · Prestamista -4
-      Object.assign(p, { max:m, hp:m, temp:0, alive:true, arrested:false, repairUses:0, repairCooldown:0, torpedoUses:0, matonUsed:false, sec0:p.secured || 0 });   // el Matón vuelve a estar disponible en cada atraco
+      Object.assign(p, { max:m, hp:m, temp:0, alive:true, arrested:false, outR:null, lostLoot:0, repairUses:0, repairCooldown:0, torpedoUses:0, matonUsed:false, sec0:p.secured || 0 });   // el Matón vuelve a estar disponible en cada atraco
     });
     CD.log('💰 ¡Inicia ' + (G.maxDives === 1 ? 'el Atraco Único' : 'el Atraco ' + G.dive + ' de ' + G.maxDives) + ' a la bóveda!');
     CD.log('🎲 Sorteo: empieza ' + G.players[G.turn].name + '.');
@@ -46,12 +46,15 @@ const EXP = {
   ui(G, me) {
     const mx = this.maxGrenades(), foes = this.validTargets(G, me, 'sabotage');
     const repairOk = this.party() ? me.repairCooldown <= 0 : me.repairUses < 1;
+    // cada acción con su dibujo y su color de tiza: cajas amarillas, bóveda celeste, escudo blanco, granada roja y coche verde
+    const ch = (k, svg) => ({ cls:'b-chalk', style:'--k:' + k, pre:`<svg class="doodle" viewBox="0 0 40 30" aria-hidden="true">${svg}</svg>` });
     return [
-      { type:'explore', label:'📦 Saquear Cajas', sub:'d6: 1-2 trampa · 3-5 +1 · 6 +3', odds:'67% botín', cls:'b-chalk' },
-      { type:'deep', label:'🏦 Forzar Bóveda', sub:'d20 ≥ 11 → d12 de botín', odds:'50% éxito', cls:'b-chalk' },
-      { type:'repair', label:'🔧 Reforzar Cobertura', sub: this.party() ? (me.repairCooldown > 0 ? 'Espera ' + me.repairCooldown + ' rondas' : 'd4 · cada 5 rondas') : (me.repairUses >= 1 ? 'Agotado' : 'd4 · 1 por atraco'), disabled:!repairOk || me.hp >= me.max, cls:'b-chalk' },
-      { type:'sabotage', label:'💣 Lanzar Granada', sub:me.torpedoUses + '/' + mx + ' · d4 a un rival', disabled:me.torpedoUses >= mx || !foes.length, cls:'b-chalk' },
-      { type:'surface', label:'🚗 Coche de Escape', sub:'Asegura 💰 ' + me.temp, wide:true, cls:'b-chalk' }
+      Object.assign({ type:'explore', label:'Saquear Cajas', sub:'d6: 1-2 trampa · 3-5 +1 · 6 +3', odds:'67% botín' }, ch('#ffe680', '<path d="M6 12h28v15H6zM6 12l4-6h20l4 6M20 12v15M14 18h12"/>')),
+      Object.assign({ type:'deep', label:'Forzar Bóveda', sub:'d20 ≥ 11 → d12 de botín', odds:'50% éxito' }, ch('#8fd3ff', '<rect x="6" y="3" width="28" height="24" rx="2"/><circle cx="20" cy="15" r="7"/><path d="M20 8v3M20 19v3M13 15h3M24 15h3"/>')),
+      Object.assign({ type:'repair', label:'Reforzar Cobertura', sub: this.party() ? (me.repairCooldown > 0 ? 'Espera ' + me.repairCooldown + ' rondas' : 'd4 · cada 5 rondas') : (me.repairUses >= 1 ? 'Agotado' : 'd4 · 1 por atraco'), disabled:!repairOk || me.hp >= me.max },
+        ch('#eef2ea', '<path d="M20 3l12 5v8c0 7-5 11-12 13C13 27 8 23 8 16V8z"/><path d="M15 15l4 4 7-8"/>')),
+      Object.assign({ type:'sabotage', label:'Lanzar Granada', sub:me.torpedoUses + '/' + mx + ' · d4 a un rival', disabled:me.torpedoUses >= mx || !foes.length }, ch('#ff9a8a', '<ellipse cx="18" cy="18" rx="9" ry="10"/><path d="M14 9h8M18 8V5h6l3 3M12 18h12M18 10v16"/>')),
+      Object.assign({ type:'surface', label:'Coche de Escape', sub:'Asegura 💰 ' + me.temp, wide:true }, ch('#9be8a8', '<path d="M4 20h32v-5l-5-6H13l-5 6H4zM8 15h28"/><circle cx="12" cy="22" r="3"/><circle cx="28" cy="22" r="3"/>'))
     ];
   },
   // Pizarra del golpe: hojas de los atracos arriba (tachadas las ya hechas)
@@ -74,8 +77,11 @@ const EXP = {
     const max = p.max || 0, hp = p.hp || 0, scale = Math.max(max, hp) || 1, over = Math.max(0, hp - max);
     const segs = [{ pct:Math.min(hp, max) / scale * 100, color:hp <= 5 ? 'var(--accent-red)' : 'var(--accent-cyan)' }];
     if (over > 0) segs.push({ pct:over / scale * 100, color:'#f1c40f' });                      // escudo de la Adrenalina por encima del máximo, en dorado
-    return { segs, pct:0, color:'', html:max ? this.walls(p) : '',
-      label:`${max ? '' : hp + '/' + max + ' COB · '}💰 ${p.temp || 0} · 🔒 ${p.secured || 0}${p.alive ? MK.tags(p) : ''}<br>${status}`, state, img:p.alive ? 'idle' : p.arrested ? 'lose' : 'win' };
+    // fuera del atraco: sello grande "A SALVO" (verde) o "ARRESTADO" (rojo) con la ronda en que salió
+    const stamp = p.alive || !max ? '' : p.arrested ? `<span class="exp-stamp jail">ARRESTADO<small>🚨 ronda ${p.outR || '?'}${p.lostLoot ? ' · perdió 💰' + p.lostLoot : ''}</small></span>`
+      : `<span class="exp-stamp safe">A SALVO<small>🚗 ronda ${p.outR || '?'}</small></span>`;
+    return { segs, pct:0, color:'', html:p.alive ? (max ? this.walls(p) : '') : stamp,
+      label:p.alive || !max ? `${max ? '' : hp + '/' + max + ' COB · '}💰 ${p.temp || 0} · 🔒 ${p.secured || 0}${p.alive ? MK.tags(p) : ''}<br>${status}` : `🔒 ${p.secured || 0} asegurado`, state, img:p.alive ? 'idle' : p.arrested ? 'lose' : 'win' };
   },
 
   // ---- acciones ----
@@ -127,7 +133,7 @@ const EXP = {
     } else if (type === 'surface') {
       att.secured += att.temp; CD.float(att.slot, '¡A SALVO!', 'loot');
       CD.log(`🚗💨 ${att.name} arranca el Coche de Escape y asegura ${att.temp} de botín (total asegurado: ${att.secured}).`);
-      att.temp = 0; att.alive = false;
+      att.temp = 0; att.alive = false; att.outR = G.round;                 // ronda en que salió (para el sello "A SALVO")
     }
     if (att.alive && att.hp <= 0) this.arrest(att, '🚨 ¡LA POLICÍA ATRAPÓ A ' + att.name.toUpperCase() + '! Pierde todo el botín no asegurado.');
     if (!G.players.some(p => p.alive)) this.endDive(G);
@@ -136,7 +142,7 @@ const EXP = {
     p.hp = Math.max(0, p.hp - n); p.tookDmg = true; CD.float(p.slot, '-' + n + ' COB', heavy ? 'crit' : 'dmg');
     CD.log(`🚨 ${why}: ${p.name} pierde ${n} de Cobertura (le quedan ${p.hp}).`);
   },
-  arrest(p, msg) { p.hp = 0; p.temp = 0; p.alive = false; p.arrested = true; CD.log(msg); },
+  arrest(p, msg) { p.lostLoot = p.temp || 0; p.outR = CD.G.round; p.hp = 0; p.temp = 0; p.alive = false; p.arrested = true; CD.log(msg); },   // botín perdido y ronda: solo para el sello
 
   endDive(G) {
     const totals = G.players.map(p => p.name + ': ' + p.secured);

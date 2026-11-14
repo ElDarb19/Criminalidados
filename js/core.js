@@ -484,7 +484,8 @@ CD.partyResult = function (winnerSlot, summary) {
   }
   const next = CD.playlist[(G.pi + 1) % CD.playlist.length];
   G.between = { kind:'party', title:'CONTRATO COMPLETADO', button:MK.on() ? 'IR AL MERCADO NEGRO' : 'SIGUIENTE CONTRATO',
-    podium:rank ? rank.map(e => Object.assign({}, e, { text:e.text + (rew ? ' · +' + rew[e.slot].amount + '💲' + rew[e.slot].note : '') })) : null,
+    // en el podio también se ve el marcador del Party ya actualizado con este contrato
+    podium:rank ? rank.map(e => Object.assign({}, e, { text:e.text + (rew ? ' · +' + rew[e.slot].amount + '💲' + rew[e.slot].note : '') + ' · 🏅 ' + (G.wins[e.slot] || 0) + '/' + goal + (e.slot === winnerSlot ? ' (+1)' : '') })) : null,
     lines:[winnerSlot == null ? `${name}: empate, nadie suma victoria.` : `🏅 ${G.players[winnerSlot].name} gana ${name}.`, summary || '', 'Marcador (meta: ' + goal + ' victorias):'].filter(Boolean).concat(board, ['', 'Siguiente contrato: ' + GAME_TITLES[next]]) };
 };
 CD.nextContract = async function () {
@@ -574,7 +575,7 @@ function render() {
     CD.pending ? '🎯 Elige a tu objetivo' : (mine ? '👉 Tu turno, ' + cur.name : 'Turno de ' + cur.name + (cur.bot ? ' (bot)' : ''));
   const box = $$('g-actions'); box.classList.toggle('hidden', !mine);
   // b.cls y b.pre: clase y dibujo extra que cada contrato puede poner en su botón (solo decoración)
-  if (mine) box.innerHTML = M.ui(G, cur).concat(MK.useBtn(cur) || []).map(b => `<button class="opt ${b.wide ? 'wide' : ''} ${b.cls || ''} ${CD.pending === b.type ? 'selected' : ''}" data-type="${b.type}" ${b.disabled ? 'disabled' : ''} onclick="CD.choose('${b.type}')">${b.pre || ''}<span class="bl">${b.label}</span><small>${b.sub}</small>${b.odds ? `<span class="odds" title="Probabilidad base (sin objetos ni eventos)">${b.odds}</span>` : ''}</button>`).join('');
+  if (mine) box.innerHTML = M.ui(G, cur).concat(MK.useBtn(cur) || []).map(b => `<button class="opt ${b.wide ? 'wide' : ''} ${b.cls || ''} ${CD.pending === b.type ? 'selected' : ''}" data-type="${b.type}" ${b.style ? `style="${b.style}"` : ''} ${b.disabled ? 'disabled' : ''} onclick="CD.choose('${b.type}')">${b.pre || ''}<span class="bl">${b.label}</span><small>${b.sub}</small>${b.odds ? `<span class="odds" title="Probabilidad base (sin objetos ni eventos)">${b.odds}</span>` : ''}${b.post || ''}</button>`).join('');
   const tp = $$('g-top'), th = M.top ? M.top(G) : '';            // franja propia del contrato bajo el turno (p. ej. las hojas del atraco)
   if (tp && tp.dataset.h !== th) { tp.dataset.h = th; tp.innerHTML = th; }
   $$('g-log').innerHTML = G.log.slice().reverse().map(l => '<div>' + esc(l) + '</div>').join('');

@@ -680,6 +680,18 @@ body:has(#menu-screen:not(.hidden)) .top-btns .btn-guide-trigger{border-radius:8
 body:has(#menu-screen:not(.hidden)) #btn-shop{--n:var(--neon-amber)}
 body:has(#menu-screen:not(.hidden)) #btn-profile{--n:var(--neon-cyan)}
 body:has(#menu-screen:not(.hidden)) .top-btns .btn-guide-trigger:hover{background:rgba(0,0,0,.75);filter:brightness(1.2)}
+/* Ajustes (rosa) a juego; los tres cuelgan de dos cadenitas y se balancean un poco */
+body:has(#menu-screen:not(.hidden)) #btn-settings{--n:var(--neon-pink);border-radius:8px;border:2px solid var(--n);background:rgba(0,0,0,.55);color:#fff;
+  box-shadow:0 0 8px var(--n),inset 0 0 8px var(--n);text-shadow:0 0 3px var(--n),0 0 10px var(--n)}
+body:has(#menu-screen:not(.hidden)) #btn-settings:hover,body:has(#menu-screen:not(.hidden)) #btn-settings[aria-expanded="true"]{background:rgba(0,0,0,.75);color:#fff;filter:brightness(1.2)}
+body:has(#menu-screen:not(.hidden)) .top-btns .btn-guide-trigger,body:has(#menu-screen:not(.hidden)) #btn-settings{position:relative;transform-origin:50% -14px;animation:neon-swing 3.6s ease-in-out infinite}
+body:has(#menu-screen:not(.hidden)) #btn-profile{animation-delay:-1.2s;animation-duration:4.1s}
+body:has(#menu-screen:not(.hidden)) #btn-settings{animation-delay:-2.3s;animation-duration:3.9s}
+body:has(#menu-screen:not(.hidden)) .top-btns .btn-guide-trigger::before,body:has(#menu-screen:not(.hidden)) #btn-settings::before{content:"";position:absolute;top:-16px;left:22%;right:22%;height:14px;
+  border-left:2px dotted #9a9a9a;border-right:2px dotted #9a9a9a;pointer-events:none}
+@keyframes neon-swing{0%,100%{transform:rotate(-2.2deg)}50%{transform:rotate(2.2deg)}}
+@media (prefers-reduced-motion:reduce){body:has(#menu-screen:not(.hidden)) .top-btns .btn-guide-trigger,body:has(#menu-screen:not(.hidden)) #btn-settings{animation:none}}
+html.calm body:has(#menu-screen:not(.hidden)) .top-btns .btn-guide-trigger,html.calm body:has(#menu-screen:not(.hidden)) #btn-settings{animation:none}
 /* secciones: sin caja pesada, con el título entre dos tubos rosas */
 .neon-menu .card{background:rgba(10,6,8,.5);border:1px solid rgba(255,79,106,.16);box-shadow:0 10px 30px rgba(0,0,0,.4)}
 .neon-menu .card.net{border-color:rgba(255,79,106,.16)}
@@ -790,6 +802,19 @@ body:has(#menu-screen:not(.hidden)) .top-btns .btn-guide-trigger:hover{backgroun
 .neon-menu .tut-btn:hover:not(:disabled){border-color:var(--neon-amber);filter:brightness(1.2)}
 @media (max-width:400px){.neon-menu #slots{gap:6px}.neon-menu .slot{padding:8px 2px}.wall-switches .switch{min-width:0;flex:1}}
 @media (prefers-reduced-motion:reduce){.neon-menu .title,.hang-board button.selected,.neon-menu #single-box .opt.selected{animation:none}}
+
+/* Perfil del Capo: capo, acabado y aura se eligen con flechas (y, tocando el nombre, la lista completa) */
+.pf-step{display:grid;grid-template-columns:1fr 1fr;grid-template-areas:"n n" "p x";gap:4px;margin:6px 0 10px}   /* nombre arriba, flechas debajo (cabe en la columna estrecha) */
+.pf-step .pn{grid-area:n;min-height:48px}
+.pf-step .arr:first-child{grid-area:p}.pf-step .arr:last-child{grid-area:x}
+.pf-step .arr{min-height:44px;border:1px solid var(--gold-dark);border-radius:var(--radius-sm);background:var(--ink);color:var(--gold-2);font-size:1rem;cursor:pointer}
+.pf-step .arr:hover:not(:disabled){border-color:var(--gold-2);background:var(--ink-3)}
+.pf-step .arr:disabled{opacity:.3;cursor:default}
+.pf-step .pn{position:relative;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px;border:1px solid var(--gold);border-radius:var(--radius-sm);background:linear-gradient(180deg,#2a2114,#17120b)}
+.pf-step .pn b{font-family:var(--font-ui);font-weight:600;font-size:.9rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.pf-step .pn small{font-family:var(--font-type);font-size:.66rem;color:var(--cream-3)}
+.pf-step .pn select{position:absolute;inset:0;width:100%;opacity:0;cursor:pointer}
+.pf-step .pn select:disabled{cursor:default}
 
 /* ---------- COMPUTADOR: menú a dos columnas ---------- */
 @media (min-width:960px){

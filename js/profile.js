@@ -276,22 +276,38 @@ const PROFILE = {
           <b>FAVORITO</b><span>${favs[0] ? favs[0].n : '—'}</span></div>
         <div class="ficha-prints" aria-hidden="true"><i></i><i></i><i></i><i></i></div></div>
       <div class="pf-fields"><label class="pf-label" for="pf-name">Nombre</label><input id="pf-name" type="text" maxlength="16" placeholder="Capo 1" value="${esc(p.name)}">
-      <span class="pf-label">Personaje</span><div class="chars">${CHARACTERS.filter(c => this.owns(c.key)).map(c => `<button type="button" class="char-btn ${(p.char || 'Mafioso') === c.key ? 'sel' : ''}" aria-pressed="${(p.char || 'Mafioso') === c.key}" onclick="PROFILE.set('char','${c.key}')">${c.label}</button>`).join('')}</div>
+      <span class="pf-label">Personaje</span>${this.stepper('char', p.char || 'Mafioso')}
       <span class="pf-label">Color favorito</span><div class="swatches">${COLOR_KEYS.map(c => `<button type="button" class="sw ${p.color === c ? 'sel' : ''}" style="--c:${COLORS[c]}" data-tag="${colorTag(c)}" aria-label="${COLOR_LABELS[c]}" onclick="PROFILE.set('color','${c}')"></button>`).join('')}</div></div></div>
       <div class="memo"><span class="memo-clip" aria-hidden="true"></span><b>NOTA</b> Tu nombre, capo y color se ponen solos en tu puesto del menú y al unirte a una sala online. Puedes cambiarlos en el menú cuando quieras. Si en una sala tu color ya está ocupado, lo conserva quien entró antes.</div>
       ${this.diceHtml(p)}
       <div id="pf-react">${this.reactHtml()}</div>
       <h3 class="pf-h">Cuenta</h3><div id="ac-zone">${typeof ACCOUNT !== 'undefined' ? ACCOUNT.html() : ''}</div>`;
   },
+  // Opciones de cada selector con flechas: capos que tienes, y acabados / auras comprados (con "Normal" / "Ninguna")
+  stepOpts(k) {
+    if (k === 'char') return CHARACTERS.filter(c => this.owns(c.key)).map(c => ({ v:c.key, l:c.label }));
+    return [{ v:'', l:k === 'fin' ? 'Normal' : 'Ninguna' }].concat(DICE_ITEMS.filter(i => i.kind === k && this.owns(i.key)).map(i => ({ v:i.id, l:i.label })));
+  },
+  stepper(k, cur) {                                // ◀ nombre ▶ y, tocando el nombre, la lista completa
+    const L = this.stepOpts(k), c = cur || '', j = Math.max(0, L.findIndex(o => o.v === c)), one = L.length < 2;
+    return `<div class="pf-step"><button type="button" class="arr" aria-label="Anterior" ${one ? 'disabled' : ''} onclick="PROFILE.step('${k}',-1)">◀</button>
+      <span class="pn"><b>${esc(L[j].l)}</b><small>${j + 1} de ${L.length}${one ? '' : ' · lista ▾'}</small>
+        <select aria-label="Elegir" ${one ? 'disabled' : ''} onchange="PROFILE.set('${k}', this.value || null)">${L.map(o => `<option value="${o.v}" ${o.v === c ? 'selected' : ''}>${esc(o.l)}</option>`).join('')}</select></span>
+      <button type="button" class="arr" aria-label="Siguiente" ${one ? 'disabled' : ''} onclick="PROFILE.step('${k}',1)">▶</button></div>`;
+  },
+  step(k, d) {
+    const L = this.stepOpts(k), cur = (k === 'char' ? this.prefs().char || 'Mafioso' : this.prefs()[k]) || '';
+    const j = Math.max(0, L.findIndex(o => o.v === cur)), n = L[(j + d + L.length) % L.length];
+    this.set(k, n.v || null);
+  },
   diceHtml(p) {                                    // elegir acabado y aura de los dados (solo lo comprado)
     const own = k => DICE_ITEMS.filter(i => i.kind === k && this.owns(i.key));
-    const row = (k, none, cur) => [`<button type="button" class="char-btn ${!cur ? 'sel' : ''}" aria-pressed="${!cur}" onclick="PROFILE.set('${k}',null)">${none}</button>`]
-      .concat(own(k).map(i => `<button type="button" class="char-btn ${cur === i.id ? 'sel' : ''}" aria-pressed="${cur === i.id}" onclick="PROFILE.set('${k}','${i.id}')">${esc(i.label)}</button>`)).join('');
+    const row = (k, none, cur) => this.stepper(k, cur);
     // Bolsa de evidencias: el dado va dentro de la bolsa con su franja roja; acabado y aura se eligen debajo.
     return `<h3 class="pf-h">Tus dados</h3><div class="pf-dice evidence"><div class="ev-bag"><span class="ev-strip">EVIDENCIA · CASO Nº ${String(this.load().games + 101).padStart(4, '0')}</span>
         <canvas class="dice-prev" width="96" height="96" data-fin="${p.fin || ''}" data-aura="${p.aura || ''}" aria-hidden="true"></canvas><span class="ev-note">Arma del crimen: d20</span></div>
-      <div class="pf-fields"><span class="pf-label">Acabado</span><div class="chars">${row('fin', 'Normal', p.fin)}</div>
-      <span class="pf-label">Aura</span><div class="chars">${row('aura', 'Ninguna', p.aura)}</div>
+      <div class="pf-fields"><span class="pf-label">Acabado</span>${row('fin', 'Normal', p.fin)}
+      <span class="pf-label">Aura</span>${row('aura', 'Ninguna', p.aura)}
       ${own('fin').length + own('aura').length ? '' : '<p class="pf-note">Compra acabados y auras en la Tienda.</p>'}</div></div>`;
   },
   dicePreviews() {                                 // anima los dados de muestra que haya en el perfil
