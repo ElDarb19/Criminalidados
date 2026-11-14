@@ -60,7 +60,8 @@
 #g-actions .opt:hover:not(:disabled){border-color:var(--theme-accent);box-shadow:0 0 14px var(--theme-glow)}
 #g-actions .opt.selected{background:linear-gradient(180deg,var(--theme-accent),color-mix(in srgb,var(--theme-accent) 70%,#000));color:var(--ink);border-color:var(--theme-accent-2)}
 #g-actions .opt.selected small{color:var(--ink);opacity:.9}
-#g-actions .opt small{color:var(--cream-2)}
+#g-actions .opt small{display:block;color:var(--cream-2)}
+#g-actions .opt .bl{display:block}
 #g-actions button:disabled{opacity:.35;cursor:not-allowed}
 #g-actions .opt.wide{grid-column:1/-1;min-height:70px;font-size:1.15rem;letter-spacing:2px;border-color:var(--theme-accent)}
 /* probabilidad base de la acción: etiqueta tipo sello */

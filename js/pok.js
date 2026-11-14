@@ -36,15 +36,24 @@ const POK = {
   ui(G, me) {
     const t = type => !this.validTargets(G, me, type).length;
     return [
-      { type:'bet', label:'🎰 Apuesta Básica', sub:'Arriesgas 1🎰 · d6 gana con 4+', odds:'50% ganas', disabled:t('bet') },
-      { type:'slam', label:'💥 Golpe a la Mesa', sub:'Arriesgas 3🎰 · d20 ≥ 11, luego d12', odds:'50% ganas', disabled:t('slam') },
-      { type:'cheat', label:'🎭 Trampa de Tahúr', sub: this.party() ? (me.tahurUses >= 1 ? 'Agotado' : '1 por partida · d4 de robo') : (me.tahurCD > 0 ? 'Espera ' + me.tahurCD + ' rondas' : 'Sin riesgo · d4 de robo'), disabled:t('cheat'), wide:true }
+      // fichas con los mismos colores que los sprites: roja (vale 1) y negra
+      { type:'bet', label:'APUESTA BÁSICA', sub:'Arriesgas 1 ficha · d6 gana con 4+', odds:'50% ganas', disabled:t('bet'), cls:'chipb r', pre:'<span class="chip" aria-hidden="true"><b>1</b></span>' },
+      { type:'slam', label:'GOLPE A LA MESA', sub:'Arriesgas 3 fichas · d20 ≥ 11, luego d12', odds:'50% ganas', disabled:t('slam'), cls:'chipb k', pre:'<span class="chip" aria-hidden="true"><b>3</b></span>' },
+      { type:'cheat', label:'TRAMPA DE TAHÚR', sub: this.party() ? (me.tahurUses >= 1 ? 'Agotado' : '1 por partida · d4 de robo') : (me.tahurCD > 0 ? 'Espera ' + me.tahurCD + ' rondas' : 'Sin riesgo · d4 de robo'), disabled:t('cheat'), wide:true, cls:'b-tahur',
+        pre:'<span class="fan" aria-hidden="true"><i>A♥</i><i>A♦</i><i>A♠</i></span>' }
     ];
+  },
+  // pilas de fichas: rojas de 1; con más de 20, las de 5 pasan a fichas negras
+  stacks(n) {
+    n = Math.max(0, n || 0); const black = n > 20 ? Math.floor(n / 5) : 0, red = n - black * 5; let s = '';
+    const col = (k, c) => { for (let left = k; left > 0; left -= 10) s += `<span class="stk">${`<i class="${c}"></i>`.repeat(Math.min(10, left))}</span>`; };
+    col(black, 'b'); col(red, 'r');
+    return '<div class="stacks">' + s + '</div>';
   },
   card(p, G) {
     const pool = this.START_TOKENS * G.players.length;
     const tahur = this.party() ? (p.tahurUses >= 1 ? '🎭 agotada' : '🎭 lista') : (p.tahurCD > 0 ? '🎭 en ' + p.tahurCD : '🎭 lista');
-    return { pct:(p.tokens || 0) / pool * 100, color:'var(--accent-loot)',
+    return { pct:(p.tokens || 0) / pool * 100, color:'var(--accent-loot)', html:p.alive ? this.stacks(p.tokens) : '',
       label:p.alive ? `🎰 ${p.tokens} fichas · ${tahur}` : '💀 EN BANCARROTA', state:p.alive ? (p.tokens <= 2 ? 'danger' : '') : 'dead', img:p.alive ? 'idle' : 'lose' };
   },
 

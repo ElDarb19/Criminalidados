@@ -656,12 +656,148 @@ input:disabled{opacity:.65}
 pre.cfg{text-align:left;font-size:.72rem;max-height:300px;overflow:auto;background:var(--ink);padding:10px;border-radius:var(--radius-sm)}
 ::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:rgba(0,0,0,.35)}::-webkit-scrollbar-thumb{background:var(--gold-dark);border-radius:4px}
 
+/* =====================================================================
+   MENÚ NEÓN (v0.3): pared de ladrillo, letrero de neón y tres tonos de tubo.
+   Rosa = lo elegido y los títulos · Ámbar = números, contraseña e interruptores · Celeste = acento.
+   Los únicos otros colores son los de cada contrato y los de cada jugador.
+   ===================================================================== */
+:root{--neon-pink:#ff4f6a;--neon-pink-2:#ffd8de;--neon-amber:#ffb84f;--neon-amber-2:#ffe6a8;--neon-cyan:#5fe3ff;--neon-cyan-2:#c8f6ff;--neon-off:#8f6f78;
+  --brick:linear-gradient(180deg,rgba(11,10,8,.35),rgba(11,10,8,.8)),repeating-linear-gradient(0deg,#2a1d24 0 18px,#1a1216 18px 20px)}
+body:has(#menu-screen:not(.hidden)){background:radial-gradient(ellipse 80% 40% at 50% 0,rgba(255,79,106,.16),transparent 70%),var(--brick),#2a1d24;background-attachment:fixed}
+@keyframes neon-flick{0%,90%,94%,100%{opacity:1}92%{opacity:.45}}
+@keyframes neon-on{0%{opacity:.2}10%{opacity:1}15%{opacity:.3}25%{opacity:1}30%{opacity:.5}40%,100%{opacity:1}}
+.neon-menu{overflow-x:clip}            /* el humo que se mueve no debe ensanchar la página en el celular */
+/* cabecera: logo y título en neón rosa */
+.neon-head{text-align:center;margin:0 0 18px}
+.neon-logo{display:block;width:clamp(84px,24vw,112px);margin:0 auto 4px;image-rendering:pixelated;filter:drop-shadow(0 0 4px var(--neon-pink)) drop-shadow(0 0 12px var(--neon-pink))}
+.neon-menu .title{word-spacing:normal;font-size:clamp(2rem,9vw,2.8rem);color:var(--neon-pink-2);text-shadow:0 0 6px var(--neon-pink),0 0 16px var(--neon-pink),0 0 30px var(--neon-pink);animation:neon-flick 3.4s infinite}
+.neon-menu .title::before{content:none}
+.neon-menu .subtitle{margin:4px 0 0;font-family:var(--font-ui);font-size:.66rem;letter-spacing:5px;color:var(--neon-amber-2);text-shadow:0 0 6px var(--neon-amber)}
+.neon-menu .subtitle::before,.neon-menu .subtitle::after{content:none}
+/* Tienda (ámbar) y Perfil (celeste) como letreritos */
+body:has(#menu-screen:not(.hidden)) .top-btns .btn-guide-trigger{border-radius:8px;border:2px solid var(--n);background:rgba(0,0,0,.55);color:#fff;
+  box-shadow:0 0 8px var(--n),inset 0 0 8px var(--n);text-shadow:0 0 3px var(--n),0 0 10px var(--n)}
+body:has(#menu-screen:not(.hidden)) #btn-shop{--n:var(--neon-amber)}
+body:has(#menu-screen:not(.hidden)) #btn-profile{--n:var(--neon-cyan)}
+body:has(#menu-screen:not(.hidden)) .top-btns .btn-guide-trigger:hover{background:rgba(0,0,0,.75);filter:brightness(1.2)}
+/* secciones: sin caja pesada, con el título entre dos tubos rosas */
+.neon-menu .card{background:rgba(10,6,8,.5);border:1px solid rgba(255,79,106,.16);box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.neon-menu .card.net{border-color:rgba(255,79,106,.16)}
+.neon-menu .card h2{display:flex;align-items:center;gap:10px;font-family:var(--font-ui);font-size:.8rem;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:var(--neon-pink-2);text-shadow:0 0 6px var(--neon-pink)}
+.neon-menu .card h2::before,.neon-menu .card h2::after{content:"";flex:1;height:1px;background:var(--neon-pink);box-shadow:0 0 6px var(--neon-pink)}
+/* letrero colgante (Modo de juego y Dados) */
+.hang{position:relative;margin:22px auto 0;max-width:24rem}
+.hang::before,.hang::after{content:"";position:absolute;top:-22px;width:2px;height:22px;background:repeating-linear-gradient(180deg,#8a8a8a 0 4px,#444 4px 6px)}
+.hang::before{left:22%}.hang::after{right:22%}
+.hang-board{display:flex;align-items:center;gap:6px;padding:6px;border-radius:40px;background:#120c10;border:2px solid #3a2a30;box-shadow:0 8px 18px rgba(0,0,0,.6)}
+.hang-board button{flex:1;min-height:56px;border-radius:34px;border:0;background:transparent;color:var(--neon-off);font-family:var(--font-ui);font-weight:700;letter-spacing:3px;font-size:.95rem;cursor:pointer;transition:color .2s}
+.hang-board button small{display:block;font-weight:400;letter-spacing:0;font-size:.62rem}
+.hang-board button:hover:not(.selected){color:#c9a9b2}
+.hang-board button.selected{color:#fff;text-shadow:0 0 4px var(--neon-pink),0 0 12px var(--neon-pink);box-shadow:inset 0 0 0 2px var(--neon-pink),0 0 10px var(--neon-pink);animation:neon-on .7s}
+.hang-board button.selected small{color:var(--neon-pink-2)}
+.hang-mid{flex:0 0 auto;font-size:1.5rem}
+.dice-hang{margin-top:8px}.dice-hang::before,.dice-hang::after{content:none}
+/* puerta del club (Conexión) */
+.club-door{position:relative;max-width:24rem;margin:0 auto;padding:16px 12px 12px;border-radius:80px 80px 6px 6px;background:linear-gradient(90deg,#1e1012,#2e1a1e 50%,#1e1012);border:3px solid #0e0608;box-shadow:inset 0 0 0 6px #241418}
+.club-sign{text-align:center;font-family:var(--font-display);font-size:1.2rem;letter-spacing:2px;color:#fff;text-shadow:0 0 3px var(--neon-pink),0 0 10px var(--neon-pink),0 0 22px var(--neon-pink)}
+.peep{position:relative;display:block;width:120px;height:40px;margin:8px auto;border-radius:6px;background:#000;border:3px solid var(--gold-dark);overflow:hidden}
+.peep::before,.peep::after{content:"";position:absolute;top:13px;width:12px;height:8px;border-radius:50%;background:#f3e6c4;box-shadow:inset 3px 0 0 #2a1a10}
+.peep::before{left:36px}.peep::after{right:36px}
+.club-door .code{display:block;margin:4px 0;text-align:center;font-family:var(--font-type);font-size:.8rem;letter-spacing:0;color:var(--cream-2)}
+.club-door .code b{display:block;font-family:var(--font-ui);font-size:1.4rem;letter-spacing:8px;color:var(--neon-amber-2);text-shadow:0 0 8px var(--neon-amber)}
+.club-door #join-box .row{gap:8px}
+.club-door #join-input{text-align:center;letter-spacing:4px;text-transform:uppercase;border-color:var(--neon-amber);color:var(--neon-amber-2);background:#0a0608}
+.club-enter{flex:0 0 auto!important;min-height:44px;padding:0 14px;border-radius:4px;border:1px solid var(--neon-pink);background:transparent;color:#fff;font-family:var(--font-ui);letter-spacing:2px;cursor:pointer;box-shadow:0 0 8px var(--neon-pink)}
+.members{display:flex;align-items:center;justify-content:center;gap:8px;margin:8px auto 0;padding:5px 10px;width:fit-content;max-width:100%;border:2px solid var(--neon-cyan);border-radius:6px;
+  background:rgba(0,0,0,.45);box-shadow:0 0 8px var(--neon-cyan),inset 0 0 6px rgba(95,227,255,.35);font-family:var(--font-ui);letter-spacing:2px;font-size:.72rem;color:var(--neon-cyan-2);text-shadow:0 0 6px var(--neon-cyan)}
+.members .seats{display:flex;gap:4px}
+.members .seats i{width:14px;height:14px;border-radius:50%;border:2px solid #2e5a66}
+.members .seats i.in{border-color:var(--neon-cyan-2);background:var(--neon-cyan);box-shadow:0 0 6px var(--neon-cyan)}
+.members b{font-size:1rem;letter-spacing:1px;color:#fff}
+.members small{display:block;font-size:.56rem;letter-spacing:1px;color:var(--neon-amber-2);text-shadow:0 0 5px var(--neon-amber)}
+.club-copy{display:block;min-height:44px;margin:8px auto 0;padding:0 14px;border-radius:4px;border:1px solid var(--neon-amber);background:transparent;color:var(--neon-amber-2);font-family:var(--font-ui);font-size:.72rem;letter-spacing:1px;cursor:pointer}
+.club-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.club-btns button{min-height:56px;border-radius:4px;border:1px solid var(--gold-dark);background:#14080c;color:var(--gold-3);font-family:var(--font-ui);font-size:.76rem;letter-spacing:1px;cursor:pointer}
+.club-btns button small{display:block;font-size:.6rem;color:var(--cream-2);letter-spacing:0}
+.club-btns button.selected{border-color:var(--neon-pink);color:#fff;box-shadow:0 0 10px var(--neon-pink),inset 0 0 8px rgba(255,79,106,.4)}
+/* jefes: contadores con − / + y número ámbar */
+.neon-menu .counts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.cnt{display:flex;align-items:center;gap:4px;font-family:var(--font-ui);font-size:.68rem;letter-spacing:2px;color:var(--cream-2)}
+.cnt button{width:44px;height:44px;border-radius:6px;border:1px solid var(--neon-pink);background:transparent;color:var(--neon-pink-2);font-size:1.1rem;cursor:pointer}
+.cnt button:disabled{opacity:.35;cursor:not-allowed}
+.neon-menu .counts select{width:auto;min-width:44px;margin:0;padding:0 4px;border:0;background:transparent;text-align:center;font-size:1.5rem;color:#fff;text-shadow:0 0 4px var(--neon-amber),0 0 12px var(--neon-amber);-webkit-appearance:none;appearance:none;cursor:pointer}
+.neon-menu .counts select option{color:#000;text-shadow:none}
+/* rueda de reconocimiento en neón: una ficha por jefe, en dos columnas */
+.neon-menu #slots{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.neon-menu .slot{display:block;position:relative;margin:0;padding:8px 4px;text-align:center;background:#0e0a0c;border:1px solid #2a1a20;border-radius:8px}
+.neon-menu .slot.mine{border-color:var(--pc);box-shadow:0 0 10px color-mix(in srgb,var(--pc) 45%,transparent)}
+.neon-menu .slot small{margin:0 0 2px;font-size:.6rem;letter-spacing:3px}
+.neon-menu .avatar{position:relative;width:auto;height:72px;overflow:visible;background:none;border:0;justify-content:center}
+.neon-menu .avatar::before{content:"";position:absolute;inset:0 0 4px;background:repeating-linear-gradient(180deg,transparent 0 22px,rgba(95,227,255,.55) 22px 23px);filter:drop-shadow(0 0 3px var(--neon-cyan))}
+.neon-menu .avatar img{position:relative;z-index:1;width:56px;height:56px}
+.neon-menu .avatar .arr{position:absolute;top:14px;z-index:2;width:40px;height:44px;padding:0;border:0;background:transparent;color:var(--pc);font-size:1.15rem;cursor:pointer;text-shadow:0 0 6px var(--pc),0 0 14px var(--pc)}
+.neon-menu .avatar .arr.pv{left:0}.neon-menu .avatar .arr.nx{right:0}
+.neon-menu .avatar .arr:disabled{opacity:.25;cursor:default}
+.neon-menu .slot input{min-height:36px;margin-top:4px;padding:4px;border:0;border-bottom:2px solid var(--pc);border-radius:0;background:transparent;text-align:center;font-family:var(--font-type);box-shadow:0 6px 8px -6px var(--pc)}
+.neon-menu .slot .chars{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:44px;margin:0;font-family:var(--font-ui);font-size:.76rem;letter-spacing:1px;color:var(--pc);text-shadow:0 0 6px var(--pc)}
+.neon-menu .slot .chars .pc{font-size:.58rem;letter-spacing:0;color:var(--cream-2);text-shadow:none}
+.neon-menu .slot .chars select{position:absolute;inset:0;width:100%;opacity:0;cursor:pointer}
+.neon-menu .slot .chars select:disabled{cursor:default}
+.bot-note{display:block;margin-top:6px;font-family:var(--font-type);font-size:.62rem;color:var(--cream-2)}
+.neon-menu .swatches{justify-content:center;margin-top:6px}
+.neon-menu .sw{width:26px;height:26px;border:2px solid var(--c);background:transparent;box-shadow:0 0 6px var(--c)}
+.neon-menu .sw.sel{background:var(--c);box-shadow:0 0 0 2px #fff,0 0 12px var(--c)}
+.neon-menu .sw:disabled{opacity:.2;box-shadow:none}
+.neon-menu .sw:disabled::after{content:none}
+/* contrato: interruptores de pared */
+.wall-switches{display:flex;justify-content:space-around;gap:6px;margin-bottom:14px}
+.neon-menu .switch{position:relative;flex-direction:column;justify-content:flex-start;gap:4px;min-height:0;min-width:76px;margin:0;padding:0;background:none;border:0;
+  font-size:.62rem;letter-spacing:1px;text-align:center;color:var(--neon-off)}
+.neon-menu .switch .slider{flex:0 0 auto;width:30px;height:46px;border-radius:4px;background:linear-gradient(180deg,#d8cfb8,#9a917a);box-shadow:0 2px 4px rgba(0,0,0,.6)}
+.neon-menu .switch .slider::after{top:22px;left:10px;width:10px;height:16px;border-radius:3px;background:#f3efe6;box-shadow:0 2px 0 #6a6250;transition:top .15s}
+.neon-menu .switch input:checked+.slider{background:linear-gradient(180deg,#d8cfb8,#9a917a)}
+.neon-menu .switch input:checked+.slider::after{top:7px;left:10px;background:#f3efe6;box-shadow:0 -2px 0 #6a6250}
+.neon-menu .switch.on{color:#fff;text-shadow:0 0 4px var(--neon-amber),0 0 10px var(--neon-amber)}
+/* un letrero de neón por contrato: apagado o encendido con el color del contrato */
+.neon-menu .contracts{gap:10px;margin-top:0}
+.neon-menu #single-box .opt{min-height:86px;padding:6px;text-align:center;border:2px solid #3a2a30;border-radius:10px;background:rgba(0,0,0,.4);box-shadow:none;
+  color:var(--neon-off);font-size:.82rem;letter-spacing:1px;line-height:1.15}
+.neon-menu #single-box .opt::before,.neon-menu #single-box .opt::after,.neon-menu #single-box .opt small::before,.neon-menu #single-box .opt small::after{content:none}
+.neon-menu #single-box .opt .ic{display:block;margin-bottom:2px;font-size:1.5rem;filter:grayscale(1) brightness(.6)}
+.neon-menu #single-box .opt small{margin-top:2px;font-family:var(--font-ui);font-size:.6rem;letter-spacing:0;color:inherit}
+.neon-menu #single-box .opt:hover{transform:translateY(-2px);border:2px solid #5a3a42}
+.neon-menu #single-box .opt[data-g="rpg"]{--n:#ff5a4a}.neon-menu #single-box .opt[data-g="exp"]{--n:#6fd0ff}
+.neon-menu #single-box .opt[data-g="maf"]{--n:#ffa24a}.neon-menu #single-box .opt[data-g="pok"]{--n:#6dff9a}
+.neon-menu #single-box .opt.selected{border-color:var(--n);background:rgba(0,0,0,.4);color:#fff;text-shadow:0 0 4px var(--n),0 0 12px var(--n);box-shadow:0 0 10px var(--n),inset 0 0 12px var(--n);animation:neon-on .7s}
+.neon-menu #single-box .opt.selected .ic{filter:drop-shadow(0 0 6px var(--n))}
+/* marcador de victorias del Modo Party: el número encima y centrado del texto */
+.score{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:12px;padding:8px;border-radius:6px;background:#000;border:1px solid #3a1a22}
+.score-mid{display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--font-ui);font-size:.66rem;letter-spacing:2px;color:var(--cream-2);text-align:center}
+.score-mid b{min-width:44px;font-size:2rem;line-height:1;color:#fff;text-shadow:0 0 4px var(--neon-amber),0 0 12px var(--neon-amber),0 0 24px var(--neon-amber)}
+.score button{width:44px;height:44px;border-radius:6px;border:1px solid var(--neon-amber);background:transparent;color:var(--neon-amber-2);font-size:1.1rem;cursor:pointer}
+.score-note{margin:6px 0 0;font-family:var(--font-type);font-size:.68rem;text-align:center;color:var(--cream-2)}
+.neon-menu .hint{color:var(--neon-amber-2)}
+.neon-menu .rules{border-color:rgba(255,184,79,.45)}.neon-menu .rules h4{color:var(--neon-amber-2)}
+/* cartel de "ABIERTO" (comenzar) y tutorial */
+.open-sign{display:block;width:100%;max-width:19rem;min-height:84px;margin:10px auto 0;padding:6px;border-radius:44px;border:4px solid var(--neon-cyan-2);background:#0a0608;color:#fff;font-family:var(--font-ui);font-weight:700;font-size:1.7rem;letter-spacing:6px;
+  box-shadow:0 0 10px var(--neon-cyan),inset 0 0 12px var(--neon-cyan),0 0 30px rgba(95,227,255,.4)}
+.open-sign span{display:block;color:#fff;text-shadow:0 0 4px var(--neon-pink),0 0 12px var(--neon-pink),0 0 24px var(--neon-pink)}
+.open-sign small{display:block;font-size:.62rem;font-weight:500;letter-spacing:3px;color:var(--neon-cyan-2);text-shadow:0 0 6px var(--neon-cyan)}
+.open-sign:hover:not(:disabled){transform:none;filter:brightness(1.15);box-shadow:0 0 14px var(--neon-cyan),inset 0 0 14px var(--neon-cyan),0 0 36px rgba(95,227,255,.5)}
+.open-sign:disabled{opacity:.6}.open-sign:disabled span{color:var(--neon-off);text-shadow:none}
+#btn-start.open-sign::after{content:none}
+.neon-menu .tut-btn{display:flex;align-items:center;justify-content:center;width:fit-content;max-width:100%;min-height:44px;margin:12px auto 0;padding:0 16px;border-radius:22px;border:1px solid var(--neon-amber);background:transparent;color:var(--neon-amber-2);font-size:.78rem;box-shadow:0 0 6px rgba(255,184,79,.5)}
+.neon-menu .tut-btn:hover:not(:disabled){border-color:var(--neon-amber);filter:brightness(1.2)}
+@media (max-width:400px){.neon-menu #slots{gap:6px}.neon-menu .slot{padding:8px 2px}.wall-switches .switch{min-width:0;flex:1}}
+@media (prefers-reduced-motion:reduce){.neon-menu .title,.hang-board button.selected,.neon-menu #single-box .opt.selected{animation:none}}
+
 /* ---------- COMPUTADOR: menú a dos columnas ---------- */
 @media (min-width:960px){
   .menu{max-width:65rem;column-count:2;column-gap:24px;padding-top:80px}
   .menu>.card{break-inside:avoid;display:inline-block;width:100%}
-  .title,.subtitle,#start-msg,#btn-start{column-span:all}
+  .title,.subtitle,.neon-head,#start-msg,#btn-start,#btn-tutorial{column-span:all}
   #btn-start{max-width:32.5rem;display:block;margin:10px auto 0}
+  #btn-start.open-sign{max-width:19rem}
 }
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}

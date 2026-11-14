@@ -6,11 +6,22 @@ const RPG = {
   HP_CAP: 35,                                 // tope de salud que se puede alcanzar curándose (ajustable)
   ui(G, me) {
     return [
-      { type:'quick', label:'⚡ Ráfaga Tommy Gun', sub:'d6 de daño' },
-      { type:'strong', label:'🔫 Francotirador', sub:'d20 ≥ 11, luego d12', odds:'50% acierto' },
-      { type:'heal', label:'🩺 Médico de calle', sub: me.hp >= this.HP_CAP ? 'Salud al tope (' + this.HP_CAP + ')' : me.blocked ? '🚫 Bloqueado: usa otra habilidad' : 'd8 de salud · ' + me.heals + '/3 seguidas', disabled:me.blocked || me.hp >= this.HP_CAP },
-      { type:'poison', label:'🕵️ Infiltrar Soplón', sub: this.validTargets(G, me, 'poison').length ? '1 de daño por turno' : 'Todos ya tienen soplón', disabled:!this.validTargets(G, me, 'poison').length }
+      { type:'quick', label:'⚡ Ráfaga Tommy Gun', sub:'d6 de daño', cls:'b-sign' },
+      { type:'strong', label:'🔫 Francotirador', sub:'d20 ≥ 11, luego d12', odds:'50% acierto', cls:'b-sign' },
+      { type:'heal', label:'🩺 Médico de calle', sub: me.hp >= this.HP_CAP ? 'Salud al tope (' + this.HP_CAP + ')' : me.blocked ? '🚫 Bloqueado: usa otra habilidad' : 'd8 de salud · ' + me.heals + '/3 seguidas', disabled:me.blocked || me.hp >= this.HP_CAP, cls:'b-sign' },
+      { type:'poison', label:'🕵️ Infiltrar Soplón', sub: this.validTargets(G, me, 'poison').length ? '1 de daño por turno' : 'Todos ya tienen soplón', disabled:!this.validTargets(G, me, 'poison').length, cls:'b-sign' }
     ];
+  },
+  // Callejón: la salud se cuenta con rayas de tiza en grupos de 5 (las que pasan de la salud inicial, en dorado)
+  tally(n, cls) {
+    let s = '';
+    for (let g = 0; g < n; g += 5) {
+      const k = Math.min(5, n - g); let l = '';
+      for (let i = 0; i < Math.min(k, 4); i++) l += `<line x1="${3 + i * 5}" y1="2" x2="${3 + i * 5}" y2="14"/>`;
+      if (k === 5) l += '<line x1="0" y1="12" x2="20" y2="4"/>';
+      s += `<svg class="tl ${cls}" viewBox="0 0 21 16" aria-hidden="true">${l}</svg>`;
+    }
+    return s;
   },
   validTargets(G, me, type) {                 // el soplón no se puede aplicar a quien ya lo tiene activo
     return type === 'heal' ? null : G.players.filter(p => p.alive && p !== me && (type !== 'poison' || !(p.poison > 0))).map(p => p.slot);
@@ -19,7 +30,7 @@ const RPG = {
     const max = p.max || 0, hp = p.hp || 0, scale = Math.max(max, hp) || 1, over = Math.max(0, hp - max);
     const segs = [{ pct:Math.min(hp, max) / scale * 100, color:p.poison > 0 ? '#9b59b6' : 'var(--theme-accent)' }];
     if (over > 0) segs.push({ pct:over / scale * 100, color:'#f1c40f' });                    // la salud por encima de la inicial se ve en dorado
-    return { segs, pct:0, color:'',
+    return { segs, pct:0, color:'', html:p.alive && max ? `<div class="tally${p.poison > 0 ? ' poison' : ''}">${this.tally(Math.min(hp, max), '')}${this.tally(over, 'gold')}</div>` : '',
       label:p.alive ? (max ? hp + '/' + max + ' SALUD' + (over > 0 ? ' · +' + Math.round(over / max * 100) + '% extra' : '') : '— SALUD') + (p.poison > 0 ? ' · 🕵️ soplón ' + p.poison : '') + (p.blocked ? ' · 🚫 médico' : '') + MK.tags(p) : '💀 ELIMINADO',
       state:p.alive ? '' : 'dead', img:p.alive ? 'idle' : 'lose' };
   },

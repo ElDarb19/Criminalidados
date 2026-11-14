@@ -14,6 +14,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="stylesheet" href="menu.css">
 <link rel="stylesheet" href="css/game.css">
+<link rel="stylesheet" href="css/contracts.css">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -47,49 +48,57 @@ window.addEventListener('error', function (e) {
   <button id="btn-shop" class="btn-guide-trigger" type="button" onclick="PROFILE.openShop()"><i class="coin" aria-hidden="true"></i> TIENDA</button>
   <button id="btn-profile" class="btn-guide-trigger" type="button" onclick="PROFILE.open()">👤 PERFIL</button>
 </div>
-<main id="menu-screen" class="menu">
-  <!-- Reemplazable por <img src="logo.png"> -->
-  <h1 id="game-title" class="title">CRIMINAL DICE</h1>
-  <div class="subtitle">RANDOM DICE GAME</div>
+<main id="menu-screen" class="menu neon-menu">
+  <!-- letrero de neón: logo y título -->
+  <div class="neon-head">
+    <img class="neon-logo" src="assets/icons/icon-512.png" alt="">
+    <h1 id="game-title" class="title">CRIMINAL DICE</h1>
+    <div class="subtitle">RANDOM DICE GAME</div>
+  </div>
 
   <section class="card"><h2>Modo de juego</h2>
-    <div class="row"><button id="m-local" class="opt selected" onclick="setMode('local')">📱 Local</button><button id="m-online" class="opt" onclick="setMode('online')">🌐 Online</button></div>
+    <!-- letrero colgante partido en dos: se enciende la mitad elegida -->
+    <div class="hang"><div class="hang-board"><button id="m-local" class="selected" type="button" onclick="setMode('local')">LOCAL<small>Un mismo aparato</small></button><button id="m-online" type="button" onclick="setMode('online')">ONLINE<small>Cada uno en su celular</small></button></div></div>
   </section>
 
   <section id="net-card" class="card net hidden"><h2>Conexión multijugador</h2>
-    <div class="row"><button id="n-create" class="opt" onclick="createRoom()">👑 Crear Sala</button><button id="n-join" class="opt gold" onclick="showJoin()">🔑 Unirse a Sala</button></div>
-    <div id="create-box" class="hidden"><div class="code">SALA: <span id="room-code">----</span></div><button class="opt cyan" onclick="copyLink()">📋 Copiar Enlace de Invitación</button></div>
-    <div id="join-box" class="hidden" style="margin-top:12px"><div class="row"><input id="join-input" type="text" maxlength="6" placeholder="Código de la sala" autocomplete="off"><button class="opt" style="flex:0 0 auto;padding:0 16px" onclick="joinRoom()">Entrar</button></div></div>
+    <!-- puerta del club: la sala es la contraseña y Miembros muestra los puestos ocupados -->
+    <div class="club-door">
+      <div class="club-sign">CLUB DE LOS DADOS</div><span class="peep" aria-hidden="true"></span>
+      <div id="create-box" class="hidden"><div class="code">Contraseña<b id="room-code">----</b></div>
+        <div id="members" class="members" role="status"><span>MIEMBROS</span><span id="members-seats" class="seats"></span><span><b id="members-n">1/2</b><small id="members-t">HAY SITIO</small></span></div>
+        <button class="club-copy" type="button" onclick="copyLink()">📋 COPIAR ENLACE</button></div>
+      <div id="join-box" class="hidden"><label class="code" for="join-input">Contraseña</label><div class="row"><input id="join-input" type="text" maxlength="6" placeholder="Código de la sala" autocomplete="off"><button class="club-enter" type="button" onclick="joinRoom()">ENTRAR</button></div></div>
+      <div class="club-btns"><button id="n-create" type="button" onclick="createRoom()">👑 ABRIR EL LOCAL<small>Crear sala</small></button><button id="n-join" type="button" onclick="showJoin()">✊ TOCAR LA PUERTA<small>Unirse a sala</small></button></div>
+    </div>
     <div id="net-msg" class="msg"></div>
   </section>
 
   <section id="players-card" class="card"><h2>Jefes de la Mafia</h2>
     <div id="count-box" class="counts">
-      <label>JUGADORES<select id="sel-humans" onchange="onCounts()"></select></label>
-      <label>BOTS<select id="sel-bots" onchange="onCounts()"></select></label>
+      <div class="cnt">JUGADORES<button type="button" aria-label="Menos jugadores" onclick="stepCount('sel-humans',-1)">−</button><select id="sel-humans" aria-label="Jugadores" onchange="onCounts()"></select><button type="button" aria-label="Más jugadores" onclick="stepCount('sel-humans',1)">+</button></div>
+      <div class="cnt">BOTS<button type="button" aria-label="Menos bots" onclick="stepCount('sel-bots',-1)">−</button><select id="sel-bots" aria-label="Bots" onchange="onCounts()"></select><button type="button" aria-label="Más bots" onclick="stepCount('sel-bots',1)">+</button></div>
     </div>
     <div id="slots"></div>
   </section>
 
   <section id="contract-card" class="card"><h2>Elegir contrato</h2>
-    <label class="switch">Modo Party<input type="checkbox" id="t-party" onchange="onToggles()"><i class="slider"></i></label>
-    <label class="switch">Mercado Negro<input type="checkbox" id="t-market" onchange="onToggles()"><i class="slider"></i></label>
-    <label class="switch">Eventos de Ciudad<input type="checkbox" id="t-events" onchange="onToggles()"><i class="slider"></i></label>
+    <!-- interruptores de pared: al subirlos se enciende su nombre -->
+    <div class="wall-switches">
+      <label class="switch"><input type="checkbox" id="t-party" onchange="onToggles()"><i class="slider"></i>MODO PARTY</label>
+      <label class="switch"><input type="checkbox" id="t-market" onchange="onToggles()"><i class="slider"></i>MERCADO NEGRO</label>
+      <label class="switch"><input type="checkbox" id="t-events" onchange="onToggles()"><i class="slider"></i>EVENTOS</label>
+    </div>
+    <!-- un letrero de neón por contrato (en Modo Party se pueden encender varios) -->
     <div id="single-box" class="contracts">
-      <button class="opt selected" data-g="rpg" onclick="pickContract('rpg')">Guerra de<br>Bandas<small>Combate directo</small></button>
-      <button class="opt" data-g="exp" onclick="pickContract('exp')">El Gran<br>Atraco<small>Tentar a la suerte</small></button>
-      <button class="opt" data-g="maf" onclick="pickContract('maf')">Imperio<br>Criminal<small>Gestión territorial</small></button>
-      <button class="opt" data-g="pok" onclick="pickContract('pok')">Apuestas<br>Clandestinas<small>Póker y riesgo</small></button>
+      <button class="opt selected" data-g="rpg" onclick="pickContract('rpg')"><span class="ic">🔫</span>GUERRA DE BANDAS<small>Combate directo</small></button>
+      <button class="opt" data-g="exp" onclick="pickContract('exp')"><span class="ic">💰</span>EL GRAN ATRACO<small>Tentar a la suerte</small></button>
+      <button class="opt" data-g="maf" onclick="pickContract('maf')"><span class="ic">🏙️</span>IMPERIO CRIMINAL<small>Gestión territorial</small></button>
+      <button class="opt" data-g="pok" onclick="pickContract('pok')"><span class="ic">🃏</span>APUESTAS CLANDESTINAS<small>Póker y riesgo</small></button>
     </div>
     <div id="party-box" class="hidden">
-      <div class="sub">Victorias para ganar</div><input id="wins" type="number" min="1" max="10" oninput="onWins()">
-      <div class="sub">Actividades a incluir</div>
-      <div class="checks">
-        <label><input type="checkbox" data-g="rpg" checked onchange="onPartyGames()">Guerra de Bandas (Combate Directo)</label>
-        <label><input type="checkbox" data-g="exp" checked onchange="onPartyGames()">El Gran Atraco (Tentar a la suerte)</label>
-        <label><input type="checkbox" data-g="maf" checked onchange="onPartyGames()">Imperio Criminal (Gestión Territorial)</label>
-        <label><input type="checkbox" data-g="pok" checked onchange="onPartyGames()">Apuestas Clandestinas (Poker y Riesgo)</label>
-      </div>
+      <div class="score"><button type="button" aria-label="Menos victorias" onclick="stepWins(-1)">−</button><span class="score-mid"><b id="wins">4</b>VICTORIAS PARA GANAR</span><button type="button" aria-label="Más victorias" onclick="stepWins(1)">+</button></div>
+      <p class="score-note">En Modo Party se pueden encender varios contratos.</p>
       <div id="party-hint" class="hint"></div>
       <div class="rules"><h4>⚡ Reglas Rápidas del Modo Party:</h4><ul>
         <li><b>Atraco Único</b>: 1 sola inmersión, 1 granada máx, cooldown de 5 rondas para cobertura.</li>
@@ -99,16 +108,18 @@ window.addEventListener('error', function (e) {
   </section>
 
   <section id="dice-card" class="card"><h2>Tipos de dados</h2>
-    <div class="row"><button id="d-virtual" class="opt selected" onclick="setDice('virtual')">Virtuales</button><button id="d-real" class="opt" onclick="setDice('real')">Físicos</button></div>
+    <!-- cartel doble, igual que el de Modo de juego -->
+    <div class="hang dice-hang"><div class="hang-board"><button id="d-virtual" class="selected" type="button" onclick="setDice('virtual')">VIRTUALES<small>Ruedan en pantalla</small></button><span class="hang-mid" aria-hidden="true">🎲</span><button id="d-real" type="button" onclick="setDice('real')">FÍSICOS<small>Tiras los tuyos</small></button></div></div>
   </section>
 
   <div id="start-msg" class="msg"></div>
-  <button id="btn-start" class="start" onclick="startGame()">¡COMENZAR!</button>
+  <!-- cartel de "ABIERTO" -->
+  <button id="btn-start" class="start open-sign" onclick="startGame()"><small>EL LOCAL ESTÁ</small><span id="btn-start-t">ABIERTO</span><small id="btn-start-s">¡A JUGAR!</small></button>
   <button id="btn-tutorial" class="opt tut-btn" type="button" onclick="TUT.start()">🎓 TUTORIAL · Aprende a jugar en 2 minutos</button>
 </main>
 
 <!-- versión del juego (solo referencia): cámbiala aquí -->
-<div class="app-version" aria-label="Versión 0.2, Papeleo del Capo">v0.2 · Papeleo del Capo</div>
+<div class="app-version" aria-label="Versión 0.3, Neón y Contratos">v0.3 · Neón y Contratos</div>
 
 <div id="settings" class="settings">
   <button id="btn-settings" class="btn-settings" type="button" aria-expanded="false" aria-controls="settings-panel" onclick="settingsToggle()">⚙️ Ajustes</button>
@@ -141,6 +152,7 @@ window.addEventListener('error', function (e) {
   <div id="g-event" class="hidden"></div>
   <div id="g-hostwait" class="hidden" role="status" aria-live="polite"></div>
   <div id="g-turn"></div>
+  <div id="g-top"></div>
   <div id="g-players"></div>
   <div id="g-actions" class="hidden"></div>
   <div id="g-react" class="hidden" role="group" aria-label="Reacciones rápidas"></div>

@@ -47,12 +47,26 @@ const EXP = {
     const mx = this.maxGrenades(), foes = this.validTargets(G, me, 'sabotage');
     const repairOk = this.party() ? me.repairCooldown <= 0 : me.repairUses < 1;
     return [
-      { type:'explore', label:'📦 Saquear Cajas', sub:'d6: 1-2 trampa · 3-5 +1 · 6 +3', odds:'67% botín' },
-      { type:'deep', label:'🏦 Forzar Bóveda', sub:'d20 ≥ 11 → d12 de botín', odds:'50% éxito' },
-      { type:'repair', label:'🔧 Reforzar Cobertura', sub: this.party() ? (me.repairCooldown > 0 ? 'Espera ' + me.repairCooldown + ' rondas' : 'd4 · cada 5 rondas') : (me.repairUses >= 1 ? 'Agotado' : 'd4 · 1 por atraco'), disabled:!repairOk || me.hp >= me.max },
-      { type:'sabotage', label:'💣 Lanzar Granada', sub:me.torpedoUses + '/' + mx + ' · d4 a un rival', disabled:me.torpedoUses >= mx || !foes.length },
-      { type:'surface', label:'🚗 Coche de Escape', sub:'Asegura 💰 ' + me.temp, wide:true }
+      { type:'explore', label:'📦 Saquear Cajas', sub:'d6: 1-2 trampa · 3-5 +1 · 6 +3', odds:'67% botín', cls:'b-chalk' },
+      { type:'deep', label:'🏦 Forzar Bóveda', sub:'d20 ≥ 11 → d12 de botín', odds:'50% éxito', cls:'b-chalk' },
+      { type:'repair', label:'🔧 Reforzar Cobertura', sub: this.party() ? (me.repairCooldown > 0 ? 'Espera ' + me.repairCooldown + ' rondas' : 'd4 · cada 5 rondas') : (me.repairUses >= 1 ? 'Agotado' : 'd4 · 1 por atraco'), disabled:!repairOk || me.hp >= me.max, cls:'b-chalk' },
+      { type:'sabotage', label:'💣 Lanzar Granada', sub:me.torpedoUses + '/' + mx + ' · d4 a un rival', disabled:me.torpedoUses >= mx || !foes.length, cls:'b-chalk' },
+      { type:'surface', label:'🚗 Coche de Escape', sub:'Asegura 💰 ' + me.temp, wide:true, cls:'b-chalk' }
     ];
+  },
+  // Pizarra del golpe: hojas de los atracos arriba (tachadas las ya hechas)
+  top(G) {
+    if (!G.maxDives) return '';
+    if (G.maxDives === 1) return '<div class="chalk-sheets"><span class="now">Atraco único</span></div>';
+    let s = ''; for (let i = 1; i <= G.maxDives; i++) s += `<span class="${i < G.dive ? 'done' : i === G.dive ? 'now' : ''}">Atraco ${i}${i < G.dive ? ' ✓' : ''}</span>`;
+    return '<div class="chalk-sheets">' + s + '</div>';
+  },
+  // la Cobertura dibujada con cuadros de tiza (rellenos los que quedan; el escudo extra, en amarillo)
+  walls(p) {
+    const max = p.max || 0, hp = Math.max(0, p.hp || 0), over = Math.max(0, hp - max); let s = '';
+    for (let i = 0; i < max; i++) s += `<i class="${i < hp ? 'on' : ''}"></i>`;
+    for (let i = 0; i < over; i++) s += '<i class="sh"></i>';
+    return `<div class="cwalls">${s}<em>${hp}/${max} COB${over ? ' +' + over : ''}</em></div>`;
   },
   card(p) {
     const state = p.alive ? (p.hp < 5 ? 'danger' : '') : (p.arrested ? 'dead' : 'done');
@@ -60,8 +74,8 @@ const EXP = {
     const max = p.max || 0, hp = p.hp || 0, scale = Math.max(max, hp) || 1, over = Math.max(0, hp - max);
     const segs = [{ pct:Math.min(hp, max) / scale * 100, color:hp <= 5 ? 'var(--accent-red)' : 'var(--accent-cyan)' }];
     if (over > 0) segs.push({ pct:over / scale * 100, color:'#f1c40f' });                      // escudo de la Adrenalina por encima del máximo, en dorado
-    return { segs, pct:0, color:'',
-      label:`${hp}/${max} COB${over > 0 ? ' (+' + over + ' escudo)' : ''} · 💰 ${p.temp || 0} · 🔒 ${p.secured || 0}${p.alive ? MK.tags(p) : ''}<br>${status}`, state, img:p.alive ? 'idle' : p.arrested ? 'lose' : 'win' };
+    return { segs, pct:0, color:'', html:max ? this.walls(p) : '',
+      label:`${max ? '' : hp + '/' + max + ' COB · '}💰 ${p.temp || 0} · 🔒 ${p.secured || 0}${p.alive ? MK.tags(p) : ''}<br>${status}`, state, img:p.alive ? 'idle' : p.arrested ? 'lose' : 'win' };
   },
 
   // ---- acciones ----

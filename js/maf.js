@@ -33,37 +33,45 @@ const MAF = {
   cost: p => p.parcels.length + 1,
   raidTargets(G, me) { return G.players.filter(p => p !== me && p.parcels.some(d => !(p.raids[d] > 0)) && this.active(p) < 3).map(p => p.slot); },
   validTargets(G, me, type) { return type === 'raid' ? this.raidTargets(G, me) : null; },
+  BARRIOS: ['Muelles', 'Estación', 'Teatros', 'Mercado', 'Fábricas', 'Casino'],      // nombre de cada distrito en el mapa del barrio
+  ico: f => `<img class="ico" src="assets/characters/None/${f}.png" alt="">`,
   ui(G, me) {
     if (G.phase === 'roll') {
       const eg = !!CD.opts.egoist && me.coins >= 1;
       const mine = me.parcels.filter(d => !(me.raids[d] > 0)).length;            // tus distritos que pueden cobrar
       return [
-        { type:'harvest6', label:'🎲 Recaudación Segura', sub:'d6 · cobras 1💵', odds:Math.round(mine / 6 * 100) + '% cobras' },
-        { type:'harvest12', label:'🎰 Recaudación Arriesgada', sub:'d12 · cobras 3💵 (7-12: nadie cobra)', odds:Math.round(mine / 12 * 100) + '% cobras' },
-        { type:'opt:egoist', label:'🔥 Lavar dinero: ' + (eg ? 'SÍ' : 'NO'), sub:'Paga 1💵 para cobrar solo tú', disabled:me.coins < 1, wide:true }
+        { type:'harvest6', label:'Recaudación Segura', sub:'d6 · cobras 1💵', odds:Math.round(mine / 6 * 100) + '% cobras', cls:'b-map', pre:this.ico('maf_safe') },
+        { type:'harvest12', label:'Recaudación Arriesgada', sub:'d12 · cobras 3💵 (7-12: nadie cobra)', odds:Math.round(mine / 12 * 100) + '% cobras', cls:'b-map', pre:this.ico('maf_risk') },
+        // Lavar dinero: interruptor de carretera (el billete se desliza a SÍ)
+        { type:'opt:egoist', label:'Lavar dinero', sub:'Paga 1💵 para cobrar solo tú', disabled:me.coins < 1, wide:true, cls:'map-sw' + (eg ? ' on' : ''),
+          pre:`<span class="road" aria-hidden="true"><i>💵</i></span><b class="sw-t">${eg ? 'SÍ' : 'NO'}</b>` }
       ];
     }
     const cost = this.cost(me), full = me.parcels.length >= 6;
+    const raidImg = `<img class="ico" src="assets/characters/${me.bot ? 'Bot' : me.char || 'Mafioso'}/${me.color}/maf_raid.png" alt="" onerror="this.src='assets/characters/Bot/${me.color}/maf_raid.png'">`;
     return [
-      { type:'buy', label:'🏢 Controlar Distrito', sub: full ? 'Límite alcanzado' : 'Costo: ' + cost + '💵', disabled:full || me.coins < cost },
-      { type:'brew', label:'🎩 Sobornar Político', sub:'5💵 · d20 de Influencia', odds:'+1: 45% · +2: 50% · +4: 5%', disabled:me.coins < 5 },
-      { type:'raid', label:'🚨 Redada Policial', sub:'3💵 · clausura un distrito rival', disabled:me.coins < 3 || !this.raidTargets(G, me).length },
-      { type:'pass', label:'⏳ Pasar turno', sub:'Guardas tu efectivo', wide:true }
+      { type:'buy', label:'Controlar Distrito', sub: full ? 'Límite alcanzado' : 'Costo: ' + cost + '💵', disabled:full || me.coins < cost, cls:'b-map', pre:this.ico('maf_buy') },
+      { type:'brew', label:'Sobornar Político', sub:'5💵 · d20 de Influencia', odds:'+1: 45% · +2: 50% · +4: 5%', disabled:me.coins < 5, cls:'b-map', pre:this.ico('maf_bribe') },
+      { type:'raid', label:'Redada Policial', sub:'3💵 · clausura un distrito rival', disabled:me.coins < 3 || !this.raidTargets(G, me).length, cls:'b-map', pre:raidImg },
+      { type:'pass', label:'⏳ Pasar turno', sub:'Guardas tu efectivo', wide:true, cls:'b-map' }
     ];
   },
+  // ventana del mapa: "Distrito N" grande y el nombre del barrio debajo; el sello dice por qué no se puede elegir
+  lot(i, stamp, own) { return { label:`<b>Distrito ${i}</b><small>${this.BARRIOS[i - 1]}</small>${stamp ? `<span class="stamp">${stamp}</span>` : ''}`, cls:'m-lot' + (own ? ' own' : '') }; },
   extra(G, me, type, target) {
     if (type === 'harvest6' || type === 'harvest12') return { value:{ egoist:!!CD.opts.egoist && me.coins >= 1 } };
     if (type === 'buy') return { title:'CONTROLAR DISTRITO', text:'Costo: ' + this.cost(me) + '💵. Elige el distrito a tomar.',
-      options:[1, 2, 3, 4, 5, 6].map(i => ({ label:me.parcels.includes(i) ? '✅ Distrito ' + i + '<br><small>CONTROLADO</small>' : 'Distrito ' + i, value:i, disabled:me.parcels.includes(i) })) };
+      options:[1, 2, 3, 4, 5, 6].map(i => Object.assign(this.lot(i, me.parcels.includes(i) ? 'CONTROLADO' : '', me.parcels.includes(i)), { value:i, disabled:me.parcels.includes(i) })) };
     if (type === 'raid') { const t = G.players[target];
       return { title:'REDADA POLICIAL', text:'Elige el distrito de ' + t.name + ' que quieres clausurar.',
-        options:[1, 2, 3, 4, 5, 6].map(i => ({ label:'Distrito ' + i + (!t.parcels.includes(i) ? '<br><small>NO LO POSEE</small>' : t.raids[i] > 0 ? '<br><small>YA EN REDADA</small>' : ''), value:i, disabled:!t.parcels.includes(i) || t.raids[i] > 0 })) }; }
+        options:[1, 2, 3, 4, 5, 6].map(i => Object.assign(this.lot(i, !t.parcels.includes(i) ? 'NO LO POSEE' : t.raids[i] > 0 ? 'YA EN REDADA' : '', t.parcels.includes(i)), { value:i, disabled:!t.parcels.includes(i) || t.raids[i] > 0 })) }; }
     return null;
   },
   card(p, G) {
     const par = p.parcels || [], rd = p.raids || {}, win = G.winScore || 15;
-    const chips = [1, 2, 3, 4, 5, 6].map(i => par.includes(i) ? (rd[i] > 0 ? `<i class="dist raid">${i}🚨${rd[i]}</i>` : `<i class="dist own">${i}</i>`) : `<i class="dist">${i}</i>`).join('');
-    return { pct:(p.prestige || 0) / win * 100, color:'var(--accent-loot)', label:`🏆 ${p.prestige || 0}/${win} INFLUENCIA · 💵 ${p.coins || 0}`, html:'<div class="dists">' + chips + '</div>', state:'', img:'idle' };
+    // mapa del barrio: número del distrito arriba y nombre abajo; los tuyos con tu color y 🚓 si están en redada
+    const chips = [1, 2, 3, 4, 5, 6].map(i => `<i class="dist${par.includes(i) ? ' own' : ''}${par.includes(i) && rd[i] > 0 ? ' raid' : ''}"><b>${i}${par.includes(i) && rd[i] > 0 ? ' 🚓' + rd[i] : ''}</b><small>${this.BARRIOS[i - 1]}</small></i>`).join('');
+    return { pct:(p.prestige || 0) / win * 100, color:'var(--accent-loot)', label:`🏆 ${p.prestige || 0}/${win} INFLUENCIA · 💵 ${p.coins || 0}`, html:'<div class="dists city">' + chips + '</div>', state:'', img:'idle' };
   },
 
   // ---- acciones ----

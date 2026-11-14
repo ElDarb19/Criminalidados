@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Menú neón · opciones por sección</title>
+<link href="https://fonts.googleapis.com/css2?family=Limelight&family=Oswald:wght@400;500;600;700&family=Special+Elite&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../menu.css">
+<style>
+/* Página solo de muestra (no la usa el juego). Menú 3 · Letrero de neón: alternativas para cada sección. */
+:root{--pink:#ff4f6a;--pink-2:#ffd8de;--amber:#ffb84f;--cyan:#5fe3ff;--lime:#6dff9a;--violet:#c77dff;--off:#8f6f78}
+body{margin:0;padding:16px 12px 70px;background:radial-gradient(ellipse at top,#2a1d24,#0b0a08 70%);color:var(--cream);font-family:var(--font-type)}
+.wrap{max-width:84rem;margin:0 auto}
+h1{font-family:var(--font-display);font-weight:400;color:var(--pink-2);text-shadow:0 0 8px var(--pink);margin:0 0 4px}
+.lead{color:var(--cream-2);max-width:56rem;font-size:.9rem}
+.jump{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0}
+.jump a{min-height:44px;display:inline-flex;align-items:center;padding:0 12px;border:1px solid rgba(255,79,106,.4);border-radius:6px;color:var(--pink-2);font-family:var(--font-ui);letter-spacing:1px;text-decoration:none;font-size:.8rem}
+section.ct{margin:30px 0;padding:14px;border-radius:8px;border:1px solid var(--line)}
+section.ct>h2{margin:0 0 4px;font-family:var(--font-display);font-weight:400;font-size:1.6rem;color:var(--pink-2);text-shadow:0 0 6px var(--pink)}
+section.ct>p{margin:0;color:var(--cream-2);font-size:.82rem}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr));gap:18px;margin-top:12px;align-items:start}
+.ob{padding:10px;border-radius:6px;background:rgba(0,0,0,.35)}
+.ob>h3{margin:0 0 4px;font-family:var(--font-ui);letter-spacing:2px;font-size:.9rem;color:var(--gold-2)}
+.ob>p{margin:0 0 10px;font-size:.76rem;color:var(--cream-2);line-height:1.45}
+.px{image-rendering:pixelated}
+@media (max-width:480px){body{padding:12px 6px 60px}section.ct{padding:10px 4px}.ob{padding:6px 2px}.grid4{gap:6px}}
+button{font:inherit;cursor:pointer}
+/* pared de ladrillo del menú neón */
+.wall{position:relative;padding:14px 10px;border-radius:8px;overflow:hidden;background:linear-gradient(180deg,rgba(11,10,8,.35),rgba(11,10,8,.7)),repeating-linear-gradient(0deg,#2a1d24 0 18px,#1a1216 18px 20px),#2a1d24}
+.wall::before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(90deg,transparent 0 38px,rgba(0,0,0,.25) 38px 40px);-webkit-mask:repeating-linear-gradient(0deg,#000 0 20px,transparent 20px 40px);mask:repeating-linear-gradient(0deg,#000 0 20px,transparent 20px 40px)}
+.wall>*{position:relative}
+.lbl{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-family:var(--font-ui);font-size:.72rem;letter-spacing:3px;color:var(--pink-2);text-shadow:0 0 6px var(--pink)}
+.lbl::before,.lbl::after{content:"";flex:1;height:1px;background:var(--pink);box-shadow:0 0 6px var(--pink)}
+/* neón genérico: --n color del tubo */
+.neon{color:#fff;text-shadow:0 0 3px var(--n),0 0 10px var(--n),0 0 22px var(--n)}
+.tubeoff{color:var(--off);text-shadow:none}
+@keyframes flick{0%,90%,94%,100%{opacity:1}92%{opacity:.45}}
+@keyframes ignite{0%{opacity:.2}10%{opacity:1}15%{opacity:.3}25%{opacity:1}30%{opacity:.5}40%,100%{opacity:1}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ===== cabecera elegida ===== */
+.h-neon{position:relative;padding:58px 10px 14px;text-align:center}
+.h-neon img{width:96px;filter:drop-shadow(0 0 4px var(--pink)) drop-shadow(0 0 12px var(--pink))}
+.h-neon h4{margin:4px 0 0;font-family:var(--font-display);font-weight:400;font-size:clamp(1.5rem,6.5vw,2.1rem);color:var(--pink-2);text-shadow:0 0 6px var(--pink),0 0 16px var(--pink),0 0 30px var(--pink);animation:flick 3.4s infinite}
+.h-neon .st{font-family:var(--font-ui);letter-spacing:5px;font-size:.62rem;color:#ffe6a8;text-shadow:0 0 6px var(--amber)}
+.topb{position:absolute;top:10px;right:10px;display:flex;gap:6px}
+.topb button{min-height:44px;padding:0 12px;border-radius:6px;background:rgba(0,0,0,.5);border:2px solid var(--n);box-shadow:0 0 8px var(--n),inset 0 0 8px var(--n);font-family:var(--font-ui);font-size:.72rem;letter-spacing:2px}
+.topb .t1{--n:var(--amber)}.topb .t2{--n:var(--cyan)}
+
+/* ===== MODO DE JUEGO ===== */
+/* A tubos */
+.tubes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tube{min-height:64px;padding:6px;border-radius:10px;background:rgba(0,0,0,.35);border:2px solid var(--off);color:var(--off);font-family:var(--font-display);font-size:1.25rem;letter-spacing:2px}
+.tube small{display:block;font-family:var(--font-ui);font-size:.6rem;letter-spacing:1px}
+.tube.on{--n:var(--pink);border-color:#ffc0cb;color:#fff;box-shadow:0 0 8px var(--n),inset 0 0 10px var(--n),0 0 24px rgba(255,79,106,.45);text-shadow:0 0 4px var(--n),0 0 14px var(--n);animation:ignite .7s}
+.tube.on small{color:var(--pink-2)}
+.tube.on.c2{--n:var(--cyan);border-color:#c8f6ff;box-shadow:0 0 8px var(--n),inset 0 0 10px var(--n),0 0 24px rgba(95,227,255,.45)}
+.tube.on.c2 small{color:#c8f6ff}
+/* B letrero colgante */
+.hang{position:relative;margin:22px auto 0;max-width:330px}
+.hang::before,.hang::after{content:"";position:absolute;top:-22px;width:2px;height:22px;background:repeating-linear-gradient(180deg,#8a8a8a 0 4px,#444 4px 6px)}
+.hang::before{left:22%}.hang::after{right:22%}
+.hang .board{display:flex;padding:6px;gap:6px;border-radius:40px;background:#120c10;border:2px solid #3a2a30;box-shadow:0 8px 18px rgba(0,0,0,.6)}
+.hang button{flex:1;min-height:56px;border-radius:34px;border:0;background:transparent;font-family:var(--font-ui);font-weight:700;letter-spacing:3px;font-size:.95rem;color:var(--off)}
+.hang button small{display:block;font-weight:400;letter-spacing:0;font-size:.58rem}
+.hang button.on{--n:var(--pink);color:#fff;text-shadow:0 0 4px var(--n),0 0 12px var(--n);box-shadow:inset 0 0 0 2px var(--n),0 0 10px var(--n);animation:ignite .7s}
+.hang button.on small{color:var(--pink-2)}
+/* C flechas de motel con bombillas */
+.arrows{display:grid;gap:10px}
+.arw{position:relative;min-height:58px;display:flex;align-items:center;gap:10px;padding:6px 40px 6px 16px;border:0;color:#5a4a3a;background:#1a1410;font-family:var(--font-ui);font-weight:700;letter-spacing:3px;font-size:1rem;text-align:left;clip-path:polygon(0 0,calc(100% - 30px) 0,100% 50%,calc(100% - 30px) 100%,0 100%)}
+.arw small{display:block;font-weight:400;letter-spacing:0;font-size:.6rem}
+.arw::after{content:"";position:absolute;inset:3px 30px 3px 3px;pointer-events:none;background:radial-gradient(circle,#5a4a3a 0 2px,transparent 3px) 0 0/12px 12px;-webkit-mask:linear-gradient(#000,#000) content-box,linear-gradient(#000,#000);-webkit-mask-composite:xor;mask-composite:exclude;padding:4px}
+.arw.on{background:#2a0c12;color:#ffe6a8;text-shadow:0 0 6px var(--amber)}
+.arw.on::after{background:radial-gradient(circle,#fff3c0 0 2px,rgba(255,184,79,.6) 3px,transparent 4px) 0 0/12px 12px;animation:chase .5s steps(2) infinite}
+@keyframes chase{to{background-position:6px 0}}
+.arw .big{font-size:1.5rem}
+
+/* ===== CONEXIÓN ===== */
+/* A cabina */
+.booth{padding:10px;border-radius:10px 10px 4px 4px;background:#14080c;border:2px solid #3a1a22}
+.booth .sign{--n:var(--cyan);text-align:center;font-family:var(--font-display);font-size:1.3rem;letter-spacing:4px;margin-bottom:8px}
+.booth .two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.booth .two button{min-height:60px;border-radius:6px;border:1px solid #5a3a42;background:linear-gradient(180deg,#2a1a20,#160c10);color:var(--cream);font-family:var(--font-ui);letter-spacing:1px;font-size:.8rem}
+.booth .two button.on{border-color:var(--cyan);box-shadow:0 0 10px var(--cyan),inset 0 0 8px rgba(95,227,255,.4);color:#e8fbff}
+.seg{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;padding:6px 10px;background:#000;border:1px solid #3a1a22;border-radius:4px}
+.seg b{font-family:var(--font-ui);font-size:1.6rem;letter-spacing:8px;color:#ff6a5a;text-shadow:0 0 6px #ff3a2a}
+.seg small{font-family:var(--font-ui);font-size:.6rem;letter-spacing:2px;color:var(--cream-2)}
+.copy{min-height:44px;padding:0 10px;border-radius:4px;border:1px solid var(--cyan);background:transparent;color:#c8f6ff;font-family:var(--font-ui);font-size:.66rem;letter-spacing:1px}
+/* B motel */
+.motel{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:stretch}
+.motel .sign{grid-column:1/-1;padding:8px;border-radius:6px;background:#0e0a0c;border:2px solid #2a1a20;text-align:center}
+.motel .sign .t{--n:var(--pink);font-family:var(--font-display);font-size:1.15rem;letter-spacing:3px}
+.motel .sign .r{margin-top:2px;font-family:var(--font-ui);letter-spacing:3px;font-size:.8rem;color:#ffe6a8;text-shadow:0 0 6px var(--amber)}
+.motel .sign .r b{font-size:1.3rem;letter-spacing:6px}
+.motel .vac{--n:var(--lime);display:inline-block;margin-top:6px;padding:1px 10px;border:2px solid var(--lime);border-radius:4px;box-shadow:0 0 8px var(--lime);font-family:var(--font-ui);font-size:.75rem;letter-spacing:3px}
+.keys{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.key{position:relative;min-height:58px;padding:6px 6px 6px 30px;border:0;border-radius:4px 22px 22px 4px;background:linear-gradient(180deg,#d8a93e,#8a6a26);color:#2a1806;font-family:var(--font-ui);font-weight:700;letter-spacing:1px;font-size:.8rem;text-align:left;box-shadow:0 4px 0 #3a2a10}
+.key::before{content:"";position:absolute;left:10px;top:50%;width:12px;height:12px;margin-top:-6px;border-radius:50%;background:#14080c;box-shadow:0 0 0 2px #f3dfa6}
+.key small{display:block;font-weight:400;font-size:.58rem;letter-spacing:0}
+.key.on{box-shadow:0 0 0 2px #fff3c0,0 0 14px var(--amber),0 4px 0 #3a2a10}
+/* C puerta del club */
+.door{position:relative;max-width:320px;margin:0 auto;padding:14px 12px 12px;border-radius:70px 70px 6px 6px;background:linear-gradient(90deg,#1e1012,#2e1a1e 50%,#1e1012);border:3px solid #0e0608;box-shadow:inset 0 0 0 6px #241418}
+.door .club{--n:var(--pink);text-align:center;font-family:var(--font-display);font-size:1.15rem;letter-spacing:2px}
+.members{display:flex;align-items:center;justify-content:center;gap:8px;margin:8px auto 0;padding:5px 10px;width:fit-content;max-width:100%;border:2px solid var(--cyan);border-radius:6px;background:rgba(0,0,0,.45);box-shadow:0 0 8px var(--cyan),inset 0 0 6px rgba(95,227,255,.35);font-family:var(--font-ui);letter-spacing:2px;font-size:.7rem;color:#c8f6ff;text-shadow:0 0 6px var(--cyan)}
+.members .seats{display:flex;gap:4px}
+.members .seats i{width:14px;height:14px;border-radius:50%;border:2px solid #2e5a66}
+.members .seats i.in{border-color:#c8f6ff;background:var(--cyan);box-shadow:0 0 6px var(--cyan)}
+.members b{font-size:1rem;letter-spacing:1px;color:#fff}
+.members small{display:block;font-size:.55rem;letter-spacing:1px;color:#ffe6a8;text-shadow:0 0 5px var(--amber)}
+.peep{display:block;width:120px;height:40px;margin:8px auto;border-radius:6px;background:#000;border:3px solid #8a6a26;position:relative;overflow:hidden}
+.peep::before,.peep::after{content:"";position:absolute;top:13px;width:12px;height:8px;border-radius:50%;background:#f3e6c4;box-shadow:inset 3px 0 0 #2a1a10}
+.peep::before{left:36px}.peep::after{right:36px}
+.pass{text-align:center;font-family:var(--font-type);font-size:.8rem;color:var(--cream-2)}
+.pass b{display:block;font-family:var(--font-ui);font-size:1.4rem;letter-spacing:8px;color:#ffe6a8;text-shadow:0 0 8px var(--amber)}
+.door .two{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.door .two button{min-height:56px;border-radius:4px;border:1px solid #8a6a26;background:#14080c;color:var(--gold-3);font-family:var(--font-ui);font-size:.74rem;letter-spacing:1px}
+.door .two button small{display:block;font-size:.56rem;color:var(--cream-2);letter-spacing:0}
+.door .two button.on{border-color:var(--pink);color:#fff;box-shadow:0 0 10px var(--pink),inset 0 0 8px rgba(255,79,106,.4)}
+.door .copy{display:block;margin:8px auto 0;border-color:var(--amber);color:#ffe6a8}
+
+/* ===== JEFES ===== */
+.counts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:10px}
+.cnt{display:flex;align-items:center;gap:4px;font-family:var(--font-ui);font-size:.66rem;letter-spacing:2px;color:var(--cream-2)}
+.cnt button{width:44px;height:44px;border-radius:6px;border:1px solid var(--pink);background:transparent;color:var(--pink-2);font-size:1.1rem}
+.cnt b{--n:var(--amber);min-width:36px;text-align:center;font-family:var(--font-ui);font-size:1.5rem}
+.grid4{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.boss{position:relative;padding:8px 6px;text-align:center;border-radius:8px}
+.boss .spr{position:relative;height:72px;display:flex;align-items:flex-end;justify-content:center}
+.boss .spr img{width:56px;height:56px;position:relative;z-index:1}
+.boss .arr{position:absolute;top:14px;z-index:2;width:40px;height:44px;border:0;background:transparent;color:var(--c);font-size:1.15rem;text-shadow:0 0 6px var(--c),0 0 14px var(--c)}
+.boss .arr.pv{left:0}.boss .arr.nx{right:0}
+.boss input{width:100%;min-height:36px;margin-top:4px;border:0;background:transparent;text-align:center;font-family:var(--font-type);font-size:.9rem;color:#fff}
+.boss input:disabled{color:var(--cream-2)}
+.boss .pn{position:relative;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--font-ui);font-size:.74rem;letter-spacing:1px}
+.boss .pn small{font-size:.55rem;opacity:.8;letter-spacing:0}
+.boss .pn select{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer}
+.boss .who{display:block;font-family:var(--font-ui);font-size:.58rem;letter-spacing:3px;color:var(--cream-2)}
+.dots{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:6px}
+.dots button{width:24px;height:24px;padding:0;border-radius:50%;border:2px solid var(--d);background:transparent;box-shadow:0 0 6px var(--d)}
+.dots button.sel{background:var(--d);box-shadow:0 0 0 2px #fff,0 0 12px var(--d)}
+.dots button.used{opacity:.2;box-shadow:none}
+.bots-note{display:block;margin-top:6px;font-size:.6rem;color:var(--cream-2)}
+/* A rueda con neón */
+.v-line{background:#0e0a0c;border:1px solid #2a1a20}
+.v-line .spr::before{content:"";position:absolute;inset:0 0 4px;background:repeating-linear-gradient(180deg,transparent 0 22px,rgba(95,227,255,.55) 22px 23px);filter:drop-shadow(0 0 3px var(--cyan))}
+.v-line input{border-bottom:2px solid var(--c)!important;box-shadow:0 6px 8px -6px var(--c)}
+.v-line .pn{color:var(--c);text-shadow:0 0 6px var(--c)}
+/* B escenario */
+.v-stage{background:radial-gradient(ellipse 50% 70% at 50% 0,rgba(255,240,200,.28),transparent 70%),#0e0a0c}
+.v-stage .spr::after{content:"";position:absolute;bottom:0;left:15%;right:15%;height:10px;border-radius:50%;background:radial-gradient(ellipse,rgba(255,240,200,.4),transparent 70%)}
+.v-stage .marq{margin-top:6px;padding:4px;border-radius:4px;background:#1a0c10;box-shadow:0 0 0 2px var(--c);position:relative}
+.v-stage .marq::before{content:"";position:absolute;inset:-5px;border-radius:6px;pointer-events:none;background:radial-gradient(circle,#fff3c0 0 1.5px,transparent 2.5px) 0 0/9px 9px;-webkit-mask:linear-gradient(#000,#000) content-box,linear-gradient(#000,#000);-webkit-mask-composite:xor;mask-composite:exclude;padding:3px;animation:chase .6s steps(2) infinite}
+.v-stage .pn{color:#ffe6a8}
+/* C carteles de se busca */
+.v-wanted{background:#e9dfc7;color:#20180f;box-shadow:0 0 0 3px #14080c,0 0 0 5px var(--c),0 0 16px var(--c);border-radius:2px}
+.v-wanted .head{font-family:var(--font-display);font-size:.95rem;letter-spacing:2px}
+.v-wanted .spr{background:#c8bfa8;border:1px solid #8a7a5a;margin-top:2px}
+.v-wanted .arr{color:#14080c;text-shadow:none}
+.v-wanted input{color:#20180f!important;border-bottom:1px dashed #8a7a5a!important}
+.v-wanted .who{color:#5a4a32}
+.v-wanted .pn small{color:#5a4a32}
+.v-wanted .dots button.sel{box-shadow:0 0 0 2px #20180f}
+.v-wanted .bots-note{color:#5a4a32}
+.v-wanted .reward{font-family:var(--font-ui);font-size:.56rem;letter-spacing:2px;color:#a3241c}
+
+/* ===== CONTRATO ===== */
+/* interruptores de pared (común) */
+.switches{display:flex;justify-content:space-around;gap:6px;margin-bottom:12px}
+.ws{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:76px;border:0;background:none;color:var(--off);font-family:var(--font-ui);font-size:.6rem;letter-spacing:1px}
+.ws .plate{position:relative;width:30px;height:46px;border-radius:4px;background:linear-gradient(180deg,#d8cfb8,#9a917a);box-shadow:0 2px 4px rgba(0,0,0,.6)}
+.ws .plate::after{content:"";position:absolute;left:10px;top:22px;width:10px;height:16px;border-radius:3px;background:#f3efe6;box-shadow:0 2px 0 #6a6250;transition:top .15s}
+.ws.on .plate::after{top:7px;box-shadow:0 -2px 0 #6a6250}
+.ws.on{--n:var(--amber);color:#fff;text-shadow:0 0 4px var(--n),0 0 10px var(--n)}
+.ws b{font-weight:400;font-size:.55rem}
+/* A letreros por contrato */
+.signs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cs{min-height:86px;padding:6px;border-radius:10px;border:2px solid #3a2a30;background:rgba(0,0,0,.4);color:var(--off);font-family:var(--font-ui);font-weight:700;letter-spacing:1px;font-size:.8rem;line-height:1.15}
+.cs .ic{display:block;font-size:1.5rem;filter:grayscale(1) brightness(.6);margin-bottom:2px}
+.cs small{display:block;font-weight:400;font-size:.58rem;letter-spacing:0;margin-top:2px}
+.cs.on{border-color:var(--n);color:#fff;text-shadow:0 0 4px var(--n),0 0 12px var(--n);box-shadow:0 0 10px var(--n),inset 0 0 12px var(--n);animation:ignite .7s}
+.cs.on .ic{filter:drop-shadow(0 0 6px var(--n))}
+/* B puertas */
+.doors{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.dr{position:relative;min-height:150px;padding:0;border:0;background:none;color:var(--cream-2);font-family:var(--font-ui);font-size:.58rem;letter-spacing:.5px;line-height:1.1;display:flex;flex-direction:column;align-items:center}
+.dr .top{--n:var(--off);display:block;width:100%;min-height:30px;padding:3px 2px;color:var(--off);font-size:.6rem;font-weight:700;letter-spacing:1px}
+.dr .frame{position:relative;width:78%;height:96px;background:#fff3c0;border:3px solid #0e0608;perspective:200px;box-shadow:inset 0 0 20px var(--n)}
+.dr:not(.on) .frame{background:#0a0607}
+.dr .leaf{position:absolute;inset:0;background:linear-gradient(90deg,#3a1e16,#2a140e);transform-origin:0 50%;transition:transform .4s;box-shadow:inset 0 0 0 3px #4a2a1e}
+.dr .leaf::after{content:"";position:absolute;right:6px;top:50%;width:5px;height:5px;border-radius:50%;background:#c9a24a}
+.dr .ic{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1.3rem}
+.dr.on .leaf{transform:rotateY(-62deg)}
+.dr.on .top{color:#fff;text-shadow:0 0 4px var(--n),0 0 10px var(--n)}
+.dr.on::after{content:"";position:absolute;bottom:4px;left:50%;width:100%;height:22px;transform:translateX(-50%);background:radial-gradient(ellipse at 50% 0,rgba(255,243,192,.5),transparent 70%)}
+.dr small{display:block;margin-top:6px}
+/* C rocola */
+.juke{position:relative;padding:44px 10px 12px;border-radius:120px 120px 10px 10px;background:linear-gradient(180deg,#3a1a10,#1a0c08);border:3px solid #8a6a26;box-shadow:inset 0 0 0 5px #1a0c08,inset 0 0 0 7px var(--pink),0 0 18px rgba(255,79,106,.35)}
+.juke::before{content:"";position:absolute;left:50%;top:10px;width:70%;height:26px;transform:translateX(-50%);border-radius:60px 60px 0 0;background:repeating-linear-gradient(90deg,var(--amber) 0 4px,var(--pink) 4px 8px,var(--cyan) 8px 12px);opacity:.75;filter:blur(.5px)}
+.juke .list{display:grid;gap:6px}
+.jk{display:flex;align-items:center;gap:10px;min-height:52px;padding:4px 8px;border-radius:4px;border:0;background:#f3ecd6;color:#20180f;font-family:var(--font-ui);font-weight:600;font-size:.8rem;letter-spacing:1px;text-align:left}
+.jk i{flex:0 0 auto;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff,#bdb4a0);font-style:normal;font-size:.75rem;font-weight:700;box-shadow:0 3px 0 #6a6250}
+.jk small{display:block;font-family:var(--font-type);font-weight:400;font-size:.6rem;letter-spacing:0;color:#5a4a32}
+.jk.on{background:#fff7dc;box-shadow:0 0 0 2px var(--n),0 0 12px var(--n)}
+.jk.on i{background:radial-gradient(circle at 40% 35%,#fff,var(--n));box-shadow:0 1px 0 #6a6250,0 0 10px var(--n);transform:translateY(2px)}
+/* marcador de victorias (Party) */
+.score{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:12px;padding:8px;border-radius:6px;background:#000;border:1px solid #3a1a22;font-family:var(--font-ui);font-size:.66rem;letter-spacing:2px;color:var(--cream-2)}
+.score b{--n:var(--amber);min-width:44px;text-align:center;font-size:2rem;line-height:1}
+.score .mid{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center}
+.score button{width:44px;height:44px;border-radius:6px;border:1px solid var(--amber);background:transparent;color:#ffe6a8;font-size:1.1rem}
+.hint{margin:6px 0 0;font-size:.62rem;text-align:center;color:var(--cream-2)}
+
+/* ===== DADOS ===== */
+.dice2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ds{min-height:96px;padding:6px;border-radius:10px;border:2px solid #3a2a30;background:rgba(0,0,0,.4);color:var(--off);font-family:var(--font-ui);letter-spacing:2px;font-size:.8rem}
+.ds small{display:block;letter-spacing:0;font-size:.58rem}
+.die{display:block;width:40px;height:40px;margin:0 auto 4px;border-radius:8px;border:2px solid currentColor;background:radial-gradient(circle,currentColor 0 3px,transparent 4px) 25% 25%/50% 50%}
+.hand{display:block;font-size:1.8rem;line-height:40px;margin-bottom:4px;filter:grayscale(1) brightness(.4)}
+.ds.on{--n:var(--cyan);border-color:var(--n);color:#fff;text-shadow:0 0 4px var(--n),0 0 10px var(--n);box-shadow:0 0 10px var(--n),inset 0 0 10px var(--n)}
+.ds.on .die{color:#c8f6ff;box-shadow:0 0 8px var(--n),inset 0 0 6px var(--n)}
+.ds.on .hand{filter:drop-shadow(0 0 6px var(--n))}
+.ds.on.p2{--n:var(--amber)}
+/* B cubilete */
+.cup{display:flex;align-items:center;gap:10px;padding:8px;border-radius:40px;background:#120c10;border:2px solid #3a2a30}
+.cup button{flex:1;min-height:56px;border-radius:30px;border:0;background:transparent;color:var(--off);font-family:var(--font-ui);font-weight:700;letter-spacing:2px;font-size:.85rem}
+.cup button small{display:block;font-weight:400;font-size:.58rem;letter-spacing:0}
+.cup button.on{--n:var(--pink);color:#fff;text-shadow:0 0 4px var(--n),0 0 12px var(--n);box-shadow:inset 0 0 0 2px var(--n),0 0 10px var(--n)}
+.cup .mid{flex:0 0 auto;font-size:1.6rem}
+
+/* ===== COMENZAR ===== */
+.goA{position:relative;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:72px;border-radius:12px;border:3px solid #ffc0cb;background:rgba(40,6,14,.6);color:#fff;font-family:var(--font-display);font-size:1.7rem;letter-spacing:3px;text-shadow:0 0 4px var(--pink),0 0 14px var(--pink),0 0 28px var(--pink);box-shadow:0 0 10px var(--pink),inset 0 0 14px var(--pink),0 0 34px rgba(255,79,106,.4)}
+.goA .ar{display:inline-flex;gap:2px}
+.goA .ar i{font-style:normal;opacity:.2;animation:arw 1.2s infinite}
+.goA .ar i:nth-child(2){animation-delay:.2s}.goA .ar i:nth-child(3){animation-delay:.4s}
+@keyframes arw{0%,100%{opacity:.2}40%{opacity:1}}
+.goB{position:relative;display:block;width:100%;max-width:300px;min-height:84px;margin:0 auto;border-radius:44px;border:4px solid #c8f6ff;background:#0a0608;color:#fff;font-family:var(--font-ui);font-weight:700;font-size:1.7rem;letter-spacing:6px;box-shadow:0 0 10px var(--cyan),inset 0 0 12px var(--cyan),0 0 30px rgba(95,227,255,.4)}
+.goB span{color:#fff;text-shadow:0 0 4px var(--pink),0 0 12px var(--pink),0 0 24px var(--pink)}
+.goB small{display:block;font-size:.62rem;letter-spacing:3px;color:#c8f6ff;text-shadow:0 0 6px var(--cyan)}
+.goC{display:block;width:100%;min-height:68px;border:0;font-family:var(--font-display);font-size:1.6rem;letter-spacing:3px;color:#2a0810;background:linear-gradient(180deg,#ffd8de,var(--pink) 60%,#a3243a);clip-path:polygon(14px 0,calc(100% - 14px) 0,100% 50%,calc(100% - 14px) 100%,14px 100%,0 50%)}
+.goA:hover,.goB:hover{filter:brightness(1.15)}
+.tut{display:flex;align-items:center;justify-content:center;gap:8px;width:fit-content;max-width:100%;min-height:44px;margin:12px auto 0;padding:0 14px;border-radius:22px;border:1px solid var(--amber);background:transparent;color:#ffe6a8;font-family:var(--font-ui);font-size:.74rem;letter-spacing:1px;box-shadow:0 0 6px rgba(255,184,79,.5)}
+.final{max-width:520px;margin:12px auto 0;padding:0;background:none}
+.fin{padding:12px 12px 16px}
+.fin .blk{margin-top:20px}
+.fin .blk[hidden]{display:none}
+.ver{display:block;text-align:right;margin-top:6px;font-size:.6rem;color:var(--cream-3)}
+</style>
+</head>
+<body><div class="wrap">
+  <h1>Menú neón · opciones por sección</h1>
+  <p class="lead">Elegiste el <b>Menú 3 · Letrero de neón</b>. La cabecera queda fija y abajo tienes de 2 a 3 opciones para cada sección, todas sobre la misma pared de ladrillo. Los botones se pueden tocar para ver cómo se encienden. Dime la letra que quieres en cada sección (por ejemplo: Modo A, Conexión C, Jefes B…).</p>
+  <nav class="jump"><a href="#armado">Tu menú armado</a><a href="#cab">Cabecera</a><a href="#modo">Modo de juego</a><a href="#con">Conexión</a><a href="#jef">Jefes</a><a href="#con2">Contrato</a><a href="#dad">Dados</a><a href="#go">Comenzar</a></nav>
+
+  <section class="ct" id="armado"><h2>Tu menú armado</h2>
+    <p>Todo junto con lo que elegiste: Modo B, Conexión C con Miembros, Jefes A, Contrato A, Dados B y Comenzar B. Los colores quedan en tres tonos de neón: <b style="color:var(--pink-2)">rosa</b> para lo elegido y los títulos, <b style="color:#ffe6a8">ámbar</b> para números, contraseñas e interruptores, y <b style="color:#c8f6ff">celeste</b> como acento (Perfil, Miembros, rayas de altura y el óvalo de ABIERTO). Los únicos otros colores son los de cada contrato y de cada jugador, que ya son suyos en todo el juego. Toca LOCAL y la conexión desaparece, como en el juego.</p>
+    <div class="ob final"><div class="wall fin">
+      <div class="topb"><button class="t1 neon">🪙 TIENDA</button><button class="t2 neon">👤 PERFIL</button></div>
+      <div class="h-neon"><img class="px" src="../assets/icons/icon-512.png" alt="Logo"><h4>CRIMINAL DICE</h4><div class="st">RANDOM DICE GAME</div></div>
+      <div class="blk"><div class="lbl">MODO DE JUEGO</div><div class="hang"><div class="board" data-grp><button data-pick data-mode="local">LOCAL<small>Un mismo aparato</small></button><button class="on" data-pick data-mode="online">ONLINE<small>Cada uno en su celular</small></button></div></div></div>
+      <div class="blk conn"><div class="lbl">CONEXIÓN MULTIJUGADOR</div><div class="door-slot"></div></div>
+      <div class="blk"><div class="lbl">JEFES DE LA MAFIA</div><div class="counts"></div><div class="grid4" data-bosses="v-line"></div></div>
+      <div class="blk"><div class="lbl">ELEGIR CONTRATO</div><div class="switches"></div>
+        <div class="signs" data-grp>
+          <button class="cs on" style="--n:#ff5a4a" data-pick><span class="ic">🔫</span>GUERRA DE BANDAS<small>Combate directo</small></button>
+          <button class="cs" style="--n:#6fd0ff" data-pick><span class="ic">💰</span>EL GRAN ATRACO<small>Tentar a la suerte</small></button>
+          <button class="cs" style="--n:#ffa24a" data-pick><span class="ic">🏙️</span>IMPERIO CRIMINAL<small>Gestión territorial</small></button>
+          <button class="cs" style="--n:#6dff9a" data-pick><span class="ic">🃏</span>APUESTAS CLANDESTINAS<small>Póker y riesgo</small></button></div><div class="party"></div></div>
+      <div class="blk"><div class="lbl">TIPOS DE DADOS</div><div class="cup" data-grp><button class="on" data-pick>VIRTUALES<small>Ruedan en pantalla</small></button><span class="mid">🎲</span><button data-pick>FÍSICOS<small>Tiras los tuyos</small></button></div></div>
+      <div class="blk"><button class="goB"><small>EL LOCAL ESTÁ</small><span>ABIERTO</span><small>¡A JUGAR!</small></button><button class="tut">🎓 Tutorial · aprende a jugar en 2 minutos</button><span class="ver">v0.2 · Papeleo del Capo</span></div>
+    </div></div>
+  </section>
+
+  <section class="ct" id="cab"><h2>Cabecera (elegida)</h2>
+    <p>Logo y título en neón rosa que parpadea. Tienda y Perfil pasan a ser dos letreritos de neón (ámbar y celeste).</p>
+    <div class="opts"><div class="ob"><div class="wall"><div class="topb"><button class="t1 neon">🪙 TIENDA</button><button class="t2 neon">👤 PERFIL</button></div>
+      <div class="h-neon"><img class="px" src="../assets/icons/icon-512.png" alt="Logo"><h4>CRIMINAL DICE</h4><div class="st">RANDOM DICE GAME</div></div></div></div></div>
+  </section>
+
+  <section class="ct" id="modo"><h2>Modo de juego</h2><p>Local u Online.</p>
+    <div class="opts">
+      <div class="ob"><h3>A · Tubos de neón</h3><p>Dos letreros apagados; el elegido se enciende con un parpadeo (rosa para Local, celeste para Online).</p>
+        <div class="wall"><div class="lbl">MODO DE JUEGO</div><div class="tubes" data-grp><button class="tube on" data-pick>LOCAL<small>📱 Un mismo aparato</small></button><button class="tube c2" data-pick>ONLINE<small>🌐 Cada uno en su celular</small></button></div></div></div>
+      <div class="ob"><h3>B · Letrero colgante</h3><p>Un solo cartel colgado con cadenas, partido en dos; se ilumina la mitad elegida.</p>
+        <div class="wall"><div class="lbl">MODO DE JUEGO</div><div class="hang"><div class="board" data-grp><button class="on" data-pick>LOCAL<small>Un mismo aparato</small></button><button data-pick>ONLINE<small>Cada uno en su celular</small></button></div></div></div></div>
+      <div class="ob"><h3>C · Flechas de motel</h3><p>Flechas con bombillas alrededor; las del modo elegido corren como en los carteles de carretera.</p>
+        <div class="wall"><div class="lbl">MODO DE JUEGO</div><div class="arrows" data-grp><button class="arw on" data-pick><span class="big">📱</span><span>LOCAL<small>Un mismo aparato</small></span></button><button class="arw" data-pick><span class="big">🌐</span><span>ONLINE<small>Cada uno en su celular</small></span></button></div></div></div>
+    </div>
+  </section>
+
+  <section class="ct" id="con"><h2>Conexión multijugador</h2><p>Solo aparece en Online: crear sala, unirse y el código para compartir.</p>
+    <div class="opts">
+      <div class="ob"><h3>A · Cabina telefónica</h3><p>Letrero “TELÉFONO” en celeste y el código de la sala en números rojos de pantalla.</p>
+        <div class="wall"><div class="lbl">CONEXIÓN</div><div class="booth"><div class="sign neon">☎ TELÉFONO</div>
+          <div class="two" data-grp><button class="on" data-pick>👑 Crear sala</button><button data-pick>🔑 Unirse a sala</button></div>
+          <div class="seg"><small>LÍNEA</small><b>4F7K</b><button class="copy">📋 COPIAR ENLACE</button></div></div></div></div>
+      <div class="ob"><h3>B · Motel</h3><p>La sala es una habitación; el letrero verde dice cuántos sitios quedan. Los botones son llaveros.</p>
+        <div class="wall"><div class="lbl">CONEXIÓN</div><div class="motel"><div class="sign"><div class="t neon">MOTEL CRIMINAL</div><div class="r">HABITACIÓN <b>4F7K</b></div><span class="vac neon">HAY SITIO · 2/4</span></div>
+          <div class="keys" data-grp><button class="key on" data-pick>Crear sala<small>Reservar habitación</small></button><button class="key" data-pick>Unirse<small>Tengo la llave</small></button></div>
+          <button class="copy" style="grid-column:1/-1">📋 COPIAR ENLACE DE LA HABITACIÓN</button></div></div></div>
+      <div class="ob"><h3>C · Puerta del club ✔</h3><p>Puerta con mirilla y letrero rosa; el código es la contraseña para entrar. Debajo, el letrero de <b>Miembros</b>: una luz por puesto, encendida si ya entró alguien.</p>
+        <div class="wall"><div class="lbl">CONEXIÓN</div><div class="door-slot"></div></div></div>
+    </div>
+  </section>
+
+  <section class="ct" id="jef"><h2>Jefes de la mafia</h2><p>Con el máximo: 12 capos en la lista y 4 puestos (2 jugadores + 2 bots). Las flechas cambian de capo y tocando el nombre se abre la lista. Cada jefe se ilumina con su color.</p>
+    <div class="opts">
+      <div class="ob"><h3>A · Rueda de reconocimiento en neón</h3><p>La rueda de siempre de noche: las rayas de altura son tubos celestes y el nombre brilla con el color del jugador.</p>
+        <div class="wall"><div class="lbl">JEFES DE LA MAFIA</div><div class="counts"></div><div class="grid4" data-bosses="v-line"></div></div></div>
+      <div class="ob"><h3>B · Escenario del club</h3><p>Cada jefe bajo un foco, con su nombre en un marco de bombillas del color del jugador.</p>
+        <div class="wall"><div class="lbl">JEFES DE LA MAFIA</div><div class="counts"></div><div class="grid4" data-bosses="v-stage"></div></div></div>
+      <div class="ob"><h3>C · Carteles “Se busca” iluminados</h3><p>Carteles de papel pegados a la pared, cada uno rodeado por un tubo del color del jugador.</p>
+        <div class="wall"><div class="lbl">JEFES DE LA MAFIA</div><div class="counts"></div><div class="grid4" data-bosses="v-wanted"></div></div></div>
+    </div>
+  </section>
+
+  <section class="ct" id="con2"><h2>Elegir contrato</h2><p>Arriba los tres interruptores de pared (Modo Party, Mercado Negro, Eventos): al subirlos se enciende su nombre. Abajo los 4 contratos. Enciende “Modo Party” para poder elegir varios y ver el marcador de victorias.</p>
+    <div class="opts">
+      <div class="ob"><h3>A · Un letrero por contrato</h3><p>Cuatro letreros apagados; el elegido se enciende con el color de su contrato.</p>
+        <div class="wall"><div class="lbl">ELEGIR CONTRATO</div><div class="switches"></div>
+          <div class="signs" data-grp>
+            <button class="cs on" style="--n:#ff5a4a" data-pick><span class="ic">🔫</span>GUERRA DE BANDAS<small>Combate directo</small></button>
+            <button class="cs" style="--n:#6fd0ff" data-pick><span class="ic">💰</span>EL GRAN ATRACO<small>Tentar a la suerte</small></button>
+            <button class="cs" style="--n:#ffa24a" data-pick><span class="ic">🏙️</span>IMPERIO CRIMINAL<small>Gestión territorial</small></button>
+            <button class="cs" style="--n:#6dff9a" data-pick><span class="ic">🃏</span>APUESTAS CLANDESTINAS<small>Póker y riesgo</small></button></div><div class="party"></div></div></div>
+      <div class="ob"><h3>B · Puertas del callejón</h3><p>Cuatro puertas traseras con su letrero encima; la elegida se abre y sale luz a la calle.</p>
+        <div class="wall"><div class="lbl">ELEGIR CONTRATO</div><div class="switches"></div>
+          <div class="doors" data-grp>
+            <button class="dr on" style="--n:#ff5a4a" data-pick><span class="top">GUERRA DE BANDAS</span><span class="frame"><span class="ic">🔫</span><span class="leaf"></span></span><small>Combate</small></button>
+            <button class="dr" style="--n:#6fd0ff" data-pick><span class="top">EL GRAN ATRACO</span><span class="frame"><span class="ic">💰</span><span class="leaf"></span></span><small>Suerte</small></button>
+            <button class="dr" style="--n:#ffa24a" data-pick><span class="top">IMPERIO CRIMINAL</span><span class="frame"><span class="ic">🏙️</span><span class="leaf"></span></span><small>Territorio</small></button>
+            <button class="dr" style="--n:#6dff9a" data-pick><span class="top">APUESTAS CLAND.</span><span class="frame"><span class="ic">🃏</span><span class="leaf"></span></span><small>Póker</small></button></div><div class="party"></div></div></div>
+      <div class="ob"><h3>C · Rocola</h3><p>Una rocola con los contratos como canciones: se pulsa la tecla (A1, A2…) y se ilumina con el color del contrato.</p>
+        <div class="wall"><div class="lbl">ELEGIR CONTRATO</div><div class="switches"></div>
+          <div class="juke"><div class="list" data-grp>
+            <button class="jk on" style="--n:#ff5a4a" data-pick><i>A1</i><span>GUERRA DE BANDAS<small>Combate directo</small></span></button>
+            <button class="jk" style="--n:#6fd0ff" data-pick><i>A2</i><span>EL GRAN ATRACO<small>Tentar a la suerte</small></span></button>
+            <button class="jk" style="--n:#ffa24a" data-pick><i>B1</i><span>IMPERIO CRIMINAL<small>Gestión territorial</small></span></button>
+            <button class="jk" style="--n:#6dff9a" data-pick><i>B2</i><span>APUESTAS CLANDESTINAS<small>Póker y riesgo</small></span></button></div></div><div class="party"></div></div></div>
+    </div>
+  </section>
+
+  <section class="ct" id="dad"><h2>Tipos de dados</h2><p>Virtuales (ruedan en pantalla) o físicos (tiras los tuyos).</p>
+    <div class="opts">
+      <div class="ob"><h3>A · Dado y mano de neón</h3><p>Dos letreros con dibujo: un dado y una mano; se enciende el elegido.</p>
+        <div class="wall"><div class="lbl">TIPOS DE DADOS</div><div class="dice2" data-grp><button class="ds on" data-pick><span class="die"></span>VIRTUALES<small>Ruedan en pantalla</small></button><button class="ds p2" data-pick><span class="hand">✋</span>FÍSICOS<small>Tiras los tuyos</small></button></div></div></div>
+      <div class="ob"><h3>B · Cartel doble</h3><p>Igual que el letrero colgante de Modo B, para que ambas secciones combinen.</p>
+        <div class="wall"><div class="lbl">TIPOS DE DADOS</div><div class="cup" data-grp><button class="on" data-pick>VIRTUALES<small>Ruedan en pantalla</small></button><span class="mid">🎲</span><button data-pick>FÍSICOS<small>Tiras los tuyos</small></button></div></div></div>
+    </div>
+  </section>
+
+  <section class="ct" id="go"><h2>Botón de comenzar</h2><p>Con el botón del tutorial y la versión debajo.</p>
+    <div class="opts">
+      <div class="ob"><h3>A · Letrero con flecha</h3><p>Tubo rosa con flechas que se encienden una tras otra hacia la derecha.</p>
+        <div class="wall"><button class="goA">¡COMENZAR! <span class="ar"><i>›</i><i>›</i><i>›</i></span></button><button class="tut">🎓 Tutorial · aprende a jugar en 2 minutos</button><span class="ver">v0.2 · Papeleo del Capo</span></div></div>
+      <div class="ob"><h3>B · Cartel de “ABIERTO”</h3><p>Óvalo celeste con la palabra en rosa, como el cartel de un local abierto.</p>
+        <div class="wall"><button class="goB"><small>EL LOCAL ESTÁ</small><span>ABIERTO</span><small>¡A JUGAR!</small></button><button class="tut">🎓 Tutorial · aprende a jugar en 2 minutos</button><span class="ver">v0.2 · Papeleo del Capo</span></div></div>
+      <div class="ob"><h3>C · El rosa actual</h3><p>El botón que ya tenía el Menú 3, sin cambios.</p>
+        <div class="wall"><button class="goC">¡COMENZAR!</button><button class="tut">🎓 Tutorial · aprende a jugar en 2 minutos</button><span class="ver">v0.2 · Papeleo del Capo</span></div></div>
+    </div>
+  </section>
+</div>
+<script>
+const IMG = (c, f) => '../assets/characters/' + c + '/' + (f || 'idle') + '.png';
+const pc = { R:'#ff5a4a', B:'#5f9cff', G:'#6dff9a', Pu:'#c77dff', Y:'#ffd34f', P:'#ff7ac0', W:'#e8e8e8' };
+const COLS = ['R','B','G','Pu','Y','P','W'];
+const SKINS = ['Mafioso','Mafiosa','El Patrón','El Brummie','El Sopra','Sr. Fisk','El Gordo','Gustavo','Sr. Montana','Don Vito','T-800','T-X'];
+const SKEYS = ['Mafioso','Mafiosa','Patron','Brummie','Soprano','Fisk','Tony','Gustavo','Montana','Vito','Terminator','TX'];
+const LINE = [{ l:'JEFE 1', n:'Darb', k:'R', s:0 }, { l:'JEFE 2', n:'Lucía', k:'B', s:1 }, { l:'BOT 1', n:'Bot 1', k:'G', bot:1 }, { l:'BOT 2', n:'Bot 2', k:'Pu', bot:1 }];
+
+const boss = (s, v) => {
+  const src = s.bot ? IMG('Bot/Color_' + s.k) : IMG(SKEYS[s.s] + '/Color_' + s.k);
+  return `<div class="boss ${v}" style="--c:${pc[s.k]}" data-k="${s.k}" data-i="${s.s || 0}">
+    ${v === 'v-wanted' ? '<div class="head">SE BUSCA</div>' : ''}
+    <span class="who">${s.l}</span>
+    <div class="spr"><img class="px" src="${src}" alt="">${s.bot ? '' : '<button class="arr pv" aria-label="Capo anterior">◀</button><button class="arr nx" aria-label="Capo siguiente">▶</button>'}</div>
+    <div class="marq"><input value="${s.n}" ${s.bot ? 'disabled' : 'maxlength="16"'} aria-label="Nombre">
+    ${s.bot ? '<span class="bots-note">Los bots siempre son el robot</span>' : `<span class="pn"><span class="nm">${SKINS[s.s]}</span><small>${s.s + 1} de ${SKINS.length} · lista ▾</small><select aria-label="Elegir capo">${SKINS.map((k, j) => `<option value="${j}" ${j === s.s ? 'selected' : ''}>${k}</option>`).join('')}</select></span>`}</div>
+    ${s.bot ? '' : `<div class="dots">${COLS.map(k => `<button aria-label="Color" style="--d:${pc[k]}" data-col="${k}" class="${k === s.k ? 'sel' : (k === 'R' || k === 'B') ? 'used' : ''}"></button>`).join('')}</div>`}
+    ${v === 'v-wanted' ? '<div class="reward">RECOMPENSA · $ ???</div>' : ''}</div>`;
+};
+const DOOR = `<div class="door"><div class="club neon">CLUB DE LOS DADOS</div><span class="peep"></span>
+  <div class="pass">Contraseña<b>4F7K</b></div>
+  <div class="members">MIEMBROS <span class="seats"><i class="in"></i><i class="in"></i><i></i><i></i></span><span><b>2/4</b><small>HAY SITIO</small></span></div>
+  <div class="two" data-grp><button class="on" data-pick>👑 ABRIR EL LOCAL<small>Crear sala</small></button><button data-pick>✊ TOCAR LA PUERTA<small>Unirse a sala</small></button></div>
+  <button class="copy">📋 COPIAR ENLACE</button></div>`;
+document.querySelectorAll('.door-slot').forEach(el => { el.outerHTML = DOOR; });
+document.querySelectorAll('[data-bosses]').forEach(el => { el.innerHTML = LINE.map(s => boss(s, el.dataset.bosses)).join(''); });
+document.querySelectorAll('.counts').forEach(el => { el.innerHTML = ['JUGADORES', 'BOTS'].map(t => `<div class="cnt">${t}<button aria-label="Menos">−</button><b class="neon">2</b><button aria-label="Más">+</button></div>`).join(''); });
+document.querySelectorAll('.switches').forEach(el => { el.innerHTML = [['MODO PARTY', 0], ['MERCADO NEGRO', 1], ['EVENTOS', 1]].map(([t, on]) => `<button class="ws ${on ? 'on' : ''}" data-party="${t === 'MODO PARTY' ? 1 : ''}"><span class="plate"></span>${t}<b>${on ? 'ENCENDIDO' : 'APAGADO'}</b></button>`).join(''); });
+
+const setSkin = (b, j) => { j = (j + SKINS.length) % SKINS.length; b.dataset.i = j; b.querySelector('img').src = IMG(SKEYS[j] + '/Color_' + b.dataset.k);
+  b.querySelector('.nm').textContent = SKINS[j]; b.querySelector('.pn small').textContent = (j + 1) + ' de ' + SKINS.length + ' · lista ▾'; b.querySelector('select').value = j; };
+const party = (ob, on) => { const p = ob.querySelector('.party'); if (!p) return;
+  p.innerHTML = on ? '<div class="score"><button aria-label="Menos">−</button><span class="mid"><b class="neon">3</b>VICTORIAS PARA GANAR</span><button aria-label="Más">+</button></div><p class="hint">Con Modo Party se pueden encender varios contratos.</p>' : ''; };
+
+document.addEventListener('click', e => {
+  const a = e.target.closest('.boss .arr'); if (a) { const b = a.closest('.boss'); setSkin(b, +b.dataset.i + (a.classList.contains('nx') ? 1 : -1)); return; }
+  const d = e.target.closest('.dots button'); if (d && !d.classList.contains('used')) { const b = d.closest('.boss'); b.querySelectorAll('.dots button').forEach(x => x.classList.remove('sel')); d.classList.add('sel');
+    b.dataset.k = d.dataset.col; b.style.setProperty('--c', pc[d.dataset.col]); b.querySelector('img').src = IMG(SKEYS[+b.dataset.i] + '/Color_' + d.dataset.col); return; }
+  const w = e.target.closest('.ws'); if (w) { w.classList.toggle('on'); w.querySelector('b').textContent = w.classList.contains('on') ? 'ENCENDIDO' : 'APAGADO';
+    if (w.dataset.party) { const ob = w.closest('.ob'); ob.classList.toggle('multi', w.classList.contains('on')); party(ob, w.classList.contains('on'));
+      if (!w.classList.contains('on')) { const on = ob.querySelectorAll('[data-pick].on'); on.forEach((x, i) => i && x.classList.remove('on')); } } return; }
+  const c = e.target.closest('.cnt button'); if (c) { const b = c.parentNode.querySelector('b'); b.textContent = Math.max(0, Math.min(4, +b.textContent + (c.textContent === '+' ? 1 : -1))); return; }
+  const s = e.target.closest('.score button'); if (s) { const b = s.parentNode.querySelector('b.neon'); b.textContent = Math.max(1, Math.min(9, +b.textContent + (s.textContent === '+' ? 1 : -1))); return; }
+  const p = e.target.closest('[data-pick]'); if (p) { const g = p.closest('[data-grp]'), multi = p.closest('.ob').classList.contains('multi');
+    if (multi) { if (!p.classList.contains('on') || g.querySelectorAll('[data-pick].on').length > 1) p.classList.toggle('on'); }
+    else { g.querySelectorAll('[data-pick]').forEach(x => x.classList.toggle('on', x === p)); }
+    if (p.dataset.mode) { const cn = p.closest('.ob').querySelector('.conn'); if (cn) cn.hidden = p.dataset.mode !== 'online'; } }
+});
+document.addEventListener('change', e => { if (e.target.matches('.pn select')) setSkin(e.target.closest('.boss'), +e.target.value); });
+</script>
+</body>
+</html>

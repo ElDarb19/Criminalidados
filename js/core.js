@@ -573,7 +573,10 @@ function render() {
   $$('g-turn').textContent = G.over ? '' : !G.started ? 'Preparando el contrato…' : G.between ? '' : G.prompt ? '⏳ Esperando el dado de ' + G.players[G.prompt.slot].name :
     CD.pending ? '🎯 Elige a tu objetivo' : (mine ? '👉 Tu turno, ' + cur.name : 'Turno de ' + cur.name + (cur.bot ? ' (bot)' : ''));
   const box = $$('g-actions'); box.classList.toggle('hidden', !mine);
-  if (mine) box.innerHTML = M.ui(G, cur).concat(MK.useBtn(cur) || []).map(b => `<button class="opt ${b.wide ? 'wide' : ''} ${CD.pending === b.type ? 'selected' : ''}" data-type="${b.type}" ${b.disabled ? 'disabled' : ''} onclick="CD.choose('${b.type}')">${b.label}<br><small>${b.sub}</small>${b.odds ? `<span class="odds" title="Probabilidad base (sin objetos ni eventos)">${b.odds}</span>` : ''}</button>`).join('');
+  // b.cls y b.pre: clase y dibujo extra que cada contrato puede poner en su botón (solo decoración)
+  if (mine) box.innerHTML = M.ui(G, cur).concat(MK.useBtn(cur) || []).map(b => `<button class="opt ${b.wide ? 'wide' : ''} ${b.cls || ''} ${CD.pending === b.type ? 'selected' : ''}" data-type="${b.type}" ${b.disabled ? 'disabled' : ''} onclick="CD.choose('${b.type}')">${b.pre || ''}<span class="bl">${b.label}</span><small>${b.sub}</small>${b.odds ? `<span class="odds" title="Probabilidad base (sin objetos ni eventos)">${b.odds}</span>` : ''}</button>`).join('');
+  const tp = $$('g-top'), th = M.top ? M.top(G) : '';            // franja propia del contrato bajo el turno (p. ej. las hojas del atraco)
+  if (tp && tp.dataset.h !== th) { tp.dataset.h = th; tp.innerHTML = th; }
   $$('g-log').innerHTML = G.log.slice().reverse().map(l => '<div>' + esc(l) + '</div>').join('');
   const bt = $$('modal-between'); bt.classList.toggle('hidden', !G.between);
   if (G.between) {
@@ -627,7 +630,7 @@ CD.ask = function (spec) {
   return new Promise(res => {
     $$('choice-title').textContent = spec.title; $$('choice-text').textContent = spec.text || '';
     const box = $$('choice-opts'); box.innerHTML = '';
-    spec.options.forEach(o => { const b = document.createElement('button'); b.className = 'opt'; b.innerHTML = o.label; b.disabled = !!o.disabled;
+    spec.options.forEach(o => { const b = document.createElement('button'); b.className = 'opt ' + (o.cls || ''); b.innerHTML = o.label; b.disabled = !!o.disabled;
       b.onclick = () => { $$('modal-choice').classList.add('hidden'); res(o.value); }; box.appendChild(b); });
     $$('choice-cancel').onclick = () => { $$('modal-choice').classList.add('hidden'); res(null); };
     $$('modal-choice').classList.remove('hidden');

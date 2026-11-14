@@ -215,6 +215,19 @@ function onCounts() {
   renderAll(); pushConfig();
 }
 function claimedMax() { let m = 0; if (online()) S.players.forEach((p,i) => { if (p.uid) m = i + 1; }); return m; }
+// botones − / + junto a los números de jugadores y bots: mueven el desplegable a la opción vecina (si existe)
+function stepCount(id, d) {
+  const s = $(id); if (s.disabled) return;
+  const v = String(+s.value + d);
+  if ([...s.options].some(o => o.value === v)) { s.value = v; onCounts(); }
+}
+// capos que este jugador puede elegir: los que tiene (más el que ya lleve puesto)
+const charChoices = who => CHARACTERS.filter(c => c.key === who || ownsChar(c.key));
+function stepChar(i, d) {
+  const p = S.players[i], L = charChoices(p.char || 'Mafioso'); if (L.length < 2) return;
+  const j = L.findIndex(c => c.key === (p.char || 'Mafioso'));
+  onChar(i, L[(j + d + L.length) % L.length].key);
+}
 
 function renderSlots() {
   const hs = $('sel-humans'), bs = $('sel-bots');
@@ -225,17 +238,21 @@ function renderSlots() {
   bs.value = S.bots;
   const locked = !canHost();
   hs.disabled = bs.disabled = locked;
+  document.querySelectorAll('#count-box .cnt button').forEach(b => { b.disabled = locked; });
 
   const bc = botColors(), box = $('slots');
   const total = S.humans + S.bots;
   for (let i = 0; i < 4; i++) {
     let el = box.children[i];
+    // rueda de reconocimiento en neón: flechas a los lados del capo y, tocando su nombre, la lista completa
     if (!el) { el = document.createElement('div'); el.className = 'slot'; box.appendChild(el); el.innerHTML =
-      '<div class="avatar"><img alt=""></div><div><small></small><input type="text" maxlength="16"><div class="chars" role="group" aria-label="Personaje"></div><div class="swatches"></div></div>';
+      '<small></small><div class="avatar"><img alt=""><button type="button" class="arr pv" aria-label="Capo anterior">◀</button><button type="button" class="arr nx" aria-label="Capo siguiente">▶</button></div>' +
+      '<input type="text" maxlength="16" aria-label="Nombre"><div class="chars"><span class="pn"></span><span class="pc"></span><select aria-label="Elegir capo"></select></div>' +
+      '<span class="bot-note">Los bots siempre son el robot</span><div class="swatches"></div>';
       el.querySelector('input').addEventListener('input', e => onName(i, cleanInput(e.target)));
-      const ch = el.querySelector('.chars');
-      CHARACTERS.forEach(c => { const b = document.createElement('button'); b.type = 'button'; b.className = 'char-btn'; b.dataset.char = c.key;
-        b.textContent = c.label; b.onclick = () => onChar(i, c.key); ch.appendChild(b); });
+      el.querySelector('.arr.pv').onclick = () => stepChar(i, -1);
+      el.querySelector('.arr.nx').onclick = () => stepChar(i, 1);
+      el.querySelector('select').onchange = e => onChar(i, e.target.value);
       const sw = el.querySelector('.swatches');
       COLOR_KEYS.forEach(c => { const b = document.createElement('button'); b.className = 'sw'; b.style.setProperty('--c', COLORS[c]);
         b.title = c; b.dataset.tag = colorTag(c); b.setAttribute('aria-label', COLOR_LABELS[c]); b.onclick = () => onColor(i, c); sw.appendChild(b); }); }
@@ -251,13 +268,22 @@ function renderSlots() {
     const nm = isBot ? 'Bot ' + (i - S.humans + 1) : (claimed ? cleanName(p.name) : '—');
     if (document.activeElement !== inp) inp.value = nm;
     inp.disabled = !mine;
+    el.classList.toggle('bot', isBot);
+    el.style.setProperty('--pc', COLORS[color] || '#555');
     el.querySelector('.avatar').style.setProperty('--pc', COLORS[color] || '#555');
     const who = isBot ? 'Bot' : (p.char || 'Mafioso');
     const img = el.querySelector('img'); const src = 'assets/characters/' + who + '/' + color + '/idle.png';
     if (!img.src.endsWith(src)) { img.style.visibility = 'visible'; img.onerror = () => { img.style.visibility = 'hidden'; }; img.src = src; }
     const chars = el.querySelector('.chars'); chars.classList.toggle('hidden', isBot);            // los bots siempre son el robot
-    chars.querySelectorAll('.char-btn').forEach(b => { const on = b.dataset.char === who; b.classList.toggle('sel', on); b.setAttribute('aria-pressed', on); b.disabled = !mine;
-      b.classList.toggle('hidden', !on && !ownsChar(b.dataset.char)); });            // skins sin comprar: ni se ven
+    el.querySelector('.bot-note').classList.toggle('hidden', !isBot);
+    el.querySelector('.swatches').classList.toggle('hidden', isBot);
+    const L = charChoices(who), j = Math.max(0, L.findIndex(c => c.key === who)), sel = chars.querySelector('select');   // skins sin comprar: ni se ven
+    chars.querySelector('.pn').textContent = (L[j] || CHARACTERS[0]).label;
+    chars.querySelector('.pc').textContent = (j + 1) + ' de ' + L.length + (L.length > 1 && mine ? ' · lista ▾' : '');
+    const keys = L.map(c => c.key).join('|');
+    if (sel.dataset.k !== keys) { sel.dataset.k = keys; sel.innerHTML = ''; L.forEach(c => sel.add(new Option(c.label, c.key))); }
+    sel.value = who; sel.disabled = !mine || L.length < 2;
+    el.querySelectorAll('.arr').forEach(b => { b.disabled = !mine || L.length < 2; b.classList.toggle('hidden', isBot); });
     el.querySelectorAll('.sw').forEach(b => {
       const c = b.title; b.classList.toggle('sel', c === color);
       b.disabled = !mine || usedByHumans(i).includes(c);   // colores en uso, bloqueados
@@ -292,23 +318,21 @@ function applyTheme() {
   const g = S.party ? 'rpg' : S.contract;
   document.body.className = 'theme-' + g;
 }
-function pickContract(g) { if (!canHost()) return; S.contract = g; renderAll(); pushConfig(); }
+// En Modo Party cada letrero se enciende o apaga (mínimo uno encendido); en un contrato único se elige uno solo.
+function pickContract(g) {
+  if (!canHost()) return;
+  if (S.party) { S.partyGames[g] = !S.partyGames[g]; if (partyCount() === 0) S.partyGames[g] = true; }
+  else S.contract = g;
+  renderAll(); pushConfig();
+}
 function onToggles() {
   if (!canHost()) { renderAll(); return; }
   S.party = $('t-party').checked; S.market = $('t-market').checked; S.events = $('t-events').checked;
   renderAll(); pushConfig();
 }
-function onPartyGames() {
-  if (!canHost()) { renderAll(); return; }
-  document.querySelectorAll('#party-box input[data-g]').forEach(c => S.partyGames[c.dataset.g] = c.checked);
-  if (partyCount() === 0) { S.partyGames.rpg = true; }   // mínimo un contrato
-  renderAll(); pushConfig();
-}
-function onWins() {
+function stepWins(d) {                    // marcador de victorias para ganar (de 1 a 10)
   if (!canHost()) return;
-  const v = parseInt($('wins').value, 10);
-  if (isNaN(v)) return;
-  S.partyWins = Math.min(10, Math.max(1, v)); updatePartyHint(); pushConfig();
+  S.partyWins = Math.min(10, Math.max(1, S.partyWins + d)); renderContract(); pushConfig();
 }
 function updatePartyHint() {
   const n = partyCount(), w = S.partyWins;
@@ -319,13 +343,18 @@ function setDice(d) { if (!canHost()) return; S.dice = d; renderAll(); pushConfi
 
 function renderContract() {
   $('t-party').checked = S.party; $('t-market').checked = S.market; $('t-events').checked = S.events;
-  $('single-box').classList.toggle('hidden', S.party);
   $('party-box').classList.toggle('hidden', !S.party);
-  document.querySelectorAll('#single-box .opt').forEach(b => b.classList.toggle('selected', b.dataset.g === S.contract));
-  document.querySelectorAll('#party-box input[data-g]').forEach(c => c.checked = S.partyGames[c.dataset.g]);
-  $('wins').min = 1;
-  if (document.activeElement !== $('wins')) $('wins').value = S.partyWins;
+  document.querySelectorAll('#single-box .opt').forEach(b => { const on = S.party ? !!S.partyGames[b.dataset.g] : b.dataset.g === S.contract;
+    b.classList.toggle('selected', on); b.setAttribute('aria-pressed', on); });
+  $('wins').textContent = S.partyWins;
+  document.querySelectorAll('#contract-card .switch').forEach(l => l.classList.toggle('on', l.querySelector('input').checked));
   updatePartyHint();
+  // Miembros del club: una luz por puesto de jugador, encendida si ya hay alguien sentado
+  if (online() && S.room) {
+    const n = S.players.slice(0, S.humans).filter(p => p.uid).length;
+    $('members-seats').innerHTML = S.players.slice(0, S.humans).map(p => `<i class="${p.uid ? 'in' : ''}"></i>`).join('');
+    $('members-n').textContent = n + '/' + S.humans; $('members-t').textContent = n < S.humans ? 'HAY SITIO' : 'COMPLETO';
+  }
   $('contract-card').classList.toggle('locked', !canHost());
   $('dice-card').classList.toggle('locked', !canHost());
   $('d-virtual').classList.toggle('selected', S.dice === 'virtual');
@@ -337,7 +366,9 @@ function renderAll() {
   applyTheme(); renderSlots(); renderContract();
   const btn = $('btn-start');
   btn.disabled = online() && !S.host;
-  btn.textContent = btn.disabled ? 'ESPERANDO AL ANFITRIÓN…' : '¡COMENZAR!';
+  $('btn-start-t').textContent = btn.disabled ? 'CERRADO' : 'ABIERTO';                 // cartel de "ABIERTO"
+  $('btn-start-s').textContent = btn.disabled ? 'ESPERANDO AL ANFITRIÓN…' : '¡A JUGAR!';
+  btn.setAttribute('aria-label', btn.disabled ? 'Esperando al anfitrión' : '¡Comenzar!');
   $('players-card').classList.toggle('locked', false);
 }
 
